@@ -1,0 +1,77 @@
+# =========================
+# General
+# =========================
+SKILL.md
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.temp
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE / Editor
+.vscode/
+.idea/
+*.iml
+
+# =========================
+# Frontend - Angular / Node
+# =========================
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.cache/
+frontend/coverage/
+
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# Optional package managers
+frontend/.yarn/
+frontend/.pnp.*
+frontend/.npm/
+
+# =========================
+# Backend - Spring Boot / Java
+# =========================
+backend/target/
+backend/build/
+backend/out/
+
+backend/.gradle/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Maven / Gradle logs
+backend/hs_err_pid*
+backend/replay_pid*
+
+# Compiled Java files
+*.class
+*.jar
+*.war
+*.ear
+
+# =========================
+# Database / Local files
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# Uploads / Generated files
+# =========================
+uploads/
+backend/uploads/
+frontend/uploads/
+
+# =========================
+# Docker
+# =========================
+docker-compose.override.yml
