@@ -52,18 +52,16 @@
       Thông tin đăng nhập không hợp lệ. Vui lòng kiểm tra lại.
     </div>
 
-    <form (ngSubmit)="login()" novalidate>
-      <div class="form-group" [class.has-error]="emailError">
+    <form [formGroup]="loginForm" (ngSubmit)="login()" novalidate>
+      <div class="form-group" [class.has-error]="emailInvalid">
         <label for="email">Email công ty</label>
         <div class="input-wrap">
           <input
             type="email"
             id="email"
-            name="email"
-            [(ngModel)]="email"
+            formControlName="email"
             placeholder="you@company.com"
             autocomplete="email"
-            (input)="emailError = false"
           />
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -73,17 +71,15 @@
         <span class="field-error">Vui lòng nhập email hợp lệ.</span>
       </div>
 
-      <div class="form-group" [class.has-error]="passwordError">
+      <div class="form-group" [class.has-error]="passwordInvalid">
         <label for="password">Mật khẩu</label>
         <div class="input-wrap">
           <input
             [type]="showPassword ? 'text' : 'password'"
             id="password"
-            name="password"
-            [(ngModel)]="password"
+            formControlName="password"
             placeholder="••••••••"
             autocomplete="current-password"
-            (input)="passwordError = false"
           />
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -105,7 +101,7 @@
 
       <div class="form-meta">
         <label class="checkbox-wrap">
-          <input type="checkbox" name="remember" [(ngModel)]="remember" />
+          <input type="checkbox" formControlName="remember" />
           <span class="custom-check"></span>
           Ghi nhớ đăng nhập
         </label>

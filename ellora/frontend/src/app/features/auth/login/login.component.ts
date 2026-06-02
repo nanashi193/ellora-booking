@@ -1,69 +1,64 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, inject } from '@angular/core';
+import { ReactiveFormsModule, Validators, NonNullableFormBuilder } from '@angular/forms';
+import { LoginRequest } from '../../../models/auth.model';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
-  private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly formBuilder = inject(NonNullableFormBuilder);
+  private readonly authService = inject(AuthService);
 
-  email = '';
-  password = '';
-  remember = false;
+  loginForm = this.formBuilder.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
+    remember: [false],
+  });
+
+  submitted = false;
   showPassword = false;
   isLoading = false;
   showAlert = false;
-  emailError = false;
-  passwordError = false;
   isSuccess = false;
+
+  get emailInvalid(): boolean {
+    const control = this.loginForm.controls.email;
+    return control.invalid && (control.touched || this.submitted);
+  }
+
+  get passwordInvalid(): boolean {
+    const control = this.loginForm.controls.password;
+    return control.invalid && (control.touched || this.submitted);
+  }
 
   togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
 
-  validateEmail(value: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-  }
-
   async login(): Promise<void> {
+    this.submitted = true;
     this.showAlert = false;
     this.isSuccess = false;
-    this.emailError = false;
-    this.passwordError = false;
 
-    let valid = true;
-
-    if (!this.validateEmail(this.email.trim())) {
-      this.emailError = true;
-      valid = false;
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
     }
-
-    if (!this.password.trim()) {
-      this.passwordError = true;
-      valid = false;
-    }
-
-    if (!valid) return;
 
     this.isLoading = true;
-    await new Promise(resolve => setTimeout(resolve, 1800));
+    const result = await this.authService.login(this.loginForm.getRawValue() as LoginRequest);
     this.isLoading = false;
 
-    const isDemo =
-      this.email === 'demo@company.com' &&
-      this.password === 'demo1234';
-
-    if (!isDemo) {
-      this.showAlert = true;
-    } else {
+    if (result.success) {
       this.isSuccess = true;
+    } else {
+      this.showAlert = true;
     }
-
-    this.changeDetector.detectChanges();
   }
 }
