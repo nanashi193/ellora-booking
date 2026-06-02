@@ -1,7 +1,6 @@
 # =========================
 # General
 # =========================
-SKILL.md
 .DS_Store
 Thumbs.db
 *.log
@@ -17,39 +16,56 @@ Thumbs.db
 .vscode/
 .idea/
 *.iml
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.history/
 
 # =========================
 # Frontend - Angular / Node
 # =========================
-frontend/node_modules/
-frontend/dist/
-frontend/.angular/
-frontend/.cache/
-frontend/coverage/
+ellora/frontend/node_modules/
+ellora/frontend/dist/
+ellora/frontend/tmp/
+ellora/frontend/out-tsc/
+ellora/frontend/bazel-out/
+ellora/frontend/.angular/
+ellora/frontend/.angular/cache/
+ellora/frontend/.cache/
+ellora/frontend/coverage/
+ellora/frontend/typings/
+ellora/frontend/__screenshots__/
 
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
-frontend/pnpm-debug.log*
+ellora/frontend/npm-debug.log*
+ellora/frontend/yarn-debug.log*
+ellora/frontend/yarn-error.log*
+ellora/frontend/pnpm-debug.log*
+ellora/frontend/connect.lock
+ellora/frontend/libpeerconnection.log
+ellora/frontend/testem.log
+ellora/frontend/.sass-cache/
 
 # Optional package managers
-frontend/.yarn/
-frontend/.pnp.*
-frontend/.npm/
+ellora/frontend/.yarn/
+ellora/frontend/.pnp.*
+ellora/frontend/.npm/
 
 # =========================
 # Backend - Spring Boot / Java
 # =========================
-backend/target/
-backend/build/
-backend/out/
+ellora/backend/target/
+ellora/backend/build/
+ellora/backend/out/
 
-backend/.gradle/
-backend/.mvn/wrapper/maven-wrapper.jar
+ellora/backend/.gradle/
+ellora/backend/.mvn/wrapper/maven-wrapper.jar
 
 # Maven / Gradle logs
-backend/hs_err_pid*
-backend/replay_pid*
+ellora/backend/hs_err_pid*
+ellora/backend/replay_pid*
 
 # Compiled Java files
 *.class
@@ -68,8 +84,8 @@ backend/replay_pid*
 # Uploads / Generated files
 # =========================
 uploads/
-backend/uploads/
-frontend/uploads/
+ellora/backend/uploads/
+ellora/frontend/uploads/
 
 # =========================
 # Docker
