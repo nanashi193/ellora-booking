@@ -67,74 +67,96 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 76px 70px;
+  align-items: center;
+  padding: 56px 48px;
   position: relative;
 }
 
+.form-header,
+.alert-box,
+form,
+.form-footer {
+  width: 100%;
+  max-width: 420px;
+}
+
 .form-header {
-  margin-bottom: 40px;
+  margin-bottom: 22px;
 }
 
 .login-logo-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 300px;
-  min-height: 96px;
-  margin: 0 auto 14px;
+  width: 240px;
+  min-height: 76px;
+  margin: 0 auto 12px;
 }
 
 .login-logo {
   display: block;
-  width: 100%;
+  width: 120%;
   height: auto;
 }
 
 .form-header h2 {
   font-family: 'Playfair Display', serif;
-  font-size: 2.85rem;
+  font-size: 2.35rem;
   color: var(--navy);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-shadow: 0 3px 0 rgba(244, 139, 182, .16);
 }
 
 .form-header p {
-  font-size: 1.08rem;
+  font-size: .95rem;
   font-weight: 600;
   color: var(--muted);
 }
 
 .divider-line {
-  width: 64px;
-  height: 4px;
+  width: 52px;
+  height: 3px;
   background: var(--gold);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   border-radius: 2px;
 }
 
 .form-group {
-  margin-bottom: 22px;
+  margin-bottom: 14px;
 }
 
 label {
   display: block;
-  font-size: .9rem;
+  font-size: .78rem;
   font-weight: 800;
   letter-spacing: .08em;
   text-transform: uppercase;
   color: var(--navy);
-  margin-bottom: 8px;
+  margin-bottom: 7px;
 }
 
 .input-wrap {
   position: relative;
 }
 
+.input-label {
+  position: absolute;
+  top: 10px;
+  left: 42px;
+  z-index: 1;
+  margin: 0;
+  color: var(--navy);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  line-height: 1;
+  pointer-events: none;
+}
+
 .input-wrap > svg {
   position: absolute;
   left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 9px;
   color: var(--muted);
   width: 17px;
   height: 17px;
@@ -146,19 +168,21 @@ input[type='email'],
 input[type='password'],
 input[type='text'] {
   width: 100%;
-  padding: 17px 50px;
-  border: 1.5px solid #f3bfd2;
+  min-height: 58px;
+  padding: 28px 46px 10px;
+  border: 1.5px solid transparent;
   border-radius: var(--radius);
   font-family: 'DM Sans', sans-serif;
-  font-size: 1.05rem;
+  font-size: .98rem;
   color: var(--navy);
   background: var(--white);
   outline: none;
-  transition: border-color .2s, box-shadow .2s;
+  transition: background .2s, border-color .2s, box-shadow .2s;
 }
 
 input:focus {
   border-color: var(--gold);
+  background: var(--white);
   box-shadow: 0 0 0 4px rgba(244, 139, 182, .18);
 }
 
@@ -205,7 +229,7 @@ input:focus + svg,
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin: 6px 0 20px;
 }
 
 .checkbox-wrap {
@@ -213,7 +237,7 @@ input:focus + svg,
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  font-size: .94rem;
+  font-size: .88rem;
   color: var(--muted);
   user-select: none;
   margin-bottom: 0;
@@ -257,7 +281,7 @@ input:focus + svg,
 }
 
 .forgot-link {
-  font-size: .94rem;
+  font-size: .88rem;
   color: var(--navy);
   text-decoration: none;
   font-weight: 800;
@@ -272,7 +296,7 @@ input:focus + svg,
   padding: 12px 16px;
   font-size: .84rem;
   color: var(--error);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   display: none;
 }
 
@@ -282,11 +306,11 @@ input:focus + svg,
 
 .btn-login {
   width: 100%;
-  padding: 17px;
+  padding: 15px;
   background: linear-gradient(135deg, #f48bb6, #f7a8c8);
   color: var(--white);
   font-family: 'DM Sans', sans-serif;
-  font-size: 1.14rem;
+  font-size: 1rem;
   font-weight: 900;
   letter-spacing: .06em;
   border: none;
@@ -352,7 +376,7 @@ input:focus + svg,
   display: flex;
   align-items: center;
   gap: 14px;
-  margin: 26px 0 22px;
+  margin: 18px 0;
 }
 
 .sso-divider::before,
@@ -371,12 +395,12 @@ input:focus + svg,
 
 .btn-sso {
   width: 100%;
-  padding: 15px;
+  padding: 13px;
   background: var(--white);
   border: 1.5px solid #f3bfd2;
   border-radius: var(--radius);
   font-family: 'DM Sans', sans-serif;
-  font-size: 1rem;
+  font-size: .94rem;
   font-weight: 800;
   color: var(--navy);
   cursor: pointer;
@@ -393,9 +417,9 @@ input:focus + svg,
 }
 
 .form-footer {
-  margin-top: 28px;
+  margin-top: 20px;
   text-align: center;
-  font-size: .94rem;
+  font-size: .88rem;
   color: #6b7d96;
   font-weight: 600;
 }
