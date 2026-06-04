@@ -318,24 +318,37 @@ input:focus + svg,
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: background .2s, transform .15s;
+  isolation: isolate;
+  transition: background .2s, box-shadow .2s, transform .15s;
 }
 
-.btn-login::after {
+.btn-login::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, .08) 50%, transparent 70%);
-  transform: translateX(-100%);
-  transition: transform .5s;
+  inset: 5px;
+  z-index: -1;
+  background: rgba(143, 72, 105, .32);
+  border-radius: calc(var(--radius) - 4px);
+  transform: translateY(120%) scale(.92);
+  transform-origin: bottom center;
+  transition: transform .42s cubic-bezier(.76, 0, .24, 1), background .2s;
 }
 
-.btn-login:hover {
-  background: linear-gradient(135deg, #e875a6, #f48bb6);
+.btn-login:hover:not(:disabled):not(.success),
+.btn-login:focus-visible:not(:disabled):not(.success) {
+  background: linear-gradient(135deg, #f7a8c8, #e875a6);
+  box-shadow: 0 12px 26px rgba(244, 139, 182, .28);
 }
 
-.btn-login:hover::after {
-  transform: translateX(100%);
+.btn-login:hover:not(:disabled):not(.success)::before,
+.btn-login:focus-visible:not(:disabled):not(.success)::before {
+  background: rgba(143, 72, 105, .46);
+  transform: translateY(0) scale(1);
+}
+
+.btn-login:focus-visible {
+  outline: 3px solid rgba(143, 72, 105, .24);
+  outline-offset: 4px;
 }
 
 .btn-login:active {
@@ -356,6 +369,20 @@ input:focus + svg,
   align-items: center;
   justify-content: center;
   gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-text {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 0 rgba(143, 72, 105, .2);
+  transition: text-shadow .2s;
+}
+
+.btn-login:hover:not(:disabled):not(.success) .btn-text,
+.btn-login:focus-visible:not(:disabled):not(.success) .btn-text {
+  text-shadow: 0 2px 10px rgba(143, 72, 105, .34);
 }
 
 .spinner {
@@ -467,5 +494,13 @@ input:focus + svg,
     width: 100%;
     min-height: 100vh;
     padding: 48px 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-login,
+  .btn-login::before,
+  .btn-text {
+    transition-duration: 1ms;
   }
 }
