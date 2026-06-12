@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -25,7 +26,7 @@ public class EmployeeService {
     private final SalonRepository salonRepository;
 
     @Transactional
-    public EmployeeResponse addEmployee(EmployeeRequest request, Long ownerId) {
+    public EmployeeResponse addEmployee(EmployeeRequest request, UUID ownerId) {
         Salon salon = salonRepository.findByOwnerId(ownerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Salon not found for current owner"));
 
@@ -44,7 +45,8 @@ public class EmployeeService {
     }
 
     @Transactional
-    public EmployeeResponse updateEmployee(Long employeeId, EmployeeRequest request, Long ownerId) {
+    public EmployeeResponse updateEmployee(
+            Long employeeId, EmployeeRequest request, UUID ownerId) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee", "id", employeeId));
 
@@ -63,7 +65,7 @@ public class EmployeeService {
     }
 
     @Transactional
-    public void deleteEmployee(Long employeeId, Long ownerId) {
+    public void deleteEmployee(Long employeeId, UUID ownerId) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee", "id", employeeId));
 

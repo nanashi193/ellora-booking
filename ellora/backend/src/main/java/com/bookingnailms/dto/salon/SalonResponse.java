@@ -6,6 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import com.bookingnailms.enums.SalonStatus;
 
 @Data
 @Builder
@@ -21,9 +25,15 @@ public class SalonResponse {
     private String phone;
     private String email;
     private String logoUrl;
-    private String status;
+    private List<String> imageUrls;
+    private SalonStatus status;
+    private Double latitude;
+    private Double longitude;
     private BigDecimal averageRating;
     private Integer totalReviews;
-    private Long ownerId;
+    private UUID ownerId;
     private String ownerName;
+    private Integer serviceCount;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

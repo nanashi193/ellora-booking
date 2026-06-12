@@ -8,9 +8,9 @@ spring:
     name: booking-nail-ms
 
   datasource:
-    url: postgresql://postgres.fzaebluklnysyqeewmkd:[YOUR-PASSWORD]@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres
-    username: postgres.fzaebluklnysyqeewmkd
-    password: Exe123@proj
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -19,7 +19,6 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     open-in-view: false
 
@@ -36,12 +35,10 @@ logging:
     com.bookingnailms: DEBUG
     org.springframework.security: INFO
 
-# JWT Configuration
 app:
-  jwt:
-    secret: ${JWT_SECRET:BookingNailMSSecretKeyForJWTTokenGeneration2024VeryLongSecretKey}
-    expiration-ms: 86400000        # 1 day
-    refresh-expiration-ms: 604800000  # 7 days
+  cognito:
+    issuer-uri: https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_iUMERg77o
+    client-id: 10ivodmqmsklu4gqkqj1qcgr0h
 
   cors:
     allowed-origins: http://localhost:4200

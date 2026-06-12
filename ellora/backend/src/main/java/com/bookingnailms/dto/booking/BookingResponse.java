@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import com.bookingnailms.enums.BookingStatus;
 
 @Data
 @Builder
@@ -22,7 +23,7 @@ public class BookingResponse {
     private String employeeName;
     private LocalDateTime scheduledAt;
     private Integer durationMinutes;
-    private String status;
+    private BookingStatus status;
     private String customerNote;
     private String salonNote;
     private String cancellationReason;

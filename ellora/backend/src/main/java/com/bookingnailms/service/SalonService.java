@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -31,7 +33,7 @@ public class SalonService {
     private final UserRepository userRepository;
 
     @Transactional
-    public SalonResponse createSalon(SalonRequest request, Long ownerId) {
+    public SalonResponse createSalon(SalonRequest request, UUID ownerId) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", ownerId));
 
@@ -48,7 +50,7 @@ public class SalonService {
                 .phone(request.getPhone())
                 .email(request.getEmail())
                 .status(SalonStatus.PENDING_APPROVAL)
-                .averageRating(0.0)
+                .averageRating(BigDecimal.ZERO)
                 .totalReviews(0)
                 .owner(owner)
                 .build();
@@ -60,7 +62,7 @@ public class SalonService {
     }
 
     @Transactional
-    public SalonResponse updateSalon(Long salonId, SalonRequest request, Long ownerId) {
+    public SalonResponse updateSalon(Long salonId, SalonRequest request, UUID ownerId) {
         Salon salon = salonRepository.findById(salonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Salon", "id", salonId));
 
@@ -108,7 +110,7 @@ public class SalonService {
     }
 
     @Transactional(readOnly = true)
-    public SalonResponse getMySalon(Long ownerId) {
+    public SalonResponse getMySalon(UUID ownerId) {
         Salon salon = salonRepository.findByOwnerId(ownerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Salon not found for current owner"));
         return mapToSalonResponse(salon);
@@ -131,6 +133,7 @@ public class SalonService {
                 .longitude(salon.getLongitude())
                 .averageRating(salon.getAverageRating())
                 .totalReviews(salon.getTotalReviews())
+                .ownerId(salon.getOwner().getId())
                 .ownerName(salon.getOwner().getFullName())
                 .serviceCount(salon.getServices() != null ? salon.getServices().size() : 0)
                 .createdAt(salon.getCreatedAt())

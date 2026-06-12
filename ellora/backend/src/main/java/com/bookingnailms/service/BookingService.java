@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -40,7 +41,7 @@ public class BookingService {
     private final UserRepository userRepository;
 
     @Transactional
-    public BookingResponse createBooking(BookingRequest request, Long customerId) {
+    public BookingResponse createBooking(BookingRequest request, UUID customerId) {
         User customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", customerId));
 
@@ -82,7 +83,7 @@ public class BookingService {
     }
 
     @Transactional
-    public void cancelBooking(Long bookingId, Long customerId) {
+    public void cancelBooking(Long bookingId, UUID customerId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
 
@@ -102,8 +103,9 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<BookingResponse> getMyBookings(Long customerId, Pageable pageable) {
-        Page<Booking> bookingsPage = bookingRepository.findByCustomerId(customerId, pageable);
+    public PageResponse<BookingResponse> getMyBookings(UUID customerId, Pageable pageable) {
+        Page<Booking> bookingsPage =
+                bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId, pageable);
 
         List<BookingResponse> responses = bookingsPage.getContent().stream()
                 .map(this::mapToBookingResponse)
@@ -117,9 +119,12 @@ public class BookingService {
         Page<Booking> bookingsPage;
 
         if (status != null) {
-            bookingsPage = bookingRepository.findBySalonIdAndStatus(salonId, status, pageable);
+            bookingsPage =
+                    bookingRepository.findBySalonIdAndStatusOrderByScheduledAtDesc(
+                            salonId, status, pageable);
         } else {
-            bookingsPage = bookingRepository.findBySalonId(salonId, pageable);
+            bookingsPage =
+                    bookingRepository.findBySalonIdOrderByScheduledAtDesc(salonId, pageable);
         }
 
         List<BookingResponse> responses = bookingsPage.getContent().stream()
@@ -130,7 +135,8 @@ public class BookingService {
     }
 
     @Transactional
-    public BookingResponse updateBookingStatus(Long bookingId, BookingStatusUpdateRequest request, Long ownerId) {
+    public BookingResponse updateBookingStatus(
+            Long bookingId, BookingStatusUpdateRequest request, UUID ownerId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
 
@@ -156,14 +162,19 @@ public class BookingService {
     private BookingResponse mapToBookingResponse(Booking booking) {
         return BookingResponse.builder()
                 .id(booking.getId())
+                .salonId(booking.getSalon().getId())
                 .salonName(booking.getSalon().getName())
+                .serviceId(booking.getService().getId())
                 .serviceName(booking.getService().getName())
+                .servicePrice(booking.getService().getPrice())
+                .employeeId(booking.getEmployee() != null ? booking.getEmployee().getId() : null)
                 .employeeName(booking.getEmployee() != null ? booking.getEmployee().getFullName() : null)
                 .scheduledAt(booking.getScheduledAt())
                 .durationMinutes(booking.getDurationMinutes())
                 .status(booking.getStatus())
                 .customerNote(booking.getCustomerNote())
                 .salonNote(booking.getSalonNote())
+                .cancellationReason(booking.getCancellationReason())
                 .createdAt(booking.getCreatedAt())
                 .build();
     }

@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -73,7 +74,7 @@ public class AdminService {
     }
 
     @Transactional
-    public void lockUser(Long userId) {
+    public void lockUser(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
@@ -83,7 +84,7 @@ public class AdminService {
     }
 
     @Transactional
-    public void unlockUser(Long userId) {
+    public void unlockUser(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 

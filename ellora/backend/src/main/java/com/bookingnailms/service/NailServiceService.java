@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -55,7 +56,8 @@ public class NailServiceService {
     }
 
     @Transactional
-    public ServiceResponse updateService(Long serviceId, ServiceRequest request, Long ownerId) {
+    public ServiceResponse updateService(
+            Long serviceId, ServiceRequest request, UUID ownerId) {
         NailService nailService = nailServiceRepository.findById(serviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service", "id", serviceId));
 
@@ -82,7 +84,7 @@ public class NailServiceService {
     }
 
     @Transactional
-    public void deleteService(Long serviceId, Long ownerId) {
+    public void deleteService(Long serviceId, UUID ownerId) {
         NailService nailService = nailServiceRepository.findById(serviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service", "id", serviceId));
 

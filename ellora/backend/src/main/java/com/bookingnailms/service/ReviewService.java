@@ -26,6 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -38,7 +41,7 @@ public class ReviewService {
     private final SalonRepository salonRepository;
 
     @Transactional
-    public ReviewResponse createReview(ReviewRequest request, Long customerId) {
+    public ReviewResponse createReview(ReviewRequest request, UUID customerId) {
         User customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", customerId));
 
@@ -91,7 +94,8 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewResponse replyToReview(Long reviewId, ReviewReplyRequest request, Long ownerId) {
+    public ReviewResponse replyToReview(
+            Long reviewId, ReviewReplyRequest request, UUID ownerId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review", "id", reviewId));
 
@@ -117,7 +121,8 @@ public class ReviewService {
                 .average()
                 .orElse(0.0);
 
-        salon.setAverageRating(Math.round(avgRating * 10.0) / 10.0);
+        salon.setAverageRating(
+                BigDecimal.valueOf(avgRating).setScale(1, RoundingMode.HALF_UP));
         salon.setTotalReviews((int) allReviews.getTotalElements());
         salonRepository.save(salon);
     }

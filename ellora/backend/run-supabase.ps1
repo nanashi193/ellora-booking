@@ -1,11 +1,38 @@
+$ErrorActionPreference = "Stop"
+
+$envFile = Join-Path $PSScriptRoot ".env.supabase"
+if (-not (Test-Path -LiteralPath $envFile)) {
+    throw "Missing $envFile. Copy .env.supabase.example to .env.supabase and fill in the values."
+}
+
+Get-Content -LiteralPath $envFile | ForEach-Object {
+    $line = $_.Trim()
+    if (-not $line -or $line.StartsWith("#")) {
+        return
+    }
+
+    $name, $value = $line -split "=", 2
+    if (-not $name -or $null -eq $value) {
+        throw "Invalid environment entry: $line"
+    }
+
+    Set-Item -Path "Env:$($name.Trim())" -Value $value.Trim()
+}
+
+$requiredVariables = @(
+    "SUPABASE_DB_URL",
+    "SUPABASE_DB_USERNAME",
+    "SUPABASE_DB_PASSWORD"
+)
+
+foreach ($variable in $requiredVariables) {
+    $value = (Get-Item -Path "Env:$variable" -ErrorAction SilentlyContinue).Value
+    if (-not $value -or $value.Contains("YOUR_")) {
+        throw "Missing value for $variable in $envFile"
+    }
+}
+
 $env:SPRING_PROFILES_ACTIVE = "supabase"
-
-# Copy values from backend/.env.supabase.example and replace the placeholders below.
-$env:SUPABASE_DB_URL = "jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require"
-$env:SUPABASE_DB_USERNAME = "postgres.YOUR_PROJECT_REF"
-$env:SUPABASE_DB_PASSWORD = "YOUR_DATABASE_PASSWORD"
-
-# Optional but recommended before deploying.
-# $env:JWT_SECRET = "replace-with-a-long-random-secret-at-least-32-characters"
-
-mvn spring-boot:run
+$env:SPRING_DEVTOOLS_RESTART_ENABLED = "false"
+Set-Location -LiteralPath $PSScriptRoot
+mvn.cmd spring-boot:run

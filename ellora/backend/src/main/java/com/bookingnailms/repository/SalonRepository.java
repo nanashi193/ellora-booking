@@ -10,13 +10,16 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface SalonRepository extends JpaRepository<Salon, Long> {
 
     Page<Salon> findByStatus(SalonStatus status, Pageable pageable);
 
-    Optional<Salon> findByOwnerId(Long ownerId);
+    Optional<Salon> findByOwnerId(UUID ownerId);
+
+    boolean existsByOwnerId(UUID ownerId);
 
     @Query("SELECT s FROM Salon s WHERE s.status = 'ACTIVE' AND " +
            "(LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
@@ -25,4 +28,7 @@ public interface SalonRepository extends JpaRepository<Salon, Long> {
     Page<Salon> searchActive(@Param("keyword") String keyword, Pageable pageable);
 
     Page<Salon> findByStatusAndCityIgnoreCase(SalonStatus status, String city, Pageable pageable);
+
+    Page<Salon> findByNameContainingIgnoreCaseAndStatus(
+            String name, SalonStatus status, Pageable pageable);
 }

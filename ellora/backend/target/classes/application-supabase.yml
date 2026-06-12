@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: postgresql://postgres.fzaebluklnysyqeewmkd:[YOUR-PASSWORD]@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres
-    username: postgres.fzaebluklnysyqeewmkd
-    password: Exe123@proj
+    url: ${SUPABASE_DB_URL}
+    username: ${SUPABASE_DB_USERNAME}
+    password: ${SUPABASE_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
@@ -11,8 +11,4 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
+      ddl-auto: none
