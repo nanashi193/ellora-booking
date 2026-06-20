@@ -1,0 +1,41 @@
+# Dependency directories
+**/node_modules/
+node_modules/
+
+# Angular / Frontend build outputs
+**/.angular/
+.angular/
+**/dist/
+dist/
+**/tmp/
+tmp/
+
+# Maven / Java / Backend build outputs
+**/target/
+target/
+**/*.class
+**/*.jar
+**/*.war
+**/*.ear
+
+# IDEs and editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets / Environment files
+**/.env
+**/.env.local
+**/.env.*.local
+**/application-*.yml
+**/application-*.properties
+!**/application-supabase.yml
+!**/application.yml
