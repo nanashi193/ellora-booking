@@ -1,0 +1,33 @@
+<header class="sticky top-0 z-50 w-full bg-ivory-50/80 backdrop-blur-xl border-b border-charcoal-800/10">
+      <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <!-- Logo -->
+        <a routerLink="/" class="flex items-center gap-2">
+          <span class="font-serif text-2xl font-medium tracking-wide text-charcoal-900">Ellora</span>
+        </a>
+
+        <!-- Desktop Nav -->
+        <nav class="hidden md:flex items-center gap-8">
+          <a routerLink="/search" class="text-sm font-medium text-charcoal-800 hover:text-dusty-pink-600 transition-colors">Discover</a>
+          <a routerLink="/auth" class="text-sm font-medium text-charcoal-800 hover:text-dusty-pink-600 transition-colors">For Business</a>
+        </nav>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-4">
+          <button class="hidden sm:flex p-2 text-charcoal-900 hover:bg-ivory-100 rounded-full transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+          <app-button variant="primary" size="sm" customClass="hidden sm:flex">
+            Log In
+          </app-button>
+          
+          <!-- Mobile Menu Toggle -->
+          <button class="md:hidden p-2 -mr-2 text-charcoal-900">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>

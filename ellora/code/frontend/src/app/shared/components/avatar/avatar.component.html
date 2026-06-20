@@ -1,0 +1,7 @@
+<div [class]="computedClasses()">
+      @if (src()) {
+        <img [src]="src()" [alt]="name()" class="w-full h-full object-cover rounded-full" />
+      } @else {
+        <span class="text-charcoal-900 font-medium">{{ initials() }}</span>
+      }
+    </div>

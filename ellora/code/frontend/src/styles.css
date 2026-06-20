@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @font-face {
   font-family: 'Minion Pro';
@@ -32,30 +34,16 @@
   font-display: swap;
 }
 
-@theme {
-  --color-ivory-50: #fdfbf7;
-  --color-ivory-100: #f9f8f6;
-  --color-ivory-200: #efeae0;
-
-  --color-dusty-pink-400: #e2aeb1;
-  --color-dusty-pink-500: #d49599;
-  --color-dusty-pink-600: #c48b8b;
-
-  --color-charcoal-800: #3a3836;
-  --color-charcoal-900: #2c2a29;
-
-  --font-serif: 'Minion Pro', ui-serif, Georgia, serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
-}
-
 /* You can add global styles to this file, and also import other style files */
 
-html,
-body {
-  min-height: 100%;
-  background: var(--color-ivory-50);
-  color: var(--color-charcoal-900);
-  font-family: var(--font-sans);
+@layer base {
+  html,
+  body {
+    min-height: 100%;
+    background: theme('colors.ivory.50');
+    color: theme('colors.charcoal.900');
+    font-family: theme('fontFamily.sans');
+  }
 }
 
 

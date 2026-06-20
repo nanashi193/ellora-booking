@@ -1,0 +1,66 @@
+<div class="flex flex-col lg:flex-row min-h-[calc(100vh-80px)] w-full">
+      
+      <!-- Left: Results List -->
+      <div class="w-full lg:w-[60%] xl:w-[55%] p-6 lg:p-8 flex flex-col gap-6 lg:overflow-y-auto lg:h-[calc(100vh-80px)]">
+        
+        <!-- Search Filters Header -->
+        <div class="flex flex-col gap-4">
+          <h1 class="font-serif text-3xl text-charcoal-900 font-medium">Salons in New York</h1>
+          
+          <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            <app-badge color="dark" size="md" class="shrink-0 cursor-pointer">All</app-badge>
+            @for (category of categories(); track category.id) {
+              <app-badge color="outline" size="md" class="shrink-0 cursor-pointer hover:bg-ivory-100 transition-colors">
+                {{ category.name }}
+              </app-badge>
+            }
+          </div>
+          
+          <div class="flex items-center justify-between text-sm text-charcoal-800 border-b border-charcoal-800/10 pb-4">
+            <span>{{ salons().length }} results found</span>
+            <button class="flex items-center gap-1.5 font-medium hover:text-dusty-pink-600 transition-colors">
+              Sort by: Recommended
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid of Results -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-10">
+          @for (salon of salons(); track salon.id) {
+            <app-salon-card [salon]="salon"></app-salon-card>
+          }
+        </div>
+        
+      </div>
+
+      <!-- Right: Map Placeholder -->
+      <div class="hidden lg:block lg:w-[40%] xl:w-[45%] bg-ivory-200 sticky top-[80px] h-[calc(100vh-80px)] border-l border-charcoal-800/10">
+        <!-- Map visualization mock -->
+        <div class="w-full h-full relative flex items-center justify-center bg-[#f0eadd]">
+          <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#2c2a29 1px, transparent 1px); background-size: 20px 20px;"></div>
+          
+          <!-- Mock Map Pins -->
+          @for (salon of salons(); track salon.id) {
+            <div class="absolute w-8 h-8 -ml-4 -mt-8 flex flex-col items-center justify-center cursor-pointer group"
+                 [style.top.%]="40 + (salon.rating * 5) % 40" 
+                 [style.left.%]="20 + (salon.reviewCount * 3) % 60">
+              <div class="bg-charcoal-900 text-white text-xs font-medium px-2 py-1 rounded shadow-lg group-hover:bg-dusty-pink-600 transition-colors whitespace-nowrap">
+                {{ salon.name }}
+              </div>
+              <div class="w-3 h-3 bg-charcoal-900 rotate-45 -mt-1.5 group-hover:bg-dusty-pink-600 transition-colors"></div>
+            </div>
+          }
+          
+          <div class="absolute bottom-6 right-6 flex flex-col gap-2">
+            <button class="w-10 h-10 bg-white border border-charcoal-800/10 rounded shadow flex items-center justify-center text-charcoal-900 hover:text-dusty-pink-600 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" /></svg>
+            </button>
+            <button class="w-10 h-10 bg-white border border-charcoal-800/10 rounded shadow flex items-center justify-center text-charcoal-900 hover:text-dusty-pink-600 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 12H4" /></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+    </div>
