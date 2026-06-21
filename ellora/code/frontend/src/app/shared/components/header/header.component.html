@@ -1,20 +1,25 @@
 <header class="sticky top-0 z-50 w-full bg-ivory-50/80 backdrop-blur-xl border-b border-charcoal-800/10">
       <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <!-- Logo -->
-        <a routerLink="/" class="flex items-center gap-2">
-          <img src="ellora-logoWeb.png" alt="Ellora Logo" class="h-20 w-auto">
+        <a routerLink="/" class="flex items-center gap-2 overflow-visible">
+          <img src="ellora-logoWeb.png" alt="Ellora Logo" class="h-20 w-auto scale-[1.75] origin-left object-contain">
         </a>
 
         <!-- Desktop Nav -->
         <nav class="hidden md:flex items-center gap-8">
-          <a routerLink="/search" class="text-sm font-medium text-charcoal-800 hover:text-dusty-pink-600 transition-colors">Discover</a>
-          <a routerLink="/auth" class="text-sm font-medium text-charcoal-800 hover:text-dusty-pink-600 transition-colors">For Business</a>
+          <div class="relative flex items-center h-full">
+            <a routerLink="/" class="text-sm font-medium text-dusty-pink-600 transition-colors pb-1">Home</a>
+            <div class="absolute bottom-[-10px] left-0 w-full h-0.5 bg-dusty-pink-500 rounded-full"></div>
+          </div>
+          <a routerLink="/search" class="text-sm font-medium text-charcoal-800 hover:text-dusty-pink-600 transition-colors pb-1">Near you</a>
+          <a routerLink="/owner/dashboard" class="text-sm font-medium text-charcoal-800 hover:text-dusty-pink-600 transition-colors pb-1">For Salons</a>
+          <a href="#" class="text-sm font-medium text-charcoal-800 hover:text-dusty-pink-600 transition-colors pb-1">Help</a>
         </nav>
 
         <!-- Actions -->
         <div class="flex items-center gap-4">
-          <app-button variant="primary" size="sm" customClass="hidden sm:flex" routerLink="/login">
-            Log In
+          <app-button variant="primary" size="sm" customClass="hidden sm:flex rounded-full px-6" routerLink="/login">
+            Sign In
           </app-button>
           
           <!-- Mobile Menu Toggle -->
