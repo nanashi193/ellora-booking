@@ -55,14 +55,28 @@
       <a routerLink="/search" class="text-sm font-semibold text-[#F493A4] hover:text-[#e07588] transition-colors">View All</a>
     </div>
     
-    <div class="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory hide-scrollbar" style="scrollbar-width: none; -ms-overflow-style: none;">
-      <!-- style hack for webkit in next line -->
-      <style> .hide-scrollbar::-webkit-scrollbar { display: none; } </style>
-      
-      @for (salon of salons(); track salon.id) {
-        <div class="w-[85vw] sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] shrink-0 snap-start">
-          <app-salon-card [salon]="salon" class="block h-full"></app-salon-card>
-        </div>
+    <div class="relative group">
+      <div #scrollContainer (scroll)="onScroll()" class="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory hide-scrollbar scroll-smooth" style="scrollbar-width: none; -ms-overflow-style: none;">
+        <!-- style hack for webkit in next line -->
+        <style> .hide-scrollbar::-webkit-scrollbar { display: none; } </style>
+        
+        @for (salon of salons(); track salon.id) {
+          <div class="w-[85vw] sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] shrink-0 snap-start">
+            <app-salon-card [salon]="salon" class="block h-full"></app-salon-card>
+          </div>
+        }
+      </div>
+
+      <!-- Navigation Arrows -->
+      @if (canScrollLeft()) {
+        <button (click)="scrollLeft()" class="absolute left-0 top-[40%] -translate-y-1/2 -ml-4 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-charcoal-900 hover:text-[#F493A4] transition-colors border border-charcoal-800/10 z-10 hidden md:flex">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+      }
+      @if (canScrollRight()) {
+        <button (click)="scrollRight()" class="absolute right-0 top-[40%] -translate-y-1/2 -mr-4 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-charcoal-900 hover:text-[#F493A4] transition-colors border border-charcoal-800/10 z-10 hidden md:flex">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        </button>
       }
     </div>
   </section>
