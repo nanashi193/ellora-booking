@@ -1,0 +1,395 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:host {
+  --navy: #8f4869;
+  --navy-mid: #ffe6f0;
+  --navy-light: #c56f96;
+  --gold: #f7b4cf;
+  --gold-light: #c56f96;
+  --cream: #fff9fc;
+  --white: #ffffff;
+  --muted: #9f6b84;
+  --error: #d83f67;
+  --radius: 12px;
+
+  display: block;
+  min-height: 100vh;
+  font-family: 'Minion Variable Concept', 'minion-pro', Georgia, serif;
+  background: #fff4f9;
+}
+
+.register-page {
+  min-height: 100vh;
+  display: flex;
+  overflow: hidden;
+  background: linear-gradient(135deg, #fff4f9 0%, #fffafd 54%, #ffedf5 100%);
+}
+
+.panel-left {
+  width: auto;
+  flex: 0 0 40%;
+  flex-shrink: 0;
+  background: rgba(255, 245, 249, .96);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 44px 48px;
+  position: relative;
+}
+
+.panel-right {
+  flex: 0 0 60%;
+  background: #fffafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.register-visual {
+  width: 72%;
+  max-width: 720px;
+  max-height: 72vh;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  position: relative;
+  z-index: 1;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0, #000 13%, #000 87%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 13%, #000 87%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0, #000 13%, #000 87%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 13%, #000 87%, transparent 100%);
+  mask-composite: intersect;
+}
+
+.form-header,
+.alert-box,
+form,
+.form-footer {
+  width: 100%;
+  max-width: 420px;
+}
+
+.form-header {
+  margin-bottom: 18px;
+}
+
+.register-logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 240px;
+  min-height: 76px;
+  margin: 0 auto 8px;
+}
+
+.register-logo {
+  display: block;
+  width: 120%;
+  height: auto;
+}
+
+.form-header h2 {
+  font-family: 'Minion Variable Concept', 'minion-pro', Georgia, serif;
+  font-size: 2.25rem;
+  color: var(--navy);
+  margin-bottom: 6px;
+  text-shadow: 0 3px 0 rgba(244, 139, 182, .16);
+}
+
+.form-header p {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.divider-line {
+  width: 52px;
+  height: 3px;
+  background: var(--gold);
+  margin-bottom: 12px;
+  border-radius: 2px;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+label {
+  display: block;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--navy);
+  margin-bottom: 7px;
+}
+
+.input-wrap {
+  position: relative;
+}
+
+.input-label {
+  position: absolute;
+  top: 10px;
+  left: 42px;
+  z-index: 1;
+  margin: 0;
+  color: var(--navy);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.input-wrap > svg {
+  position: absolute;
+  left: 15px;
+  top: 9px;
+  color: var(--muted);
+  width: 17px;
+  height: 17px;
+  pointer-events: none;
+  transition: color .2s;
+}
+
+input[type='email'],
+input[type='password'],
+input[type='text'] {
+  width: 100%;
+  min-height: 56px;
+  padding: 28px 46px 10px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
+  font-family: 'Inter', sans-serif;
+  font-size: .98rem;
+  color: var(--navy);
+  background: var(--white);
+  outline: none;
+  transition: background .2s, border-color .2s, box-shadow .2s;
+}
+
+input:focus {
+  border-color: var(--gold);
+  background: var(--white);
+  box-shadow: 0 0 0 4px rgba(244, 139, 182, .18);
+}
+
+input:focus + svg,
+.input-wrap:focus-within > svg {
+  color: var(--gold);
+}
+
+.toggle-pw {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 4px;
+  display: grid;
+  place-items: center;
+  transition: color .2s;
+}
+
+.toggle-pw:hover {
+  color: var(--gold);
+}
+
+.field-error {
+  font-size: .78rem;
+  color: var(--error);
+  margin-top: 5px;
+  display: none;
+}
+
+.form-group.has-error input {
+  border-color: var(--error);
+}
+
+.form-group.has-error .field-error {
+  display: block;
+}
+
+.alert-box {
+  background: rgba(224, 92, 92, .08);
+  border: 1px solid rgba(224, 92, 92, .3);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: .84rem;
+  color: var(--error);
+  margin-bottom: 14px;
+  display: none;
+}
+
+.alert-box.show {
+  display: block;
+}
+
+.btn-register {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #f48bb6, #f7a8c8);
+  color: var(--white);
+  font-family: 'Minion Variable Concept', 'minion-pro', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: background .2s, transform .15s;
+}
+
+.btn-register::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, .08) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform .5s;
+}
+
+.btn-register:hover {
+  background: linear-gradient(135deg, #e875a6, #f48bb6);
+}
+
+.btn-register:hover::after {
+  transform: translateX(100%);
+}
+
+.btn-register:active {
+  transform: scale(.98);
+}
+
+.btn-register:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.btn-register.success {
+  background: #2d7a4f;
+}
+
+.btn-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.spinner {
+  width: 17px;
+  height: 17px;
+  border: 2px solid rgba(255, 255, 255, .3);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: none;
+}
+
+.btn-register.loading .spinner {
+  display: block;
+}
+
+.sso-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 0;
+}
+
+.sso-divider::before,
+.sso-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #d4cfc5;
+}
+
+.sso-divider span {
+  font-size: .9rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.btn-sso {
+  width: 100%;
+  padding: 13px;
+  background: var(--white);
+  border: 1.5px solid #f3bfd2;
+  border-radius: var(--radius);
+  font-family: 'Minion Variable Concept', 'minion-pro', Georgia, serif;
+  font-size: .94rem;
+  font-weight: 800;
+  color: var(--navy);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.btn-sso:hover {
+  border-color: var(--gold);
+  box-shadow: 0 8px 20px rgba(244, 139, 182, .16);
+}
+
+.form-footer {
+  margin-top: 18px;
+  text-align: center;
+  font-size: .88rem;
+  color: #6b7d96;
+  font-weight: 600;
+}
+
+.form-footer a {
+  color: var(--navy);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.corner-deco {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(225deg, transparent 50%, rgba(244, 139, 182, .14) 50%);
+  pointer-events: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 860px) {
+  .panel-right {
+    display: none;
+  }
+
+  .panel-left {
+    width: 100%;
+    min-height: 100vh;
+    padding: 40px 32px;
+  }
+}
