@@ -366,6 +366,80 @@ input:focus + svg,
   text-decoration: none;
 }
 
+.confirmation-copy,
+.registration-success {
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 18px;
+}
+
+.confirmation-copy h3,
+.registration-success h3 {
+  color: var(--navy);
+  font-family: 'Playfair Display', serif;
+  font-size: 1.45rem;
+  margin-bottom: 6px;
+}
+
+.confirmation-copy p,
+.registration-success p {
+  color: var(--muted);
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.registration-success a {
+  display: inline-block;
+  margin-top: 16px;
+  color: var(--navy);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.confirmation-actions {
+  min-height: 44px;
+  margin: -2px 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-resend {
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.btn-resend:hover {
+  color: var(--navy-light);
+}
+
+.btn-resend:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.resend-message {
+  flex: 1 1 220px;
+  color: #28734d;
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.confirmation-error {
+  display: block;
+  margin-top: 6px;
+  color: var(--error);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
 .corner-deco {
   position: absolute;
   bottom: 0;

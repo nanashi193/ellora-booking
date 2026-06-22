@@ -504,3 +504,39 @@ input:focus + svg,
     transition-duration: 1ms;
   }
 }
+.confirmation-copy {
+  margin-bottom: 20px;
+}
+
+.confirmation-copy h3 {
+  margin: 0 0 8px;
+  color: #8f4869;
+  font-size: 24px;
+}
+
+.confirmation-copy p,
+.resend-message {
+  margin: 0;
+  color: #9f6b84;
+}
+
+.confirmation-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.text-action {
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #8f4869;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.text-action:disabled {
+  opacity: 0.55;
+}

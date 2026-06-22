@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -27,18 +28,28 @@ export const routes: Routes = [
       },
       {
         path: 'profile',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/customer/profile/profile.component').then(m => m.Profile)
       },
       {
+        path: 'account',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./features/account/account.component').then((m) => m.AccountComponent),
+      },
+      {
         path: 'owner/dashboard',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/owner/dashboard/dashboard.component').then(m => m.Dashboard)
       },
       {
         path: 'owner/services',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/owner/service-management/service-management.component').then(m => m.ServiceManagement)
       },
       {
         path: 'owner/bookings',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/owner/booking-management/booking-management.component').then(m => m.BookingManagement)
       }
     ]
@@ -52,6 +63,13 @@ export const routes: Routes = [
     path: 'register',
     loadComponent: () =>
       import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent,
+      ),
   },
   {
     path: '**',

@@ -6,4 +6,18 @@ export interface LoginRequest {
 
 export interface LoginResult {
   success: boolean;
+  message?: string;
+  requiresConfirmation?: boolean;
+}
+
+export interface RegisterRequest {
+  fullName: string;
+  email: string;
+  password: string;
+}
+
+export interface RegisterResult {
+  success: boolean;
+  requiresConfirmation: boolean;
+  message?: string;
 }
