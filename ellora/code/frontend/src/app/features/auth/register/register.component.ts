@@ -97,6 +97,26 @@ export class RegisterComponent {
     return control.invalid && (control.touched || this.confirmationSubmitted);
   }
 
+  get hasMinLength(): boolean {
+    return (this.registerForm.controls.password.value || '').length >= 8;
+  }
+
+  get hasUpperCase(): boolean {
+    return /[A-Z]/.test(this.registerForm.controls.password.value || '');
+  }
+
+  get hasLowerCase(): boolean {
+    return /[a-z]/.test(this.registerForm.controls.password.value || '');
+  }
+
+  get hasNumber(): boolean {
+    return /\d/.test(this.registerForm.controls.password.value || '');
+  }
+
+  get hasSpecialChar(): boolean {
+    return /[^A-Za-z0-9]/.test(this.registerForm.controls.password.value || '');
+  }
+
   togglePassword(): void {
     this.showPassword = !this.showPassword;
   }

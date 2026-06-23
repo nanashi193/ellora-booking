@@ -226,6 +226,37 @@ input:focus + svg,
   display: block;
 }
 
+.password-reqs {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.req-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .78rem;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.req-item svg {
+  width: 14px;
+  height: 14px;
+  color: #d4cfc5;
+  transition: color 0.2s;
+}
+
+.req-item.valid {
+  color: #2d7a4f;
+}
+
+.req-item.valid svg {
+  color: #2d7a4f;
+}
+
 .alert-box {
   background: rgba(224, 92, 92, .08);
   border: 1px solid rgba(224, 92, 92, .3);

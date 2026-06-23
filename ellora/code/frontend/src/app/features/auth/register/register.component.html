@@ -71,7 +71,43 @@
             </svg>
           </button>
         </div>
-        <span class="field-error">Dùng ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</span>
+        <div class="password-reqs" *ngIf="registerForm.controls.password.touched || registerForm.controls.password.dirty || registerForm.controls.password.value">
+          <div class="req-item" [class.valid]="hasMinLength">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="m9 12 2 2 4-4"></path>
+            </svg>
+            <span>Ít nhất 8 ký tự</span>
+          </div>
+          <div class="req-item" [class.valid]="hasUpperCase">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="m9 12 2 2 4-4"></path>
+            </svg>
+            <span>Chữ hoa (A-Z)</span>
+          </div>
+          <div class="req-item" [class.valid]="hasLowerCase">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="m9 12 2 2 4-4"></path>
+            </svg>
+            <span>Chữ thường (a-z)</span>
+          </div>
+          <div class="req-item" [class.valid]="hasNumber">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="m9 12 2 2 4-4"></path>
+            </svg>
+            <span>Số (0-9)</span>
+          </div>
+          <div class="req-item" [class.valid]="hasSpecialChar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="m9 12 2 2 4-4"></path>
+            </svg>
+            <span>Ký tự đặc biệt (@#$!)</span>
+          </div>
+        </div>
       </div>
 
       <div class="form-group" [class.has-error]="confirmPasswordInvalid">
