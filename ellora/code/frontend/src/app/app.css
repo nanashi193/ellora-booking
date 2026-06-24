@@ -1,6 +1,6 @@
 .route-stage {
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: clip; /* ponytail: clip prevents horizontal scroll during transitions but doesn't break sticky positioning like hidden does */
   background: #fff4f9;
   perspective: 1400px;
 }

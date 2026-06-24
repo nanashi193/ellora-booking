@@ -1,25 +1,25 @@
 @if (salon()) {
   <div class="salon-detail">
 
-    <!-- ═══ Gallery ═══ -->
-    <section class="gallery">
-      <div class="gallery__main">
-        <img [src]="salon().images?.[0]" [alt]="salon().name" class="gallery__img" />
-        <button class="gallery__back" routerLink="/search" aria-label="Quay lại">
-          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-        </button>
-      </div>
-      <div class="gallery__side">
-        <img [src]="salon().images?.[1] || salon().images?.[0]" alt="Gallery 2" class="gallery__img" />
-        <img [src]="salon().images?.[2] || salon().images?.[0]" alt="Gallery 3" class="gallery__img" />
-      </div>
-    </section>
-
     <!-- ═══ Main Content ═══ -->
     <div class="content">
 
       <!-- Left Column -->
       <div class="content__left">
+
+        <!-- ═══ Gallery ═══ -->
+        <section class="gallery">
+          <div class="gallery__main">
+            <img [src]="salon().images[0]" [alt]="salon().name" class="gallery__img" />
+            <button class="gallery__back" routerLink="/search" aria-label="Quay lại">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            </button>
+          </div>
+          <div class="gallery__side">
+            <img [src]="salon().images[1] || salon().images[0]" alt="Gallery 2" class="gallery__img" />
+            <img [src]="salon().images[2] || salon().images[0]" alt="Gallery 3" class="gallery__img" />
+          </div>
+        </section>
 
         <!-- Salon Info -->
         <section class="salon-info">
