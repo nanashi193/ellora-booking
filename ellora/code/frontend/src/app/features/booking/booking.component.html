@@ -1,224 +1,331 @@
-<div class="max-w-6xl mx-auto px-6 py-12 lg:py-20 min-h-[calc(100vh-80px)]">
-  <div class="flex flex-col gap-4 mb-12">
-    <button class="flex items-center gap-2 text-charcoal-800 hover:text-charcoal-900 transition-colors w-fit" (click)="prevStep()" *ngIf="currentStep() > 1">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7" /></svg>
-      Back
-    </button>
-    <h1 class="font-serif text-3xl md:text-4xl text-charcoal-900 font-medium">Book Appointment</h1>
-    
-    <!-- Progress Indicator -->
-    <div class="flex items-center gap-4 mt-4">
-      <div class="flex items-center gap-2" [class.text-charcoal-900]="currentStep() >= 1" [class.text-charcoal-800]="currentStep() < 1" [class.opacity-50]="currentStep() < 1">
-        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium" [class.bg-dusty-pink-500]="currentStep() >= 1" [class.text-white]="currentStep() >= 1" [class.bg-charcoal-800]="currentStep() < 1" [class.bg-opacity-10]="currentStep() < 1">1</span>
-        <span class="font-medium text-sm">Staff</span>
+<div class="booking-page">
+
+  <!-- ═══ Step Indicator ═══ -->
+  <div class="step-bar">
+    @for (step of [
+      {n:1, label:'Dịch vụ'},
+      {n:2, label:'Thợ nail'},
+      {n:3, label:'Thời gian'},
+      {n:4, label:'Xác nhận'}
+    ]; track step.n) {
+      <div class="step-item" [class.step-item--active]="currentStep() === step.n" [class.step-item--done]="currentStep() > step.n">
+        <span class="step-bubble">{{ step.n }}</span>
+        <span class="step-label">{{ step.label }}</span>
       </div>
-      <div class="w-10 h-px bg-charcoal-800/20"></div>
-      <div class="flex items-center gap-2" [class.text-charcoal-900]="currentStep() >= 2" [class.text-charcoal-800]="currentStep() < 2" [class.opacity-50]="currentStep() < 2">
-        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium" [class.bg-dusty-pink-500]="currentStep() >= 2" [class.text-white]="currentStep() >= 2" [class.bg-charcoal-800]="currentStep() < 2" [class.bg-opacity-10]="currentStep() < 2">2</span>
-        <span class="font-medium text-sm">Time</span>
-      </div>
-      <div class="w-10 h-px bg-charcoal-800/20"></div>
-      <div class="flex items-center gap-2" [class.text-charcoal-900]="currentStep() >= 3" [class.text-charcoal-800]="currentStep() < 3" [class.opacity-50]="currentStep() < 3">
-        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium" [class.bg-dusty-pink-500]="currentStep() >= 3" [class.text-white]="currentStep() >= 3" [class.bg-charcoal-800]="currentStep() < 3" [class.bg-opacity-10]="currentStep() < 3">3</span>
-        <span class="font-medium text-sm">Confirm</span>
-      </div>
-    </div>
+      @if (step.n < 4) {
+        <div class="step-connector"></div>
+      }
+    }
   </div>
 
-  <div class="flex flex-col lg:flex-row gap-12 relative">
-    
-    <!-- Left Column (Wizard Content) -->
-    <div class="flex-1">
-      
-      <!-- STEP 1: Select Staff -->
-      @if (currentStep() === 1) {
-        <div class="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h2 class="font-serif text-2xl text-charcoal-900">Select Specialist</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- No preference option -->
-            <div 
-              class="border p-4 flex items-center gap-4 cursor-pointer transition-all"
-              [class.border-dusty-pink-500]="selectedStaffId() === 'any'"
-              [class.bg-dusty-pink-500]="selectedStaffId() === 'any'"
-              [class.bg-opacity-5]="selectedStaffId() === 'any'"
-              [class.border-charcoal-800]="selectedStaffId() !== 'any'"
-              [class.border-opacity-10]="selectedStaffId() !== 'any'"
-              [class.hover:border-dusty-pink-400]="selectedStaffId() !== 'any'"
-              (click)="selectedStaffId.set('any')">
-              <div class="w-12 h-12 rounded-full bg-ivory-200 flex items-center justify-center text-charcoal-800">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              </div>
-              <div class="flex flex-col">
-                <span class="font-medium text-charcoal-900">Any available</span>
-                <span class="text-sm text-charcoal-800/60">Maximum availability</span>
-              </div>
-            </div>
-            
-            @for (staff of staffList(); track staff.id) {
-              <div 
-                class="border p-4 flex items-center gap-4 cursor-pointer transition-all"
-                [class.border-dusty-pink-500]="selectedStaffId() === staff.id"
-                [class.bg-dusty-pink-500]="selectedStaffId() === staff.id"
-                [class.bg-opacity-5]="selectedStaffId() === staff.id"
-                [class.border-charcoal-800]="selectedStaffId() !== staff.id"
-                [class.border-opacity-10]="selectedStaffId() !== staff.id"
-                [class.hover:border-dusty-pink-400]="selectedStaffId() !== staff.id"
-                (click)="selectedStaffId.set(staff.id)">
-                <app-avatar [src]="staff.avatar" [name]="staff.name" size="md"></app-avatar>
-                <div class="flex flex-col">
-                  <span class="font-medium text-charcoal-900">{{ staff.name }}</span>
-                  <span class="text-sm text-charcoal-800/60">{{ staff.role }}</span>
-                </div>
+  <!-- ═══ STEP 1 — Dịch vụ ═══ -->
+  @if (currentStep() === 1) {
+    <div class="step-content">
+      <h1 class="step-heading">Tạo kiểu cho bạn.</h1>
+      <p class="step-sub">Chọn các dịch vụ chăm sóc và làm đẹp để bắt đầu hành trình thư giãn tại Ellora.</p>
+
+      <div class="service-grid">
+        @for (s of services(); track s.id) {
+          <div class="service-card" [class.service-card--selected]="selectedServiceIds().includes(s.id)" (click)="toggleService(s.id)">
+            @if (selectedServiceIds().includes(s.id)) {
+              <div class="service-card__check">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
             }
+            <div class="service-card__body">
+              <div>
+                <p class="service-card__name">{{ s.name }}</p>
+                <p class="service-card__duration">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {{ s.durationMinutes }} phút
+                </p>
+              </div>
+              <div class="service-card__footer">
+                <span class="service-card__price">{{ formatPrice(s.price) }}</span>
+                <button type="button" class="service-card__btn" (click)="$event.stopPropagation(); toggleService(s.id)">
+                  {{ selectedServiceIds().includes(s.id) ? 'Hủy chọn' : '+ Thêm' }}
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="pt-6 border-t border-charcoal-800/10 mt-4 flex justify-end">
-            <app-button variant="primary" [disabled]="!selectedStaffId()" (click)="nextStep()">Continue to Time</app-button>
+        }
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar" [class.bottom-bar--visible]="selectedServiceIds().length > 0">
+      <div class="bottom-bar__inner">
+        <div class="bottom-bar__chips">
+          <span class="bottom-bar__label">Đã chọn ({{ selectedServiceIds().length }}):</span>
+          @for (s of selectedServices(); track s.id) {
+            <span class="chip">{{ s.name }} <button type="button" (click)="toggleService(s.id)">×</button></span>
+          }
+        </div>
+        <div class="bottom-bar__right">
+          <div class="bottom-bar__total">
+            <span class="bottom-bar__total-label">TỔNG CỘNG</span>
+            <span class="bottom-bar__total-price">{{ formatPrice(totalPrice()) }}</span>
+          </div>
+          <button type="button" class="btn-continue" [disabled]="selectedServiceIds().length === 0" (click)="nextStep()">
+            Tiếp tục: Chọn thợ nail <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ STEP 2 — Thợ nail ═══ -->
+  @if (currentStep() === 2) {
+    <div class="step-content">
+      <h1 class="step-heading">Chọn thợ bạn muốn</h1>
+      <p class="step-sub">Lựa chọn chuyên viên chăm sóc để có trải nghiệm tuyệt vời nhất. Đội ngũ của chúng tôi luôn sẵn sàng phục vụ bạn.</p>
+
+      <div class="staff-grid">
+        <!-- Any option -->
+        <div class="staff-card" [class.staff-card--selected]="selectedStaffId() === 'any'" (click)="selectedStaffId.set('any')">
+          @if (selectedStaffId() === 'any') {
+            <div class="staff-card__check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          }
+          <div class="staff-card__avatar staff-card__avatar--any">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+          <p class="staff-card__name">Bất kỳ nhà tạo mẫu nào</p>
+          <p class="staff-card__status staff-card__status--available">Có sớm nhất</p>
+        </div>
+
+        @for (staff of staffList(); track staff.id) {
+          <div class="staff-card" [class.staff-card--selected]="selectedStaffId() === staff.id" (click)="selectedStaffId.set(staff.id)">
+            @if (selectedStaffId() === staff.id) {
+              <div class="staff-card__check">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+            }
+            <div class="staff-card__avatar">
+              <img [src]="staff.avatar" [alt]="staff.name" />
+            </div>
+            <p class="staff-card__name">{{ staff.name }}</p>
+            <p class="staff-card__role">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#f4a261" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              4.9
+            </p>
+            <span class="staff-card__status staff-card__status--available">Sẵn sàng</span>
+          </div>
+        }
+      </div>
+
+      <div class="step-nav">
+        <button type="button" class="btn-back" (click)="prevStep()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Quay lại
+        </button>
+        <button type="button" class="btn-continue" [disabled]="!selectedStaffId()" (click)="nextStep()">
+          Tiếp tục: Chọn thời gian <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ STEP 3 — Thời gian ═══ -->
+  @if (currentStep() === 3) {
+    <div class="step-content">
+      <div class="calendar-card">
+        <!-- Calendar side -->
+        <div class="calendar-side">
+          <div class="calendar-header">
+            <button type="button" class="calendar-nav" (click)="prevMonth()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <span class="calendar-month-label">{{ calendarMonthLabel() }}</span>
+            <button type="button" class="calendar-nav" (click)="nextMonth()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <div class="calendar-grid">
+            @for (d of ['T2','T3','T4','T5','T6','T7','CN']; track d) {
+              <div class="calendar-dow">{{ d }}</div>
+            }
+            @for (day of calendarDays(); track day.fullDate) {
+              <button
+                type="button"
+                class="calendar-day"
+                [class.calendar-day--other-month]="!day.isCurrentMonth"
+                [class.calendar-day--past]="day.isPast"
+                [class.calendar-day--selected]="selectedDate() === day.fullDate"
+                [disabled]="day.isPast || !day.isCurrentMonth"
+                (click)="selectedDate.set(day.fullDate); selectedTime.set(null)"
+              >{{ day.date }}</button>
+            }
           </div>
         </div>
-      }
 
-      <!-- STEP 2: Select Date/Time -->
-      @if (currentStep() === 2) {
-        <div class="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <!-- Date -->
-          <div class="flex flex-col gap-4">
-            <h2 class="font-serif text-2xl text-charcoal-900">Select Date</h2>
-            <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              @for (date of availableDates(); track date.id) {
-                <div 
-                  class="flex flex-col items-center justify-center border min-w-[80px] h-[90px] cursor-pointer transition-all shrink-0"
-                  [class.border-dusty-pink-500]="selectedDate() === date.full"
-                  [class.bg-dusty-pink-500]="selectedDate() === date.full"
-                  [class.text-white]="selectedDate() === date.full"
-                  [class.border-charcoal-800]="selectedDate() !== date.full"
-                  [class.border-opacity-10]="selectedDate() !== date.full"
-                  [class.text-charcoal-900]="selectedDate() !== date.full"
-                  [class.hover:border-dusty-pink-400]="selectedDate() !== date.full"
-                  (click)="selectedDate.set(date.full)">
-                  <span class="text-xs uppercase tracking-wider mb-1" [class.text-white]="selectedDate() === date.full" [class.text-charcoal-800]="selectedDate() !== date.full" [class.text-opacity-60]="selectedDate() !== date.full">{{ date.day }}</span>
-                  <span class="text-2xl font-serif">{{ date.date }}</span>
-                </div>
+        <!-- Time slots side -->
+        <div class="timeslot-side">
+          <div class="timeslot-group">
+            <p class="timeslot-group-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              SÁNG
+            </p>
+            <div class="timeslot-grid">
+              @for (t of morningSlots; track t) {
+                <button type="button" class="timeslot" [class.timeslot--selected]="selectedTime() === t" (click)="selectedTime.set(t)">{{ t }}</button>
               }
             </div>
           </div>
-
-          <!-- Time -->
-          @if (selectedDate()) {
-            <div class="flex flex-col gap-4 animate-in fade-in duration-300">
-              <h2 class="font-serif text-2xl text-charcoal-900">Select Time</h2>
-              <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                @for (time of availableTimes(); track time) {
-                  <div 
-                    class="border py-3 text-center cursor-pointer transition-all text-sm font-medium"
-                    [class.border-dusty-pink-500]="selectedTime() === time"
-                    [class.bg-dusty-pink-500]="selectedTime() === time"
-                    [class.text-white]="selectedTime() === time"
-                    [class.border-charcoal-800]="selectedTime() !== time"
-                    [class.border-opacity-10]="selectedTime() !== time"
-                    [class.text-charcoal-900]="selectedTime() !== time"
-                    [class.hover:border-dusty-pink-400]="selectedTime() !== time"
-                    (click)="selectedTime.set(time)">
-                    {{ time }}
-                  </div>
-                }
-              </div>
+          <div class="timeslot-group">
+            <p class="timeslot-group-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+              CHIỀU
+            </p>
+            <div class="timeslot-grid">
+              @for (t of afternoonSlots; track t) {
+                <button type="button" class="timeslot" [class.timeslot--selected]="selectedTime() === t" (click)="selectedTime.set(t)">{{ t }}</button>
+              }
             </div>
-          }
-
-          <div class="pt-6 border-t border-charcoal-800/10 flex justify-end">
-            <app-button variant="primary" [disabled]="!selectedDate() || !selectedTime()" (click)="nextStep()">Review Booking</app-button>
-          </div>
-        </div>
-      }
-
-      <!-- STEP 3: Confirm -->
-      @if (currentStep() === 3) {
-        <div class="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h2 class="font-serif text-2xl text-charcoal-900">Your Information</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-charcoal-900">First Name</label>
-              <input type="text" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full bg-transparent" value="Jane">
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-charcoal-900">Last Name</label>
-              <input type="text" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full bg-transparent" value="Doe">
-            </div>
-            <div class="flex flex-col gap-1.5 md:col-span-2">
-              <label class="text-sm font-medium text-charcoal-900">Email</label>
-              <input type="email" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full bg-transparent" value="jane@example.com">
-            </div>
-            <div class="flex flex-col gap-1.5 md:col-span-2">
-              <label class="text-sm font-medium text-charcoal-900">Phone</label>
-              <input type="tel" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full bg-transparent" value="+1 (555) 123-4567">
-            </div>
-            <div class="flex flex-col gap-1.5 md:col-span-2">
-              <label class="text-sm font-medium text-charcoal-900">Notes for the salon (optional)</label>
-              <textarea rows="3" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full bg-transparent resize-none"></textarea>
-            </div>
-          </div>
-          
-          <div class="p-4 bg-ivory-100 border border-charcoal-800/10 text-sm text-charcoal-800/80 leading-relaxed mt-4">
-            By clicking "Confirm Booking", you agree to the salon's cancellation policy. Cancellations made less than 24 hours in advance may be subject to a fee.
-          </div>
-
-          <div class="pt-6 border-t border-charcoal-800/10 flex justify-end">
-            <app-button variant="primary" size="lg" (click)="confirmBooking()">Confirm Booking</app-button>
-          </div>
-        </div>
-      }
-
-    </div>
-
-    <!-- Right Column (Sticky Summary) -->
-    <div class="w-full lg:w-[380px] shrink-0 relative">
-      <div class="sticky top-28 bg-white border border-charcoal-800/10 shadow-xl shadow-charcoal-900/5 flex flex-col">
-        
-        <div class="p-6 border-b border-charcoal-800/10 bg-ivory-50 flex items-start gap-4">
-          <img [src]="salon()?.images?.[0]" [alt]="salon()?.name" class="w-16 h-16 object-cover rounded-sm" />
-          <div class="flex flex-col">
-            <span class="font-medium text-charcoal-900">{{ salon()?.name }}</span>
-            <span class="text-sm text-charcoal-800/80">{{ salon()?.city }}</span>
-          </div>
-        </div>
-
-        <div class="p-6 flex flex-col gap-6">
-          <h3 class="font-serif text-lg text-charcoal-900 border-b border-charcoal-800/10 pb-2">Booking Summary</h3>
-          
-          <div class="flex flex-col gap-4 text-sm text-charcoal-800">
-            <!-- Mock Service (In real app, this comes from state/params) -->
-            <div class="flex justify-between">
-              <div class="flex flex-col">
-                <span class="font-medium text-charcoal-900">Classic Gel Manicure</span>
-                <span class="text-xs opacity-80">45 mins</span>
-              </div>
-              <span class="font-medium text-charcoal-900">$45</span>
-            </div>
-
-            <!-- Specialist -->
-            <div class="flex items-center gap-3 mt-2" *ngIf="selectedStaffId()">
-              <svg class="w-4 h-4 opacity-60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-              <span class="flex-1">{{ selectedStaffId() === 'any' ? 'Any available specialist' : selectedStaff()?.name }}</span>
-            </div>
-
-            <!-- Date/Time -->
-            <div class="flex items-start gap-3" *ngIf="selectedDate() && selectedTime()">
-              <svg class="w-4 h-4 opacity-60 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              <div class="flex flex-col">
-                <span>{{ selectedDate() | date:'fullDate' }}</span>
-                <span>{{ selectedTime() }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex justify-between items-center pt-4 border-t border-charcoal-800/10">
-            <span class="font-medium text-charcoal-900">Total</span>
-            <span class="font-serif text-xl text-charcoal-900">$45</span>
           </div>
         </div>
       </div>
     </div>
-    
-  </div>
+
+    <!-- Bottom Bar for time step -->
+    <div class="bottom-bar bottom-bar--visible">
+      <div class="bottom-bar__inner">
+        <div class="bottom-bar__chips">
+          @if (selectedDate()) {
+            <span class="chip chip--info">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              {{ selectedDateLabel() }}
+            </span>
+          } @else {
+            <span class="bottom-bar__label">Chưa chọn ngày</span>
+          }
+          @if (selectedTime()) {
+            <span class="chip chip--info">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              {{ selectedTime() }}
+            </span>
+          }
+        </div>
+        <div class="bottom-bar__right">
+          <button type="button" class="btn-back" (click)="prevStep()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Quay lại
+          </button>
+          <button type="button" class="btn-continue" [disabled]="!selectedDate() || !selectedTime()" (click)="nextStep()">
+            Tiếp tục: Xác nhận <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ STEP 4 — Xác nhận ═══ -->
+  @if (currentStep() === 4) {
+    <div class="step-content step-content--confirm">
+      <div class="confirm-left">
+        <h1 class="step-heading">Hoàn tất đặt lịch</h1>
+        <p class="step-sub">Vui lòng kiểm tra lại thông tin và xác nhận để hoàn tất quá trình đặt chỗ của bạn.</p>
+
+        <!-- Booking summary card -->
+        <div class="confirm-summary-card">
+          <div class="confirm-summary-card__img">
+            <img [src]="salon()?.images?.[0]" [alt]="salon()?.name" />
+          </div>
+          <div class="confirm-summary-card__info">
+            <div class="confirm-summary-card__section">
+              <p class="confirm-summary-card__label">DỊCH VỤ ĐÃ CHỌN</p>
+              @for (s of selectedServices(); track s.id) {
+                <p class="confirm-summary-card__value">{{ s.name }}</p>
+              }
+              <p class="confirm-summary-card__sub">{{ selectedServices()[0]?.durationMinutes }} phút</p>
+            </div>
+            <div class="confirm-summary-card__section">
+              <p class="confirm-summary-card__label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                NGÀY &amp; GIỜ
+              </p>
+              <p class="confirm-summary-card__value">{{ selectedDateLabel() }} • {{ selectedTime() }}</p>
+            </div>
+            <div class="confirm-summary-card__section">
+              <p class="confirm-summary-card__label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                CHUYÊN GIA
+              </p>
+              <p class="confirm-summary-card__value">{{ selectedStaffId() === 'any' ? 'Bất kỳ chuyên gia nào' : selectedStaff()?.name }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer form -->
+        <form [formGroup]="customerForm" class="confirm-form">
+          <p class="confirm-form__title">THÔNG TIN KHÁCH HÀNG</p>
+          <div class="confirm-form__row">
+            <div class="confirm-form__field">
+              <label class="confirm-form__label">HỌ VÀ TÊN</label>
+              <input type="text" formControlName="fullName" class="confirm-form__input" placeholder="Nhập tên của bạn" />
+            </div>
+            <div class="confirm-form__field">
+              <label class="confirm-form__label">SỐ ĐIỆN THOẠI</label>
+              <input type="tel" formControlName="phone" class="confirm-form__input" placeholder="090 123 4567" />
+            </div>
+          </div>
+          <div class="confirm-form__field">
+            <label class="confirm-form__label">GHI CHÚ THÊM (TÙY CHỌN)</label>
+            <textarea formControlName="notes" rows="4" class="confirm-form__textarea" placeholder="Ví dụ: Tôi có da nhạy cảm hoặc yêu cầu đặc biệt về màu sắc..."></textarea>
+          </div>
+        </form>
+      </div>
+
+      <!-- Order sidebar -->
+      <aside class="confirm-sidebar">
+        <div class="order-card">
+          <p class="order-card__title">CHI TIẾT ĐƠN HÀNG</p>
+          <div class="order-card__rows">
+            @for (s of selectedServices(); track s.id) {
+              <div class="order-card__row">
+                <span>{{ s.name }}</span>
+                <span>{{ formatPrice(s.price) }}</span>
+              </div>
+            }
+            @if (selectedStaffId() && selectedStaffId() !== 'any') {
+              <div class="order-card__row">
+                <span>Phụ phí chuyên gia</span>
+                <span>150.000đ</span>
+              </div>
+            }
+          </div>
+          <div class="order-card__total">
+            <span>Tổng cộng</span>
+            <span class="order-card__total-price">{{ formatPrice(totalPrice() + (selectedStaffId() && selectedStaffId() !== 'any' ? 150000 : 0)) }}</span>
+          </div>
+          <button type="button" class="btn-pay" (click)="confirmBooking()">
+            TIẾN HÀNH THANH TOÁN
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+          <p class="order-card__secure">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Thanh toán an toàn &amp; bảo mật
+          </p>
+        </div>
+
+        <div class="support-card">
+          <div class="support-card__avatar">🎀</div>
+          <div>
+            <p class="support-card__label">Cần hỗ trợ?</p>
+            <p class="support-card__phone">Gọi 1900 6789</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Back button for step 4 -->
+    <div class="confirm-back-row">
+      <button type="button" class="btn-back" (click)="prevStep()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Quay lại
+      </button>
+    </div>
+  }
+
 </div>

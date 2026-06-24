@@ -1,67 +1,171 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MockDataService } from '../../services/mock-data.service';
-import { Button } from '../../shared/components/button/button.component';
-import { Avatar } from '../../shared/components/avatar/avatar.component';
+
+interface CalendarDay {
+  date: number;
+  fullDate: string; // 'YYYY-MM-DD'
+  isCurrentMonth: boolean;
+  isPast: boolean;
+}
 
 @Component({
   selector: 'app-booking',
   standalone: true,
-  imports: [CommonModule, RouterModule, Button, Avatar],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './booking.component.html',
   styleUrl: './booking.component.scss'
 })
 export class Booking {
   private dataService = inject(MockDataService);
   private router = inject(Router);
+  private fb = inject(FormBuilder);
 
-  // Mock initial data (normally fetched based on route params)
+  // Data
   salon = computed(() => this.dataService.salons()[0]);
+  services = this.dataService.services;
   staffList = this.dataService.staff;
-  
-  // Wizard state
-  currentStep = signal<1 | 2 | 3>(1);
+
+  // Wizard state: 1=Dịch vụ, 2=Thợ nail, 3=Thời gian, 4=Xác nhận
+  currentStep = signal<1 | 2 | 3 | 4>(1);
+
+  // Step 1: Services
+  selectedServiceIds = signal<string[]>([]);
+
+  // Step 2: Staff
   selectedStaffId = signal<string | null>(null);
+
+  // Step 3: Date/Time
+  calendarYear = signal(new Date().getFullYear());
+  calendarMonth = signal(new Date().getMonth()); // 0-indexed
   selectedDate = signal<string | null>(null);
   selectedTime = signal<string | null>(null);
 
-  // Available dates (mock)
-  availableDates = signal([
-    { id: '1', day: 'Mon', date: '12', full: '2026-10-12' },
-    { id: '2', day: 'Tue', date: '13', full: '2026-10-13' },
-    { id: '3', day: 'Wed', date: '14', full: '2026-10-14' },
-    { id: '4', day: 'Thu', date: '15', full: '2026-10-15' },
-    { id: '5', day: 'Fri', date: '16', full: '2026-10-16' },
-  ]);
+  // Step 4: Form
+  customerForm = this.fb.group({
+    fullName: ['', Validators.required],
+    phone: ['', Validators.required],
+    notes: ['']
+  });
 
-  // Available times (mock)
-  availableTimes = signal([
-    '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:30 PM', '05:00 PM'
-  ]);
+  // ─── Computed ───────────────────────────────────────
 
-  // Selected details for summary
-  selectedStaff = computed(() => 
+  selectedServices = computed(() =>
+    this.services().filter(s => this.selectedServiceIds().includes(s.id))
+  );
+
+  totalPrice = computed(() =>
+    this.selectedServices().reduce((sum, s) => sum + s.price, 0)
+  );
+
+  selectedStaff = computed(() =>
     this.staffList().find(s => s.id === this.selectedStaffId())
   );
 
-  nextStep() {
-    if (this.currentStep() === 1 && this.selectedStaffId()) {
-      this.currentStep.set(2);
-    } else if (this.currentStep() === 2 && this.selectedDate() && this.selectedTime()) {
-      this.currentStep.set(3);
+  calendarMonthLabel = computed(() => {
+    const d = new Date(this.calendarYear(), this.calendarMonth(), 1);
+    return d.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
+  });
+
+  calendarDays = computed<CalendarDay[]>(() => {
+    const year = this.calendarYear();
+    const month = this.calendarMonth();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const firstDay = new Date(year, month, 1);
+    // Mon=0 … Sun=6 offset
+    const startOffset = (firstDay.getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    const days: CalendarDay[] = [];
+
+    // Prev month filler
+    for (let i = startOffset - 1; i >= 0; i--) {
+      const d = new Date(year, month - 1, daysInPrevMonth - i);
+      days.push({ date: daysInPrevMonth - i, fullDate: this.toISODate(d), isCurrentMonth: false, isPast: d < today });
     }
+    // Current month
+    for (let i = 1; i <= daysInMonth; i++) {
+      const d = new Date(year, month, i);
+      days.push({ date: i, fullDate: this.toISODate(d), isCurrentMonth: true, isPast: d < today });
+    }
+    // Next month filler to complete last row
+    const remaining = 7 - (days.length % 7);
+    if (remaining < 7) {
+      for (let i = 1; i <= remaining; i++) {
+        const d = new Date(year, month + 1, i);
+        days.push({ date: i, fullDate: this.toISODate(d), isCurrentMonth: false, isPast: false });
+      }
+    }
+    return days;
+  });
+
+  morningSlots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
+  afternoonSlots = ['13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+
+  selectedDateLabel = computed(() => {
+    if (!this.selectedDate()) return '';
+    const [y, m, d] = this.selectedDate()!.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' });
+  });
+
+  // ─── Helpers ────────────────────────────────────────
+
+  private toISODate(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  formatPrice(p: number): string {
+    return p.toLocaleString('vi-VN') + 'đ';
+  }
+
+  // ─── Actions ────────────────────────────────────────
+
+  toggleService(id: string) {
+    this.selectedServiceIds.update(ids =>
+      ids.includes(id) ? ids.filter(i => i !== id) : [...ids, id]
+    );
+  }
+
+  prevMonth() {
+    if (this.calendarMonth() === 0) {
+      this.calendarMonth.set(11);
+      this.calendarYear.update(y => y - 1);
+    } else {
+      this.calendarMonth.update(m => m - 1);
+    }
+  }
+
+  nextMonth() {
+    if (this.calendarMonth() === 11) {
+      this.calendarMonth.set(0);
+      this.calendarYear.update(y => y + 1);
+    } else {
+      this.calendarMonth.update(m => m + 1);
+    }
+  }
+
+  nextStep() {
+    const step = this.currentStep();
+    if (step === 1 && this.selectedServiceIds().length > 0) this.currentStep.set(2);
+    else if (step === 2 && this.selectedStaffId()) this.currentStep.set(3);
+    else if (step === 3 && this.selectedDate() && this.selectedTime()) this.currentStep.set(4);
   }
 
   prevStep() {
-    if (this.currentStep() > 1) {
-      this.currentStep.update(v => (v - 1) as 1 | 2 | 3);
-    }
+    const step = this.currentStep();
+    if (step > 1) this.currentStep.set((step - 1) as 1 | 2 | 3 | 4);
   }
 
   confirmBooking() {
-    // In a real app, send API request here
-    alert('Booking confirmed successfully!');
-    this.router.navigate(['/']);
+    if (this.customerForm.invalid) return;
+    alert('Đặt lịch thành công!');
+    this.router.navigate(['/my-bookings']);
   }
+
+  trackByFn(_: number, item: { id: string }) { return item.id; }
 }
