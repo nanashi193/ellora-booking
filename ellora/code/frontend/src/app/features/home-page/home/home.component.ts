@@ -1,7 +1,7 @@
 import { Component, inject, computed, ViewChild, ElementRef, signal, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MockDataService } from '../../services/mock-data.service';
-import { SalonCard } from '../../shared/components/salon-card/salon-card.component';
+import { MockDataService } from '../../../services/mock-data.service';
+import { SalonCard } from '../../../shared/components/salon-card/salon-card.component';
 import { RouterModule } from '@angular/router';
 
 @Component({

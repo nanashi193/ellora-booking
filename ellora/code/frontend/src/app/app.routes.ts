@@ -8,7 +8,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./features/home/home.component').then(m => m.Home)
+        loadComponent: () => import('./features/home-page/home/home.component').then(m => m.Home)
       },
       {
         path: 'search',
@@ -17,6 +17,10 @@ export const routes: Routes = [
       {
         path: 'salon/:id',
         loadComponent: () => import('./features/salon-details/salon-details.component').then(m => m.SalonDetails)
+      },
+      {
+        path: 'for-business',
+        loadComponent: () => import('./features/home-page/for-business/for-business.component').then(m => m.ForBusiness)
       },
       {
         path: 'booking',

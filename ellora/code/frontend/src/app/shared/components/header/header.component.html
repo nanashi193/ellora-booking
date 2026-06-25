@@ -14,7 +14,7 @@
 
     <!-- Right Nav (Desktop) -->
     <nav class="hidden md:flex items-center gap-6 flex-1 justify-end">
-      <a routerLink="/owner/dashboard" class="text-[15px] font-semibold text-charcoal-900 hover:text-black transition-colors whitespace-nowrap">Dành cho doanh nghiệp</a>
+      <a routerLink="/for-business" class="text-[15px] font-semibold text-charcoal-900 hover:text-black transition-colors whitespace-nowrap">Dành cho doanh nghiệp</a>
 
       <!-- Not Logged In: show login button -->
       @if (!isLoggedIn) {
@@ -120,7 +120,7 @@
       <nav class="mobile-menu-nav">
         <a class="mobile-menu-link" (click)="navigateTo('/')">Trang chủ</a>
         <a class="mobile-menu-link" (click)="navigateTo('/search')">Đặt lịch hẹn</a>
-        <a class="mobile-menu-link" (click)="navigateTo('/owner/dashboard')">Dành cho doanh nghiệp</a>
+        <a class="mobile-menu-link" (click)="navigateTo('/for-business')">Dành cho doanh nghiệp</a>
 
         @if (!isLoggedIn) {
           <div class="mobile-menu-divider"></div>
