@@ -112,6 +112,7 @@ export class AuthService {
             userAttributes: {
               email: request.email.trim().toLowerCase(),
               name: request.fullName.trim(),
+              phone_number: request.phone,
             },
           },
         }),
@@ -262,11 +263,12 @@ export class AuthService {
     }
   }
 
-  async getUserProfile(): Promise<{ email: string; name: string }> {
+  async getUserProfile(): Promise<{ email: string; name: string; phone_number?: string }> {
     const attributes = await fetchUserAttributes();
     return {
       email: attributes.email ?? '',
       name: attributes.name ?? attributes.email ?? '',
+      phone_number: attributes.phone_number
     };
   }
 

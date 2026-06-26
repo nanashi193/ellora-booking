@@ -1,8 +1,9 @@
-import { Component, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MockDataService } from '../../services/mock-data.service';
+import { AuthService } from '../../services/auth.service';
 
 interface CalendarDay {
   date: number;
@@ -18,10 +19,11 @@ interface CalendarDay {
   templateUrl: './booking.component.html',
   styleUrl: './booking.component.scss'
 })
-export class BookingComponent implements OnDestroy {
+export class BookingComponent implements OnInit, OnDestroy {
   private dataService = inject(MockDataService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
 
   // Data
   salon = computed(() => this.dataService.salons()[0]);
@@ -54,6 +56,18 @@ export class BookingComponent implements OnDestroy {
     phone: ['', Validators.required],
     notes: ['']
   });
+
+  async ngOnInit() {
+    try {
+      const profile = await this.authService.getUserProfile();
+      this.customerForm.patchValue({
+        fullName: profile.name || '',
+        phone: profile.phone_number || ''
+      });
+    } catch (e) {
+      console.warn('Could not fetch user profile from Cognito', e);
+    }
+  }
 
   // ─── Computed ───────────────────────────────────────
 

@@ -43,17 +43,14 @@ export const routes: Routes = [
       },
       {
         path: 'owner/dashboard',
-        canActivate: [authGuard],
         loadComponent: () => import('./features/owner/dashboard/dashboard.component').then(m => m.Dashboard)
       },
       {
         path: 'owner/services',
-        canActivate: [authGuard],
         loadComponent: () => import('./features/owner/service-management/service-management.component').then(m => m.ServiceManagement)
       },
       {
         path: 'owner/bookings',
-        canActivate: [authGuard],
         loadComponent: () => import('./features/owner/booking-management/booking-management.component').then(m => m.BookingManagement)
       }
     ]

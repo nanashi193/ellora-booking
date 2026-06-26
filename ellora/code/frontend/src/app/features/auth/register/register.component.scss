@@ -167,7 +167,8 @@ label {
 
 input[type='email'],
 input[type='password'],
-input[type='text'] {
+input[type='text'],
+input[type='tel'] {
   width: 100%;
   min-height: 56px;
   padding: 28px 46px 10px;

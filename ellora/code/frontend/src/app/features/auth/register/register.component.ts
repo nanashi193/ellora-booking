@@ -38,6 +38,7 @@ export class RegisterComponent {
   registerForm = this.formBuilder.group(
     {
       fullName: ['', Validators.required],
+      phone: ['', [Validators.required, Validators.pattern(/(84|0[3|5|7|8|9])+([0-9]{8})\b/)]],
       email: ['', [Validators.required, Validators.email]],
       password: [
         '',
@@ -71,6 +72,11 @@ export class RegisterComponent {
 
   get fullNameInvalid(): boolean {
     const control = this.registerForm.controls.fullName;
+    return control.invalid && (control.touched || this.submitted);
+  }
+
+  get phoneInvalid(): boolean {
+    const control = this.registerForm.controls.phone;
     return control.invalid && (control.touched || this.submitted);
   }
 
@@ -152,12 +158,15 @@ export class RegisterComponent {
 
     this.isLoading = true;
     try {
-      const { fullName, email, password } = this.registerForm.getRawValue();
-      const result = await this.authService.register({
-        fullName,
-        email,
-        password,
-      } as RegisterRequest);
+      const rawPhone = this.registerForm.getRawValue().phone.trim();
+      const formattedPhone = rawPhone.startsWith('0') ? '+84' + rawPhone.slice(1) : (rawPhone.startsWith('+') ? rawPhone : '+' + rawPhone);
+
+      const request: RegisterRequest = {
+        ...this.registerForm.getRawValue(),
+        phone: formattedPhone
+      };
+      
+      const result = await this.authService.register(request);
 
       this.requiresConfirmation = result.requiresConfirmation;
       this.isSuccess = result.success;
