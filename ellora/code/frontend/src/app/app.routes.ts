@@ -41,16 +41,22 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/account/account.component').then((m) => m.AccountComponent),
       },
+    ]
+  },
+  {
+    path: 'owner',
+    loadComponent: () => import('./layouts/owner-layout/owner-layout').then(m => m.OwnerLayout),
+    children: [
       {
-        path: 'owner/dashboard',
+        path: 'dashboard',
         loadComponent: () => import('./features/owner/dashboard/dashboard.component').then(m => m.Dashboard)
       },
       {
-        path: 'owner/services',
+        path: 'services',
         loadComponent: () => import('./features/owner/service-management/service-management.component').then(m => m.ServiceManagement)
       },
       {
-        path: 'owner/bookings',
+        path: 'bookings',
         loadComponent: () => import('./features/owner/booking-management/booking-management.component').then(m => m.BookingManagement)
       }
     ]
