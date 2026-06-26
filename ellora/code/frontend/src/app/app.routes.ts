@@ -24,7 +24,7 @@ export const routes: Routes = [
       },
       {
         path: 'booking',
-        loadComponent: () => import('./features/booking/booking.component').then(m => m.Booking)
+        loadComponent: () => import('./features/booking/booking.component').then(m => m.BookingComponent)
       },
       {
         path: 'my-bookings',

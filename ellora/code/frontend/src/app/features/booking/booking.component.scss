@@ -34,6 +34,15 @@
   color: rgba(44, 42, 41, 0.6);
 }
 
+.step-item--clickable {
+  cursor: pointer;
+  transition: opacity 0.2s;
+  
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
 .step-bubble {
   width: 30px;
   height: 30px;
@@ -906,4 +915,100 @@
   &:hover {
     border-color: rgba(44, 42, 41, 0.45);
   }
+}
+
+/* ─── Success Modal Overlay ─── */
+.success-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(44, 42, 41, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInOverlay 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.success-modal {
+  background: #FAF6F1;
+  width: 90%;
+  max-width: 440px;
+  border-radius: 24px;
+  padding: 40px 32px;
+  text-align: center;
+  box-shadow: 0 24px 48px -12px rgba(44, 42, 41, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  animation: slideUpModal 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &__icon {
+    width: 64px;
+    height: 64px;
+    background: #E8829A;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    box-shadow: 0 8px 16px rgba(232, 130, 154, 0.3);
+  }
+
+  &__title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1c1a19;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+  }
+
+  &__desc {
+    font-size: 15px;
+    color: rgba(44, 42, 41, 0.65);
+    line-height: 1.5;
+    margin: 0 0 32px;
+  }
+
+  &__countdown {
+    font-size: 14px;
+    color: rgba(44, 42, 41, 0.5);
+    margin-bottom: 24px;
+    
+    span {
+      font-weight: 600;
+      color: #E8829A;
+    }
+  }
+}
+
+.btn-view-bookings {
+  width: 100%;
+  padding: 16px 24px;
+  background: #1c1a19;
+  color: #fff;
+  border: none;
+  border-radius: 9999px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #2c2a29;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(44, 42, 41, 0.15);
+  }
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUpModal {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }

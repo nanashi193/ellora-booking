@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -18,7 +18,7 @@ interface CalendarDay {
   templateUrl: './booking.component.html',
   styleUrl: './booking.component.scss'
 })
-export class Booking {
+export class BookingComponent implements OnDestroy {
   private dataService = inject(MockDataService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
@@ -43,8 +43,13 @@ export class Booking {
   selectedDate = signal<string | null>(null);
   selectedTime = signal<string | null>(null);
 
+  // Popup & Countdown
+  showSuccessPopup = signal(false);
+  countdown = signal(30);
+  private countdownTimer: any;
+
   // Step 4: Form
-  customerForm = this.fb.group({
+  customerForm = this.fb.nonNullable.group({
     fullName: ['', Validators.required],
     phone: ['', Validators.required],
     notes: ['']
@@ -161,10 +166,37 @@ export class Booking {
     if (step > 1) this.currentStep.set((step - 1) as 1 | 2 | 3 | 4);
   }
 
+  goToStep(step: number) {
+    if (step < this.currentStep()) {
+      this.currentStep.set(step as 1 | 2 | 3 | 4);
+    }
+  }
+
+
   confirmBooking() {
     if (this.customerForm.invalid) return;
-    alert('Đặt lịch thành công!');
+    this.showSuccessPopup.set(true);
+    this.countdown.set(30);
+    this.startCountdown();
+  }
+
+  startCountdown() {
+    this.countdownTimer = setInterval(() => {
+      this.countdown.update(c => c - 1);
+      if (this.countdown() <= 0) {
+        this.closeSuccessPopupAndRedirect();
+      }
+    }, 1000);
+  }
+
+  closeSuccessPopupAndRedirect() {
+    if (this.countdownTimer) clearInterval(this.countdownTimer);
+    this.showSuccessPopup.set(false);
     this.router.navigate(['/my-bookings']);
+  }
+
+  ngOnDestroy() {
+    if (this.countdownTimer) clearInterval(this.countdownTimer);
   }
 
   trackByFn(_: number, item: { id: string }) { return item.id; }
