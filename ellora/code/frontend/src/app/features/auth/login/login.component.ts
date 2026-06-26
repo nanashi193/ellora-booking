@@ -58,7 +58,7 @@ export class LoginComponent implements OnInit {
 
       await this.profileApiService.syncCurrentUser();
       this.isSuccess = true;
-      await this.router.navigateByUrl('/account');
+      await this.router.navigateByUrl('/');
     } catch {
       this.showAlert = true;
       this.alertMessage = 'Đã đăng nhập Google nhưng không kết nối được backend.';
@@ -227,7 +227,7 @@ export class LoginComponent implements OnInit {
   private async completeLogin(): Promise<void> {
     await this.profileApiService.syncCurrentUser();
     this.isSuccess = true;
-    await this.router.navigateByUrl('/account');
+    await this.router.navigateByUrl('/');
   }
 
   private startResendCooldown(): void {
