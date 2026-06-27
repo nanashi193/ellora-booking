@@ -56,6 +56,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/owner/service-management/service-management.component').then(m => m.ServiceManagement)
       },
       {
+        path: 'staff',
+        loadComponent: () => import('./features/owner/staff-management/staff-management.component').then(m => m.StaffManagement)
+      },
+      {
+        path: 'reviews',
+        loadComponent: () => import('./features/owner/review-management/review-management.component').then(m => m.ReviewManagement)
+      },
+      {
         path: 'bookings',
         loadComponent: () => import('./features/owner/booking-management/booking-management.component').then(m => m.BookingManagement)
       }
