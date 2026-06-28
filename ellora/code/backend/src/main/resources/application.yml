@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
   servlet:
     context-path: /api
 
@@ -41,7 +41,7 @@ app:
     client-id: 10ivodmqmsklu4gqkqj1qcgr0h
 
   cors:
-    allowed-origins: http://localhost:4200
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
 
 # Swagger UI
 springdoc:
