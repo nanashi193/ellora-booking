@@ -45,28 +45,29 @@ Sử dụng stack dưới đây trừ khi người dùng yêu cầu thay đổi 
 
 - **Framework**: Angular
 - **Ngôn ngữ**: TypeScript
-- **Styling**: CSS / SCSS hoặc Tailwind CSS nếu dự án đã setup
-- **UI Library**: Angular Material hoặc component tự viết; chỉ thêm UI library khi thật sự cần
+- **Styling**: Tailwind CSS + Custom SCSS/CSS (dự án đã tích hợp Tailwind CSS)
+- **UI Library**: Các component tự viết sử dụng CSS/Tailwind (không cài đặt Angular Material theo cấu hình mặc định)
+- **Authentication**: AWS Cognito sử dụng thư viện `aws-amplify/auth`
 - **HTTP Client**: Angular HttpClient
 - **Form**: Reactive Forms
 - **Routing**: Angular Router
-- **State management**: Service + RxJS trước; chỉ dùng NgRx khi thật sự cần
+- **State management**: Service + RxJS
 - **Định hướng thiết kế**: mobile-first, responsive UI
 
 ### Backend
 
 - **Framework**: Spring Boot
-- **Ngôn ngữ**: Java
+- **Ngôn ngữ**: Java (Java 17)
 - **Kiểu API**: REST API
 - **Persistence**: Spring Data JPA / Hibernate
 - **Validation**: Jakarta Bean Validation
-- **Authentication**: JWT có thể thêm sau khi CRUD cơ bản và logic booking đã ổn định
+- **Authentication**: OAuth2 Resource Server JWT tích hợp với AWS Cognito làm Identity Provider
 
 ### Database
 
 - **Database chính**: PostgreSQL
 - **Cache / lock**: Redis chỉ dùng khi được yêu cầu rõ ràng cho caching hoặc khóa slot booking
-- **Migration**: Flyway hoặc Liquibase nếu dự án đã có setup migration; nếu chưa, giữ SQL script đơn giản và rõ ràng
+- **Migration / Schema**: Hibernate `ddl-auto: update` tự động quản lý schema qua JPA Entities (không dùng Flyway/Liquibase)
 
 ### Storage
 
@@ -74,10 +75,10 @@ Sử dụng stack dưới đây trừ khi người dùng yêu cầu thay đổi 
 
 ### Deployment
 
-- **Frontend**: Vercel, Netlify, Firebase Hosting hoặc hosting static phù hợp với Angular
-- **Backend**: Railway, Render hoặc hosting tương thích Java
-- **Database**: PostgreSQL trên Railway, Render, Supabase, Neon hoặc dịch vụ tương tự
-- **CDN / DNS**: Cloudflare nếu cần
+- **Frontend**: Cloudflare Pages / Cloudflare Hosting
+- **Backend**: Render
+- **Database**: PostgreSQL trên Render, Supabase, Neon hoặc dịch vụ tương tự
+- **CDN / DNS**: Cloudflare
 
 ---
 
@@ -306,35 +307,39 @@ backend/src/main/java/.../
 
 ### Entity backend chính
 
-Các entity core dự kiến:
+Các entity core của dự án:
 
-- User
-- Role
-- Salon
-- SalonHour
-- Staff
-- Service
-- Booking
-- Review
-- Media
+- **User** (mapped to `@Table(name = "profiles")`)
+- **Role** (lưu dạng Enum: `CUSTOMER`, `SALON_OWNER`, `ADMIN`)
+- **Salon** (table `salons`, có quan hệ `owner` 1-1 với `User`)
+- **Employee** (table `employees` thay cho `Staff`)
+- **WorkingSchedule** (table `working_schedules` thay cho `SalonHour`)
+- **NailService** (table `nail_services` thay cho `Service`)
+- **ServiceCategory** (table `service_categories` phân loại dịch vụ)
+- **Booking** (table `bookings`)
+- **Review** (table `reviews` để lại sau booking)
+- **Payment** (table `payments` lưu thông tin thanh toán nếu có)
+- **Media**: Sử dụng lưu trữ URL trực tiếp trong các cột thực thể (ví dụ: `avatarUrl`, `logoUrl`, `imageUrls` kiểu ElementCollection) thay vì bảng Media riêng.
 
 ### Booking Status
 
-Dùng booking status rõ ràng:
+Dùng booking status từ enum `BookingStatus`:
 
 ```text
-PENDING
-CONFIRMED
-CANCELLED
-COMPLETED
+PENDING        // Chờ xác nhận
+CONFIRMED      // Đã xác nhận
+IN_PROGRESS    // Đang làm
+COMPLETED      // Hoàn thành
+CANCELLED      // Đã hủy
+REJECTED        // Bị từ chối
 ```
 
 Quy tắc booking:
 
 - Booking mới tạo phải bắt đầu với trạng thái `PENDING`.
-- Chủ salon có thể xác nhận hoặc hủy booking.
+- Chủ salon có thể xác nhận (`CONFIRMED`), từ chối (`REJECTED`), bắt đầu thực hiện (`IN_PROGRESS`), hoặc hoàn thành (`COMPLETED`) hoặc hủy (`CANCELLED`) booking.
 - Khách hàng chỉ có thể review sau khi booking ở trạng thái `COMPLETED`.
-- Tránh trùng booking cho cùng salon, staff, service, ngày và khung giờ.
+- Tránh trùng booking cho cùng salon, employee, service, ngày và khung giờ.
 - Redis locking chỉ thêm sau nếu được yêu cầu rõ ràng để xử lý race condition.
 
 ### Ghi chú Spring Boot
@@ -354,33 +359,33 @@ Quy tắc booking:
 
 Frontend nên tập trung vào user flow rõ ràng và cấu trúc Angular sạch.
 
-Cấu trúc frontend đề xuất:
+Cấu trúc thư mục hiện tại của frontend:
 
 ```text
 frontend/src/app/
-├── core/
-├── features/
-├── shared/
-├── models/
-└── services/
+├── config/        # Chứa cấu hình api và Cognito
+├── core/          # Phần dùng một lần (app config, routes...)
+├── features/      # Từng module/tính năng (auth, owner, customer, bookings...)
+├── guards/        # Chứa auth.guard.ts bảo vệ các route riêng tư
+├── interceptors/  # Interceptor đính kèm Cognito JWT token
+├── layouts/       # Chứa main-layout và owner-layout
+├── models/        # Định nghĩa kiểu dữ liệu TypeScript (auth.model.ts, ellora.model.ts)
+├── services/      # Các service gọi API (auth, booking, profile-api, mock-data...)
+└── shared/        # Shared components dùng chung (avatar, button, rating, salon-card...)
 ```
-
-### Ý nghĩa thư mục frontend
-
-- `core/`: phần dùng một lần cho toàn app như guards, interceptors, app config, layout shell.
-- `features/`: từng module/tính năng như auth, salons, bookings, owner-dashboard, admin.
-- `shared/`: component, pipe, directive dùng lại nhiều nơi.
-- `models/`: interface/type dùng chung như User, Salon, Service, Booking, Review.
-- `services/`: service gọi API hoặc xử lý logic dùng chung.
 
 ### Quy tắc frontend
 
+- **Bắt buộc sử dụng skill `design-taste-frontend`**: Mặc định áp dụng skill `design-taste-frontend` khi xây dựng, chỉnh sửa hoặc đánh giá giao diện (UI/UX) của ứng dụng. Hướng tới thiết kế "premium", anti-slop, có tính thẩm mỹ cao thay vì giao diện cơ bản.
+- **Styling**: Sử dụng Tailwind CSS kết hợp với CSS/SCSS tùy chỉnh. Tận dụng tối đa các class tiện ích của Tailwind để viết CSS linh hoạt, sạch sẽ và đảm bảo tính nhất quán của thiết kế.
+- **Dữ liệu & Mô phỏng (Mock Data)**: Khi chưa có endpoint API backend thật tương ứng, sử dụng `MockDataService` để trả về các dữ liệu mẫu thực tế.
+- **Authentication**: Tương tác với Cognito thông qua Amplify Auth API trong `AuthService`. Đảm bảo kiểm tra trạng thái login qua signals/promises.
 - Component chỉ nên tập trung vào UI logic.
 - API call nên đưa vào service.
-- Dùng strongly typed interface/model.
+- Dùng strongly typed interface/model từ `models/ellora.model.ts` hoặc `models/auth.model.ts`.
 - Dùng Reactive Forms cho form phức tạp như login, register, booking, salon profile.
 - Tránh duplicate CSS khi có thể tái sử dụng shared style hoặc shared component.
-- Không hard-code backend URL ở nhiều component; dùng environment config.
+- Không hard-code backend URL ở nhiều component; sử dụng `ApiConfig` hoặc environment.
 - Không làm fake feature mà backend không hỗ trợ, trừ khi ghi rõ là mock/demo.
 - Ưu tiên mobile-first responsive UI.
 - Dùng Angular Router rõ ràng, route name dễ hiểu.
@@ -427,32 +432,38 @@ frontend/src/app/features/
 
 ## 11. Quy Tắc API
 
-Dùng REST-style endpoints.
+Dùng REST-style endpoints. Việc xác thực và quản lý tài khoản người dùng được tích hợp trực tiếp với AWS Cognito từ phía client (sử dụng Cognito SDK/Amplify). 
 
-Ví dụ endpoint:
+Client gửi yêu cầu đồng bộ profile sang database backend qua endpoint `/profiles/me`. Các API request bảo mật yêu cầu đính kèm header `Authorization: Bearer <Cognito_JWT_Access_Token>`.
+
+Ví dụ các endpoint:
 
 ```http
-POST /api/auth/register
-POST /api/auth/login
+# Authentication & Profile Sync
+POST /api/profiles/me                  # Đồng bộ thông tin profile từ Cognito JWT khi đăng nhập/đăng ký
+GET /api/profiles/me                   # Lấy thông tin cá nhân của user đang đăng nhập
 
+# Salons
 GET /api/salons
 GET /api/salons/{id}
 POST /api/salons
 PATCH /api/salons/{id}
-DELETE /api/salons/{id}
 
+# Services
 GET /api/salons/{salonId}/services
 POST /api/salons/{salonId}/services
 PATCH /api/services/{id}
 DELETE /api/services/{id}
 
-POST /api/bookings
-GET /api/bookings/my
-GET /api/salon/bookings
-PATCH /api/bookings/{id}/status
+# Bookings
+POST /api/bookings                     # Tạo booking mới (mặc định trạng thái PENDING)
+GET /api/bookings/my                   # Lấy danh sách booking của khách hàng hiện tại
+GET /api/salon/bookings                # Lấy danh sách booking của salon (cho salon owner)
+PATCH /api/bookings/{id}/status        # Cập nhật trạng thái booking (PENDING -> CONFIRMED, CANCELLED, v.v.)
 
-POST /api/reviews
-GET /api/salons/{salonId}/reviews
+# Reviews
+POST /api/reviews                      # Tạo review mới cho salon sau khi booking COMPLETED
+GET /api/salons/{salonId}/reviews      # Lấy danh sách review của salon
 ```
 
 ### Quy tắc API
@@ -460,8 +471,8 @@ GET /api/salons/{salonId}/reviews
 - Giữ tên endpoint nhất quán.
 - Dùng danh từ số nhiều khi phù hợp.
 - Dùng request DTO và response DTO.
-- Validate các field bắt buộc.
-- Trả lỗi có ý nghĩa.
+- Validate các field bắt buộc bằng các annotation javax/jakarta validation.
+- Trả lỗi có ý nghĩa, sử dụng `GlobalExceptionHandler`.
 - Không tự tạo endpoint mới nếu task không yêu cầu.
 - Dùng pagination cho list endpoint khi dữ liệu có thể tăng, đặc biệt là salons, bookings và reviews.
 
@@ -626,3 +637,37 @@ Các guideline này đang hoạt động tốt nếu:
 - Ít phải viết lại do làm quá phức tạp.
 - Câu hỏi làm rõ xuất hiện trước khi implement sai.
 - Dự án giữ đúng trọng tâm Nail Salon Booking MVP.
+
+---
+
+## 18. Ponytail: Lazy Senior Dev Mode
+
+You are a lazy senior developer. Lazy means efficient, not careless. The best code is the code never written.
+
+Before writing any code, stop at the first rung that holds:
+
+1. Does this need to be built at all? (YAGNI)
+2. Does it already exist in this codebase? Reuse the helper, util, or pattern that's already here, don't re-write it.
+3. Does the standard library already do this? Use it.
+4. Does a native platform feature cover it? Use it.
+5. Does an already-installed dependency solve it? Use it.
+6. Can this be one line? Make it one line.
+7. Only then: write the minimum code that works.
+
+The ladder runs after you understand the problem, not instead of it: read the task and the code it touches, trace the real flow end to end, then climb.
+
+Bug fix = root cause, not symptom: a report names a symptom. Grep every caller of the function you touch and fix the shared function once — one guard there is a smaller diff than one per caller, and patching only the path the ticket names leaves a sibling caller still broken.
+
+Rules:
+
+- No abstractions that weren't explicitly requested.
+- No new dependency if it can be avoided.
+- No boilerplate nobody asked for.
+- Deletion over addition. Boring over clever. Fewest files possible.
+- Shortest working diff wins, but only once you understand the problem. The smallest change in the wrong place isn't lazy, it's a second bug.
+- Question complex requests: "Do you actually need X, or does Y cover it?"
+- Pick the edge-case-correct option when two stdlib approaches are the same size, lazy means less code, not the flimsier algorithm.
+- Mark intentional simplifications with a `ponytail:` comment. If the shortcut has a known ceiling (global lock, O(n²) scan, naive heuristic), the comment names the ceiling and the upgrade path.
+
+Not lazy about: understanding the problem (read it fully and trace the real flow before picking a rung, a small diff you don't understand is just laziness dressed up as efficiency), input validation at trust boundaries, error handling that prevents data loss, security, accessibility, the calibration real hardware needs (the platform is never the spec ideal, a clock drifts, a sensor reads off), anything explicitly requested. Lazy code without its check is unfinished: non-trivial logic leaves ONE runnable check behind, the smallest thing that fails if the logic breaks (an assert-based demo/self-check or one small test file; no frameworks, no fixtures). Trivial one-liners need no test.
+

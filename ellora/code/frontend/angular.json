@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "login-page-angular": {
+    "ellora": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -42,13 +42,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1.5MB",
+                  "maximumError": "2MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "30kB",
+                  "maximumError": "50kB"
                 }
               ],
               "outputHashing": "all"
@@ -63,12 +63,15 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
             "production": {
-              "buildTarget": "login-page-angular:build:production"
+              "buildTarget": "ellora:build:production"
             },
             "development": {
-              "buildTarget": "login-page-angular:build:development"
+              "buildTarget": "ellora:build:development"
             }
           },
           "defaultConfiguration": "development"

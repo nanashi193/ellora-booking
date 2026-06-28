@@ -1,14 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Minion Pro';
+  src: url('/fonts/minion-pro/MinionPro-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Minion Pro';
+  src: url('/fonts/minion-pro/MinionPro-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Minion Pro';
+  src: url('/fonts/minion-pro/MinionPro-Semibold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Minion Pro';
+  src: url('/fonts/minion-pro/MinionPro-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* You can add global styles to this file, and also import other style files */
 
-html,
-body {
-  min-height: 100%;
-  background: #fff4f9;
+@layer base {
+  html,
+  body {
+    min-height: 100%;
+    background: theme('colors.ivory.50');
+    color: theme('colors.charcoal.900');
+    font-family: theme('fontFamily.sans');
+  }
 }
+
 
 body {
   margin: 0;
-  overflow-x: hidden;
+  overflow-x: clip; /* ponytail: clip ≠ hidden — không tạo scroll context mới, không phá sticky */
 }
 
 ::view-transition-old(root),

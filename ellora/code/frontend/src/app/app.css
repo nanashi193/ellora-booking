@@ -1,6 +1,6 @@
 .route-stage {
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: clip;
   background: #fff4f9;
-  perspective: 1400px;
+  /* ponytail: perspective removed — animations use perspective() in transform directly; keeping it here created a new containing block and broke position:fixed */
 }

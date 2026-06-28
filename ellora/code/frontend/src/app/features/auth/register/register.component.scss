@@ -18,7 +18,7 @@
 
   display: block;
   min-height: 100vh;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Minion Variable Concept', 'minion-pro', Georgia, serif;
   background: #fff4f9;
 }
 
@@ -100,7 +100,7 @@ form,
 }
 
 .form-header h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Minion Variable Concept', 'minion-pro', Georgia, serif;
   font-size: 2.25rem;
   color: var(--navy);
   margin-bottom: 6px;
@@ -146,6 +146,7 @@ label {
   z-index: 1;
   margin: 0;
   color: var(--navy);
+  font-family: 'Inter', sans-serif;
   font-size: .72rem;
   font-weight: 900;
   letter-spacing: .1em;
@@ -166,13 +167,14 @@ label {
 
 input[type='email'],
 input[type='password'],
-input[type='text'] {
+input[type='text'],
+input[type='tel'] {
   width: 100%;
   min-height: 56px;
   padding: 28px 46px 10px;
   border: 1.5px solid transparent;
   border-radius: var(--radius);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: .98rem;
   color: var(--navy);
   background: var(--white);
@@ -225,6 +227,37 @@ input:focus + svg,
   display: block;
 }
 
+.password-reqs {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.req-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .78rem;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.req-item svg {
+  width: 14px;
+  height: 14px;
+  color: #d4cfc5;
+  transition: color 0.2s;
+}
+
+.req-item.valid {
+  color: #2d7a4f;
+}
+
+.req-item.valid svg {
+  color: #2d7a4f;
+}
+
 .alert-box {
   background: rgba(224, 92, 92, .08);
   border: 1px solid rgba(224, 92, 92, .3);
@@ -245,7 +278,7 @@ input:focus + svg,
   padding: 15px;
   background: linear-gradient(135deg, #f48bb6, #f7a8c8);
   color: var(--white);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Minion Variable Concept', 'minion-pro', Georgia, serif;
   font-size: 1rem;
   font-weight: 900;
   letter-spacing: .06em;
@@ -335,7 +368,7 @@ input:focus + svg,
   background: var(--white);
   border: 1.5px solid #f3bfd2;
   border-radius: var(--radius);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Minion Variable Concept', 'minion-pro', Georgia, serif;
   font-size: .94rem;
   font-weight: 800;
   color: var(--navy);
@@ -364,6 +397,80 @@ input:focus + svg,
   color: var(--navy);
   font-weight: 900;
   text-decoration: none;
+}
+
+.confirmation-copy,
+.registration-success {
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 18px;
+}
+
+.confirmation-copy h3,
+.registration-success h3 {
+  color: var(--navy);
+  font-family: 'Playfair Display', serif;
+  font-size: 1.45rem;
+  margin-bottom: 6px;
+}
+
+.confirmation-copy p,
+.registration-success p {
+  color: var(--muted);
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.registration-success a {
+  display: inline-block;
+  margin-top: 16px;
+  color: var(--navy);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.confirmation-actions {
+  min-height: 44px;
+  margin: -2px 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-resend {
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.btn-resend:hover {
+  color: var(--navy-light);
+}
+
+.btn-resend:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.resend-message {
+  flex: 1 1 220px;
+  color: #28734d;
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.confirmation-error {
+  display: block;
+  margin-top: 6px;
+  color: var(--error);
+  font-size: .8rem;
+  font-weight: 700;
 }
 
 .corner-deco {

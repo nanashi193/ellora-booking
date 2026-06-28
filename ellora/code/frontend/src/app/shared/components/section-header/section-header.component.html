@@ -1,0 +1,16 @@
+<div class="flex items-end justify-between gap-4 mb-8">
+      <div class="flex flex-col gap-2 max-w-2xl">
+        @if (subtitle()) {
+          <span class="text-sm font-medium tracking-wider text-dusty-pink-600 uppercase">{{ subtitle() }}</span>
+        }
+        <h2 class="font-serif text-3xl md:text-4xl font-medium text-charcoal-900">{{ title() }}</h2>
+      </div>
+      @if (linkText()) {
+        <a [href]="linkHref()" class="hidden md:inline-flex items-center gap-1.5 text-sm font-medium text-charcoal-900 hover:text-dusty-pink-600 transition-colors pb-1 border-b border-charcoal-900 hover:border-dusty-pink-600">
+          {{ linkText() }}
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+      }
+    </div>

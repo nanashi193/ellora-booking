@@ -1,0 +1,209 @@
+<div class="px-8 py-10 w-full max-w-[1200px] mx-auto text-gray-900">
+  
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h2 class="text-2xl font-bold text-[#8C3A5A]">Phân tích dữ liệu</h2>
+      <p class="text-sm text-gray-600 mt-1">Theo dõi hiệu suất kinh doanh của Ellora Salon</p>
+    </div>
+    <div class="flex gap-4">
+      <button class="bg-white border border-gray-200 px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2 hover:bg-gray-50">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        Tháng này (Tháng 10, 2023)
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+      <button class="bg-[#F2A4BB] hover:bg-[#E88AA4] text-white px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition-colors">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Xuất báo cáo
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-4 gap-6 mb-8">
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+      <div class="flex justify-between items-start mb-4">
+        <div class="w-10 h-10 rounded-full bg-[#FDF6F8] flex items-center justify-center text-[#8C3A5A]">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><circle cx="12" cy="12" r="3"></circle></svg>
+        </div>
+        <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">~+12%</span>
+      </div>
+      <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1">Tổng doanh thu</p>
+      <p class="text-3xl font-serif font-medium text-[#8C3A5A]">{{ stats().revenue }}</p>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+      <div class="flex justify-between items-start mb-4">
+        <div class="w-10 h-10 rounded-full bg-[#FDF6F8] flex items-center justify-center text-[#8C3A5A]">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </div>
+        <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">~+8%</span>
+      </div>
+      <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1">Lịch hẹn hoàn tất</p>
+      <p class="text-3xl font-serif font-medium text-[#8C3A5A]">{{ stats().totalBookings }}</p>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+      <div class="flex justify-between items-start mb-4">
+        <div class="w-10 h-10 rounded-full bg-[#FDF6F8] flex items-center justify-center text-[#8C3A5A]">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        </div>
+        <span class="text-xs font-bold text-[#F2A4BB] bg-[#FDF6F8] px-2 py-1 rounded-full">~+5%</span>
+      </div>
+      <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1">Khách hàng mới</p>
+      <p class="text-3xl font-serif font-medium text-[#8C3A5A]">{{ stats().newCustomers }}</p>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+      <div class="flex justify-between items-start mb-4">
+        <div class="w-10 h-10 rounded-full bg-[#FDF6F8] flex items-center justify-center text-[#8C3A5A]">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        </div>
+        <span class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Ổn định</span>
+      </div>
+      <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1">Đánh giá trung bình</p>
+      <p class="text-3xl font-serif font-medium text-[#8C3A5A]">4.9/5.0</p>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-3 gap-6 mb-8">
+    <div class="col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h3 class="text-lg font-serif text-[#8C3A5A]">Xu hướng doanh thu</h3>
+          <div class="flex gap-4 mt-2 text-xs font-semibold text-gray-500">
+            <span class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-[#8C3A5A]"></div> Tháng này</span>
+            <span class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-[#D4C4B7]"></div> Tháng trước</span>
+          </div>
+        </div>
+        <div class="flex bg-gray-50 p-1 rounded-lg">
+          <button class="px-3 py-1 text-xs font-semibold bg-white shadow-sm rounded-md text-gray-800">Ngày</button>
+          <button class="px-3 py-1 text-xs font-semibold text-gray-500 hover:text-gray-800">Tuần</button>
+          <button class="px-3 py-1 text-xs font-semibold text-gray-500 hover:text-gray-800">Tháng</button>
+        </div>
+      </div>
+      <div class="h-[250px] w-full">
+        <canvas baseChart [data]="revenueChartData" [options]="revenueChartOptions" type="line"></canvas>
+      </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <h3 class="text-lg font-serif text-[#8C3A5A] mb-6">Dịch vụ phổ biến</h3>
+      <div class="h-[200px] w-full relative mb-6">
+        <canvas baseChart [data]="servicesChartData" [options]="servicesChartOptions" type="doughnut"></canvas>
+      </div>
+      <div class="flex flex-col gap-3">
+        <div class="flex justify-between items-center text-sm font-semibold">
+          <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-[#8C3A5A]"></div> Cắt & Tạo kiểu</span>
+          <span class="text-[#8C3A5A]">45%</span>
+        </div>
+        <div class="flex justify-between items-center text-sm font-semibold">
+          <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-[#F2A4BB]"></div> Nhuộm màu</span>
+          <span class="text-[#8C3A5A]">30%</span>
+        </div>
+        <div class="flex justify-between items-center text-sm font-semibold">
+          <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-[#D4C4B7]"></div> Chăm sóc da</span>
+          <span class="text-[#8C3A5A]">15%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Row: Peak Hours & Staff -->
+  <div class="grid grid-cols-2 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <h3 class="text-lg font-serif text-[#8C3A5A] mb-6">Giờ cao điểm</h3>
+      <div class="h-[200px] w-full">
+        <canvas baseChart [data]="peakHoursChartData" [options]="peakHoursChartOptions" type="bar"></canvas>
+      </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-serif text-[#8C3A5A]">Hiệu suất nhân viên</h3>
+        <a href="#" class="text-xs font-bold text-[#8C3A5A] hover:underline">Xem tất cả</a>
+      </div>
+      <div class="flex flex-col gap-6">
+        @for (staff of staffPerformance; track staff.name) {
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <div class="flex items-center gap-3">
+                <img [src]="staff.avatar" class="w-10 h-10 rounded-full object-cover">
+                <div>
+                  <p class="text-sm font-bold text-gray-900">{{ staff.name }}</p>
+                  <p class="text-xs text-gray-500 font-medium">{{ staff.role }}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="text-sm font-bold text-gray-900">{{ staff.revenue }}</p>
+                <p class="text-xs font-bold" [class.text-emerald-500]="staff.growth.includes('+')" [class.text-gray-400]="staff.growth.includes('~')">{{ staff.growth }}</p>
+              </div>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-1.5">
+              <div class="bg-[#8C3A5A] h-1.5 rounded-full" [style.width.%]="staff.progress"></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-lg font-serif text-[#8C3A5A]">Giao dịch gần đây</h3>
+      <div class="flex gap-2">
+        <div class="relative">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" placeholder="Tìm kiếm giao dịch..." class="pl-9 pr-4 py-2 bg-gray-50 border-none rounded-md text-sm font-medium outline-none focus:ring-2 focus:ring-[#F2A4BB] w-[240px]">
+        </div>
+        <button class="bg-gray-50 p-2 rounded-md hover:bg-gray-100 text-gray-600">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+        </button>
+      </div>
+    </div>
+    
+    <table class="w-full text-left">
+      <thead>
+        <tr class="text-xs font-bold text-gray-500 uppercase border-b border-gray-100">
+          <th class="pb-3 px-4">Mã Hóa Đơn</th>
+          <th class="pb-3 px-4">Khách Hàng</th>
+          <th class="pb-3 px-4">Dịch Vụ</th>
+          <th class="pb-3 px-4">Nhân Viên</th>
+          <th class="pb-3 px-4">Ngày</th>
+          <th class="pb-3 px-4">Số Tiền</th>
+          <th class="pb-3 px-4 text-right">Trạng Thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (trx of transactions; track trx.id) {
+          <tr class="border-b border-gray-50 hover:bg-gray-50/50">
+            <td class="py-4 px-4 text-sm font-bold text-[#8C3A5A]">{{ trx.id }}</td>
+            <td class="py-4 px-4 text-sm font-semibold text-gray-900">{{ trx.customer }}</td>
+            <td class="py-4 px-4 text-sm font-medium text-gray-600">{{ trx.service }}</td>
+            <td class="py-4 px-4 text-sm font-medium text-gray-600">{{ trx.staff }}</td>
+            <td class="py-4 px-4 text-sm font-medium text-gray-600">{{ trx.date }}</td>
+            <td class="py-4 px-4 text-sm font-bold text-gray-900">{{ trx.amount }}</td>
+            <td class="py-4 px-4 text-right">
+              @if (trx.status === 'THÀNH CÔNG') {
+                <span class="inline-flex px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-50 text-emerald-600">{{ trx.status }}</span>
+              } @else {
+                <span class="inline-flex px-2 py-1 text-[10px] font-bold rounded-full bg-amber-50 text-amber-600">{{ trx.status }}</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    
+    <div class="flex justify-center items-center mt-6 gap-2 text-sm font-bold text-gray-600">
+      <button class="p-1 hover:text-gray-900"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+      <button class="w-8 h-8 rounded-full bg-[#F2A4BB] text-white flex items-center justify-center">1</button>
+      <button class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center">2</button>
+      <button class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center">3</button>
+      <button class="p-1 hover:text-gray-900"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+    </div>
+  </div>
+
+</div>
