@@ -75,10 +75,10 @@ Sử dụng stack dưới đây trừ khi người dùng yêu cầu thay đổi 
 
 ### Deployment
 
-- **Frontend**: Vercel, Netlify, Firebase Hosting hoặc hosting static phù hợp với Angular
-- **Backend**: Railway, Render hoặc hosting tương thích Java
-- **Database**: PostgreSQL trên Railway, Render, Supabase, Neon hoặc dịch vụ tương tự
-- **CDN / DNS**: Cloudflare nếu cần
+- **Frontend**: Cloudflare Pages / Cloudflare Hosting
+- **Backend**: Render
+- **Database**: PostgreSQL trên Render, Supabase, Neon hoặc dịch vụ tương tự
+- **CDN / DNS**: Cloudflare
 
 ---
 

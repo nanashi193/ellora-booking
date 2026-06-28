@@ -183,10 +183,10 @@ Chủ salon đăng ký tài khoản
 - **Storage ảnh:** Cloudinary cho ảnh salon, ảnh mẫu nail, avatar và ảnh review.
 
 ### 7.4 Deployment
-- **Frontend:** Vercel, Netlify, Firebase Hosting hoặc hosting static phù hợp với Angular.
-- **Backend:** Railway, Render hoặc hosting tương thích Java.
-- **Database:** PostgreSQL trên Railway, Render, Supabase, Neon hoặc dịch vụ tương tự.
-- **CDN/DNS:** Cloudflare nếu cần.
+- **Frontend:** Cloudflare Pages / Cloudflare Hosting.
+- **Backend:** Render.
+- **Database:** PostgreSQL trên Render, Supabase, Neon hoặc dịch vụ tương tự.
+- **CDN/DNS:** Cloudflare.
 - **CI/CD:** GitHub Actions.
 
 ---
@@ -400,7 +400,7 @@ Cache:      Redis chỉ khi cần cache/lock nâng cao
 Storage:    Cloudinary
 Notify:     Email trong MVP; Zalo/SMS ở v1/v2
 Payment:    Momo / VNPay / ZaloPay ở v2
-Deploy:     Angular static hosting + Railway/Render Java backend + Cloudflare
+Deploy:     Cloudflare FE + Render BE
 ```
 
 ---
