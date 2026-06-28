@@ -62,13 +62,50 @@
     <!-- Top Header -->
     <header class="h-[80px] bg-[#F9F5F6] flex items-center justify-end px-8 shrink-0 relative z-50">
       <div class="flex items-center gap-6">
-        <!-- Notification Icon -->
-        <button class="text-charcoal-800 hover:text-[#8C3A5A] transition-colors relative">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-[26px] h-[26px]">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-          </svg>
-        </button>
+        <!-- Notification Icon & Dropdown -->
+        <div class="relative notification-container">
+          <button class="text-charcoal-800 hover:text-[#8C3A5A] transition-colors relative" (click)="toggleNotification()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-[26px] h-[26px]">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            @if (pendingCount() > 0) {
+              <span class="absolute -top-1.5 -right-1.5 bg-[#8C3A5A] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-[#F9F5F6]">
+                +{{ pendingCount() }}
+              </span>
+            }
+          </button>
+
+          <!-- Notification Dropdown -->
+          @if (isNotificationOpen) {
+            <div class="absolute right-0 top-full mt-4 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+              <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-sm font-bold text-charcoal-900">Thông báo mới</h3>
+                <span class="bg-[#FDE8E8] text-[#8C3A5A] text-[11px] font-bold px-2 py-0.5 rounded-full">{{ pendingCount() }} chờ xác nhận</span>
+              </div>
+              <div class="max-h-[300px] overflow-y-auto">
+                @if (pendingBookings().length > 0) {
+                  @for (booking of pendingBookings(); track booking.id) {
+                    <div class="p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer" (click)="focusBooking(booking.id)">
+                      <div class="flex justify-between items-start mb-1">
+                        <p class="font-bold text-[14px] text-charcoal-900">{{ booking.customerName }}</p>
+                        <span class="text-[12px] font-medium text-charcoal-800/60">{{ booking.startTime }}:00</span>
+                      </div>
+                      <p class="text-[13px] text-charcoal-800/80">{{ booking.serviceName }}</p>
+                    </div>
+                  }
+                } @else {
+                  <div class="p-6 text-center text-charcoal-800/60 text-sm font-medium">
+                    Không có thông báo mới
+                  </div>
+                }
+              </div>
+              <div class="p-3 bg-gray-50 text-center border-t border-gray-100">
+                <a routerLink="/owner/bookings" class="text-sm font-bold text-[#8C3A5A] hover:underline" (click)="isNotificationOpen = false">Xem tất cả lịch hẹn</a>
+              </div>
+            </div>
+          }
+        </div>
 
         <!-- Settings Icon -->
         <button class="text-charcoal-800 hover:text-[#8C3A5A] transition-colors">

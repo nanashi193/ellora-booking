@@ -1,21 +1,18 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, inject, signal, effect, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BookingService, BookingEvent } from '../../../services/booking.service';
 
 export interface Staff {
-  id: string;
+  id: number;
   name: string;
   role: string;
   avatar: string;
 }
 
-export interface Booking {
-  id: string;
-  staffId: string;
-  customerName: string;
-  service: string;
-  startTime: string; // "HH:MM"
-  endTime: string;   // "HH:MM"
-  status: 'confirmed' | 'pending';
+export interface ServiceCategory {
+  name: string;
+  count: number;
+  services: { name: string; duration: string; price: string }[];
 }
 
 @Component({
@@ -35,60 +32,115 @@ export class BookingManagement {
   
   hours = Array.from({ length: this.endHour - this.startHour + 1 }, (_, i) => this.startHour + i);
 
-  staffs = signal<Staff[]>([
-    { id: 'S1', name: 'Anna', role: 'Kỹ thuật viên nail', avatar: 'https://i.pravatar.cc/150?img=5' },
-    { id: 'S2', name: 'Ben', role: 'Chuyên viên massage', avatar: 'https://i.pravatar.cc/150?img=11' },
-    { id: 'S3', name: 'Chloe', role: 'Chuyên viên thẩm mỹ', avatar: 'https://i.pravatar.cc/150?img=9' }
-  ]);
+  isSidebarOpen = false;
+  searchQuery = signal('');
 
-  bookings = signal<Booking[]>([
+  serviceCategories = signal<ServiceCategory[]>([
     {
-      id: 'B1',
-      staffId: 'S1',
-      customerName: 'Sarah Jenkins',
-      service: 'Làm móng gel & Chăm sóc chân',
-      startTime: '08:30',
-      endTime: '10:00',
-      status: 'confirmed'
+      name: 'Chăm sóc tóc',
+      count: 3,
+      services: [
+        { name: 'Cắt tóc tạo kiểu', duration: '45p', price: '150.000₫' },
+        { name: 'Sấy bồng bềnh', duration: '30p', price: '100.000₫' },
+        { name: 'Nhuộm màu thời trang', duration: '1h 30p', price: '500.000₫' }
+      ]
     },
     {
-      id: 'B2',
-      staffId: 'S2',
-      customerName: 'Michael Chang',
-      service: 'Massage mô sâu (60p)',
-      startTime: '10:00',
-      endTime: '11:00',
-      status: 'pending'
+      name: 'Làm móng (Nails)',
+      count: 2,
+      services: [
+        { name: 'Cắt da & Sơn gel', duration: '1h', price: '200.000₫' },
+        { name: 'Đắp móng bột', duration: '1h 30p', price: '350.000₫' }
+      ]
     },
     {
-      id: 'B3',
-      staffId: 'S3',
-      customerName: 'Emma Davis',
-      service: 'Chăm sóc da mặt đặc trưng',
-      startTime: '09:00',
-      endTime: '10:00',
-      status: 'confirmed'
+      name: 'Chăm sóc da',
+      count: 2,
+      services: [
+        { name: 'Massage mặt chuyên sâu', duration: '1h', price: '300.000₫' },
+        { name: 'Lấy nhân mụn chuẩn y khoa', duration: '45p', price: '250.000₫' }
+      ]
     }
   ]);
 
-  getTopPosition(time: string): number {
-    const [hours, minutes] = time.split(':').map(Number);
-    const decimalHours = hours + (minutes / 60);
-    return (decimalHours - this.startHour) * this.hourHeight;
+  filteredServiceCategories = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    if (!query) return this.serviceCategories();
+    
+    return this.serviceCategories().map(category => ({
+      ...category,
+      services: category.services.filter(s => s.name.toLowerCase().includes(query)),
+      count: category.services.filter(s => s.name.toLowerCase().includes(query)).length
+    })).filter(category => category.count > 0);
+  });
+
+  staffs = signal<Staff[]>([
+    { id: 1, name: 'Anna', role: 'Kỹ thuật viên nail', avatar: 'https://i.pravatar.cc/150?img=5' },
+    { id: 2, name: 'Ben', role: 'Chuyên viên massage', avatar: 'https://i.pravatar.cc/150?img=11' },
+    { id: 3, name: 'Chloe', role: 'Chuyên viên thẩm mỹ', avatar: 'https://i.pravatar.cc/150?img=9' },
+    { id: 4, name: 'Daniel', role: 'Nhà tạo mẫu tóc', avatar: 'https://i.pravatar.cc/150?img=12' }
+  ]);
+
+  private readonly bookingService = inject(BookingService);
+  private readonly elementRef = inject(ElementRef);
+  
+  bookings = this.bookingService.bookings;
+
+  constructor() {
+    effect(() => {
+      const focusedId = this.bookingService.focusedBookingId();
+      if (focusedId !== null) {
+        // Use setTimeout to ensure DOM is updated/rendered
+        setTimeout(() => {
+          const element = document.getElementById(`booking-${focusedId}`);
+          if (element) {
+            // Scroll to center
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Add highlight class
+            element.classList.add('highlight-pulse');
+            
+            // Remove highlight after 1.5s
+            setTimeout(() => {
+              element.classList.remove('highlight-pulse');
+            }, 1500);
+          }
+          
+          // Reset the focused ID so it can be triggered again later if needed
+          this.bookingService.focusedBookingId.set(null);
+        }, 100);
+      }
+    }, { allowSignalWrites: true });
   }
 
-  getHeight(startTime: string, endTime: string): number {
-    const [sHours, sMinutes] = startTime.split(':').map(Number);
-    const [eHours, eMinutes] = endTime.split(':').map(Number);
-    
-    const startDec = sHours + (sMinutes / 60);
-    const endDec = eHours + (eMinutes / 60);
-    
-    return (endDec - startDec) * this.hourHeight;
+  // Helper method to format time from hours (e.g. 9.5 -> "09:30")
+  formatTime(hours: number): string {
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   }
 
-  getBookingsForStaff(staffId: string): Booking[] {
-    return this.bookings().filter(b => b.staffId === staffId);
+  // Get bookings for a specific staff member
+  getBookingsForStaff(staffId: number) {
+    return this.bookings().filter(b => b.staffId === staffId && (b.status === 'confirmed' || b.status === 'pending'));
+  }
+
+  // Calculate top position based on start time
+  getTopPosition(startTime: number): number {
+    return (startTime - this.startHour) * this.hourHeight;
+  }
+
+  // Calculate height based on duration
+  getHeight(duration: number): number {
+    return duration * this.hourHeight;
+  }
+
+  acceptBooking(id: number) {
+    this.bookingService.acceptBooking(id);
+  }
+
+  rejectBooking(id: number) {
+    this.bookingService.rejectBooking(id);
   }
 
   formatHour(hour: number): string {
