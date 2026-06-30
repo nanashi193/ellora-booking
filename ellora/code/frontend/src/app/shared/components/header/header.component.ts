@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostBinding, HostListener, inject, OnInit, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { Component, ElementRef, HostBinding, HostListener, inject, OnInit, PLATFORM_ID, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -26,6 +26,12 @@ export class Header implements OnInit {
   userInitial = '';
   isDropdownOpen = false;
   isMobileMenuOpen = false;
+  isSearchActive = false;
+  activeSearchSection: 'service' | 'location' | 'time' | null = null;
+
+  @ViewChild('serviceInput') serviceInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('locationInput') locationInput?: ElementRef<HTMLInputElement>;
+
   showComingSoon = false;
   private comingSoonTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -60,23 +66,55 @@ export class Header implements OnInit {
       this.isHidden = false;
     }
 
-    this.lastScrollTop = currentScroll;
+    this.lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+  }
+
+  get isHomePage(): boolean {
+    return this.router.url === '/';
+  }
+
+  get isBookingPage(): boolean {
+    return this.router.url.startsWith('/booking');
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    if (!this.isDropdownOpen && !this.isMobileMenuOpen) {
+    if (!this.isDropdownOpen && !this.isMobileMenuOpen && !this.isSearchActive) {
       return;
     }
     const target = event.target as HTMLElement;
     if (!this.elementRef.nativeElement.contains(target)) {
       this.isDropdownOpen = false;
       this.isMobileMenuOpen = false;
+      this.isSearchActive = false;
+      this.activeSearchSection = null;
     }
   }
 
   toggleDropdown(): void {
     this.isDropdownOpen = !this.isDropdownOpen;
+  }
+
+  toggleSearch(active?: boolean, section?: 'service' | 'location' | 'time' | null): void {
+    if (active !== undefined) {
+      this.isSearchActive = active;
+    } else {
+      this.isSearchActive = !this.isSearchActive;
+    }
+
+    this.activeSearchSection = section || null;
+
+    if (this.isSearchActive && this.activeSearchSection) {
+      setTimeout(() => {
+        if (this.activeSearchSection === 'service') {
+          this.serviceInput?.nativeElement.focus();
+        } else if (this.activeSearchSection === 'location') {
+          this.locationInput?.nativeElement.focus();
+        }
+      }, 50);
+    }
+
+    this.cdr.detectChanges();
   }
 
   toggleMobileMenu(): void {
