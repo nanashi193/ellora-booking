@@ -16,13 +16,9 @@
     <nav class="hidden md:flex items-center gap-6 flex-1 justify-end">
       <a routerLink="/for-business" class="text-[15px] font-semibold text-charcoal-900 hover:text-black transition-colors whitespace-nowrap">Dành cho doanh nghiệp</a>
 
-      <!-- Not Logged In: show login button -->
-      @if (!isLoggedIn) {
-        <a routerLink="/login" class="bg-[#F9A8B6] hover:bg-[#F493A4] text-white text-[15px] font-bold px-6 py-2 rounded-full transition-colors shadow-sm whitespace-nowrap">Đăng nhập</a>
-      }
-
-      <!-- Logged In: show avatar dropdown -->
-      @if (isLoggedIn) {
+      @if (isAuthChecking) {
+        <div class="w-10 h-10 bg-black/5 animate-pulse rounded-full"></div>
+      } @else if (isLoggedIn) {
         <div class="header-avatar-wrapper">
           <button
             type="button"
@@ -89,6 +85,8 @@
             </div>
           }
         </div>
+      } @else {
+        <a routerLink="/login" class="bg-[#F9A8B6] hover:bg-[#F493A4] text-white text-[15px] font-bold px-6 py-2 rounded-full transition-colors shadow-sm whitespace-nowrap">Đăng nhập</a>
       }
     </nav>
 
@@ -122,12 +120,13 @@
         <a class="mobile-menu-link" (click)="navigateTo('/search')">Đặt lịch hẹn</a>
         <a class="mobile-menu-link" (click)="navigateTo('/for-business')">Dành cho doanh nghiệp</a>
 
-        @if (!isLoggedIn) {
+        @if (isAuthChecking) {
           <div class="mobile-menu-divider"></div>
-          <a class="mobile-menu-login" (click)="navigateTo('/login')">Đăng nhập</a>
-        }
-
-        @if (isLoggedIn) {
+          <div class="flex items-center gap-3 px-4 py-3">
+            <div class="w-10 h-10 rounded-full bg-black/5 animate-pulse"></div>
+            <div class="w-24 h-4 rounded-full bg-black/5 animate-pulse"></div>
+          </div>
+        } @else if (isLoggedIn) {
           <div class="mobile-menu-divider"></div>
           <div class="mobile-menu-user">
             <span class="header-avatar-circle header-avatar-circle--small">{{ userInitial }}</span>
@@ -159,6 +158,9 @@
           </a>
           <div class="mobile-menu-divider"></div>
           <a class="mobile-menu-link mobile-menu-logout" (click)="logout()">Đăng xuất</a>
+        } @else {
+          <div class="mobile-menu-divider"></div>
+          <a class="mobile-menu-login" (click)="navigateTo('/login')">Đăng nhập</a>
         }
       </nav>
     </div>

@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostBinding, HostListener, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, ElementRef, HostBinding, HostListener, inject, OnInit, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -15,10 +15,12 @@ export class Header implements OnInit {
   private readonly router = inject(Router);
   private readonly elementRef = inject(ElementRef);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   private lastScrollTop = 0;
   private scrollThreshold = 10;
 
+  isAuthChecking = true;
   isLoggedIn = false;
   userName = '';
   userInitial = '';
@@ -32,6 +34,7 @@ export class Header implements OnInit {
 
   async ngOnInit(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) {
+      this.isAuthChecking = false;
       return;
     }
     await this.checkAuthState();
@@ -107,16 +110,21 @@ export class Header implements OnInit {
   }
 
   private async checkAuthState(): Promise<void> {
-    this.isLoggedIn = await this.authService.isAuthenticated();
-    if (this.isLoggedIn) {
-      try {
-        const profile = await this.authService.getUserProfile();
-        this.userName = profile.name || profile.email;
-        this.userInitial = this.userName.charAt(0).toUpperCase();
-      } catch {
-        this.userName = 'User';
-        this.userInitial = 'U';
+    try {
+      this.isLoggedIn = await this.authService.isAuthenticated();
+      if (this.isLoggedIn) {
+        try {
+          const profile = await this.authService.getUserProfile();
+          this.userName = profile.name || profile.email;
+          this.userInitial = this.userName.charAt(0).toUpperCase();
+        } catch {
+          this.userName = 'User';
+          this.userInitial = 'U';
+        }
       }
+    } finally {
+      this.isAuthChecking = false;
+      this.cdr.detectChanges();
     }
   }
 }
