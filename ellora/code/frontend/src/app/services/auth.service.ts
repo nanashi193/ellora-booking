@@ -23,12 +23,30 @@ import {
   RegisterRequest,
   RegisterResult,
 } from '../models/auth.model';
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID, inject } from '@angular/core';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private readonly requestTimeoutMs = 20_000;
+  private readonly platformId = inject(PLATFORM_ID);
+
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      try {
+        const hasSessionTokens = Object.keys(window.sessionStorage).some((key) =>
+          key.startsWith('CognitoIdentityServiceProvider')
+        );
+        if (hasSessionTokens) {
+          cognitoUserPoolsTokenProvider.setKeyValueStorage(sessionStorage);
+        }
+      } catch (e) {
+        // Ignore errors (e.g. if sessionStorage is disabled or blocked)
+      }
+    }
+  }
 
   async login(credentials: LoginRequest): Promise<LoginResult> {
     if (!isCognitoConfigured()) {
@@ -242,16 +260,20 @@ export class AuthService {
   }
 
   async getAccessToken(): Promise<string | null> {
-    if (!isCognitoConfigured()) {
+    if (!isCognitoConfigured() || !isPlatformBrowser(this.platformId)) {
       return null;
     }
 
-    const session = await fetchAuthSession();
-    return session.tokens?.accessToken.toString() ?? null;
+    try {
+      const session = await fetchAuthSession();
+      return session.tokens?.accessToken?.toString() ?? null;
+    } catch {
+      return null;
+    }
   }
 
   async isAuthenticated(): Promise<boolean> {
-    if (!isCognitoConfigured()) {
+    if (!isCognitoConfigured() || !isPlatformBrowser(this.platformId)) {
       return false;
     }
 
@@ -264,6 +286,9 @@ export class AuthService {
   }
 
   async getUserProfile(): Promise<{ email: string; name: string; phone_number?: string }> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return { email: '', name: '' };
+    }
     const attributes = await fetchUserAttributes();
     return {
       email: attributes.email ?? '',

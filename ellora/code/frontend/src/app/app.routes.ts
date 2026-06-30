@@ -43,14 +43,12 @@ export const routes: Routes = [
           {
             path: 'my-bookings',
             loadComponent: () => import('./features/customer/my-bookings/my-bookings.component').then(m => m.MyBookings)
+          },
+          {
+            path: 'security',
+            loadComponent: () => import('./features/customer/security/security.component').then(m => m.SecurityComponent)
           }
         ]
-      },
-      {
-        path: 'account',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import('./features/account/account.component').then((m) => m.AccountComponent),
       },
     ]
   },
