@@ -27,13 +27,24 @@ export const routes: Routes = [
         loadComponent: () => import('./features/booking/booking.component').then(m => m.BookingComponent)
       },
       {
-        path: 'my-bookings',
-        loadComponent: () => import('./features/bookings/my-bookings/my-bookings.component').then(m => m.MyBookings)
-      },
-      {
-        path: 'profile',
-        canActivate: [authGuard],
-        loadComponent: () => import('./features/customer/profile/profile.component').then(m => m.Profile)
+        path: 'setting',
+        // canActivate: [authGuard], // Tạm thời comment để test giao diện
+        loadComponent: () => import('./features/customer/setting-layout/setting-layout.component').then(m => m.SettingLayoutComponent),
+        children: [
+          {
+            path: '',
+            redirectTo: 'profile',
+            pathMatch: 'full'
+          },
+          {
+            path: 'profile',
+            loadComponent: () => import('./features/customer/profile/profile.component').then(m => m.Profile)
+          },
+          {
+            path: 'my-bookings',
+            loadComponent: () => import('./features/customer/my-bookings/my-bookings.component').then(m => m.MyBookings)
+          }
+        ]
       },
       {
         path: 'account',
@@ -88,6 +99,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'login',
+    redirectTo: '/',
   },
 ];

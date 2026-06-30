@@ -1,0 +1,82 @@
+<div class="bg-white rounded-2xl shadow-sm border border-charcoal-800/5 p-6 md:p-8">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+    <h2 class="font-serif text-2xl text-charcoal-900">Lịch sử đặt chỗ</h2>
+    
+    <!-- Tabs -->
+    <div class="flex items-center gap-6 border-b border-charcoal-800/10">
+      <button class="pb-3 text-sm font-semibold transition-colors relative"
+              [ngClass]="activeTab() === 'all' ? 'text-charcoal-900' : 'text-charcoal-800/60 hover:text-charcoal-900'"
+              (click)="activeTab.set('all')">
+        Tất cả
+        @if (activeTab() === 'all') {
+          <div class="absolute bottom-0 left-0 w-full h-0.5 bg-dusty-pink-600"></div>
+        }
+      </button>
+      <button class="pb-3 text-sm font-semibold transition-colors relative"
+              [ngClass]="activeTab() === 'upcoming' ? 'text-charcoal-900' : 'text-charcoal-800/60 hover:text-charcoal-900'"
+              (click)="activeTab.set('upcoming')">
+        Sắp tới
+        @if (activeTab() === 'upcoming') {
+          <div class="absolute bottom-0 left-0 w-full h-0.5 bg-dusty-pink-600"></div>
+        }
+      </button>
+      <button class="pb-3 text-sm font-semibold transition-colors relative"
+              [ngClass]="activeTab() === 'completed' ? 'text-charcoal-900' : 'text-charcoal-800/60 hover:text-charcoal-900'"
+              (click)="activeTab.set('completed')">
+        Đã xong
+        @if (activeTab() === 'completed') {
+          <div class="absolute bottom-0 left-0 w-full h-0.5 bg-dusty-pink-600"></div>
+        }
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-4">
+    @for (booking of filteredBookings(); track booking.id) {
+      <div class="group flex items-center justify-between p-4 md:p-5 rounded-xl border border-charcoal-800/10 hover:border-dusty-pink-500/30 hover:shadow-sm transition-all cursor-pointer bg-[#FCF9F6]/30">
+        
+        <div class="flex items-center gap-5">
+          <!-- Image -->
+          <div class="w-16 h-16 rounded-xl overflow-hidden shrink-0 shadow-sm border border-black/5">
+            <img [src]="booking.image" [alt]="booking.service" class="w-full h-full object-cover">
+          </div>
+          
+          <!-- Info -->
+          <div class="flex flex-col gap-1">
+            <h3 class="font-bold text-charcoal-900 text-[15px] group-hover:text-dusty-pink-700 transition-colors">{{ booking.service }}</h3>
+            <p class="text-sm text-charcoal-800/70">{{ booking.salonName }}</p>
+            <p class="text-sm text-charcoal-800/90 font-medium">{{ booking.time }}, {{ booking.date }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 shrink-0">
+          <!-- Status Badge -->
+          <span class="px-4 py-1.5 rounded-full text-xs font-bold tracking-wide"
+                [ngClass]="{
+                  'bg-dusty-pink-200/50 text-dusty-pink-700': booking.status === 'upcoming',
+                  'bg-pink-100/50 text-pink-600': booking.status === 'completed'
+                }">
+            {{ booking.status === 'upcoming' ? 'Sắp tới' : 'Hoàn thành' }}
+          </span>
+          
+          <!-- Arrow -->
+          <button class="w-8 h-8 flex items-center justify-center text-charcoal-800/40 group-hover:text-charcoal-900 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    } @empty {
+      <div class="py-12 text-center text-charcoal-800/50 text-sm">
+        Không có lịch sử đặt chỗ nào.
+      </div>
+    }
+  </div>
+
+  @if (filteredBookings().length > 0) {
+    <div class="mt-8 text-center">
+      <button class="text-sm font-bold text-dusty-pink-600 hover:text-dusty-pink-700 transition-colors">
+        Xem thêm lịch sử
+      </button>
+    </div>
+  }
+</div>
