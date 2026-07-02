@@ -23,32 +23,21 @@ export class Home implements OnInit, OnDestroy {
 
   categories = this.dataService.categories;
 
-  // Trust indicator: animated counter
-  bookingCount = signal(0);
+  bookingCount = signal(1003);
+  bookingDigits = computed(() => this.bookingCount().toString().split(''));
+  bookingCounterBump = signal(false);
   showBackToTop = signal(false);
-  private targetBookingCount = 247;
-  private animationInterval: ReturnType<typeof setInterval> | undefined;
+  private liveBookingTimer: ReturnType<typeof setTimeout> | undefined;
+  private bookingBumpTimer: ReturnType<typeof setTimeout> | undefined;
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    // Animate counter from 0 to target over ~1.2s
-    const duration = 1200;
-    const steps = 60;
-    const increment = this.targetBookingCount / steps;
-    let current = 0;
-    this.animationInterval = setInterval(() => {
-      current += increment;
-      if (current >= this.targetBookingCount) {
-        this.bookingCount.set(this.targetBookingCount);
-        clearInterval(this.animationInterval);
-      } else {
-        this.bookingCount.set(Math.floor(current));
-      }
-    }, duration / steps);
+    this.scheduleLiveBookingBump();
   }
 
   ngOnDestroy(): void {
-    clearInterval(this.animationInterval);
+    clearTimeout(this.liveBookingTimer);
+    clearTimeout(this.bookingBumpTimer);
   }
 
   @HostListener('window:scroll')
@@ -60,5 +49,23 @@ export class Home implements OnInit, OnDestroy {
   scrollToTop(): void {
     if (!isPlatformBrowser(this.platformId)) return;
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  private scheduleLiveBookingBump(): void {
+    this.liveBookingTimer = setTimeout(() => {
+      this.bookingCount.update((count) => count + this.randomInt(1, 13));
+      this.bookingCounterBump.set(true);
+
+      clearTimeout(this.bookingBumpTimer);
+      this.bookingBumpTimer = setTimeout(() => {
+        this.bookingCounterBump.set(false);
+      }, 420);
+
+      this.scheduleLiveBookingBump();
+    }, 3000);
+  }
+
+  private randomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 }

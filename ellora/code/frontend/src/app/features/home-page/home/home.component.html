@@ -1,10 +1,10 @@
 <div class="flex flex-col w-full">
   <!-- Hero Section -->
-  <section class="hero-section w-full min-h-[78vh] md:min-h-[82vh] flex items-center relative">
-    <div class="max-w-7xl mx-auto flex flex-col items-center text-center gap-10 w-full my-auto relative z-10 -translate-y-6 md:-translate-y-10">
+  <section class="hero-section w-full min-h-[78vh] md:min-h-[78vh] flex items-center relative">
+    <div class="max-w-7xl mx-auto flex flex-col items-center text-center gap-10 w-full my-auto relative z-10 translate-y-3 md:translate-y-5">
 
       <!-- Headline -->
-      <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl font-bold text-brand-darker leading-[1.1] max-w-5xl tracking-tight">
+      <h1 class="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-brand-darker leading-[1.1] max-w-5xl tracking-tight">
         Tìm Tiệm Nail Xinh,<br />Chốt Lịch Trong 30 Giây
       </h1>
 
@@ -14,7 +14,7 @@
       </p>
 
       <!-- Search Bar Pill -->
-      <div class="mt-6 w-full max-w-4xl bg-white rounded-full p-2 shadow-2xl flex flex-col sm:flex-row items-center gap-0">
+      <div class="mt-6 w-full max-w-4xl bg-white rounded-full p-2 border border-[#F4B8C8]/55 ring-4 ring-[#E7D9FF]/35 shadow-[0_24px_70px_rgba(201,99,120,0.16),0_0_0_1px_rgba(255,255,255,0.75)_inset] flex flex-col sm:flex-row items-center gap-0">
         <!-- Salon Name -->
         <div class="flex-1 w-full flex items-center gap-3 px-5 py-3 border-b sm:border-b-0 sm:border-r border-brand-darker/10">
           <svg class="w-5 h-5 text-brand-darker/40 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,8 +49,12 @@
       <!-- Trust Indicator -->
       <div class="flex items-center gap-2 mt-4">
         <div class="online-dot"></div>
-        <p class="text-brand-darker/60 text-sm font-medium">
-          <span class="trust-counter text-brand-darker font-bold">{{ bookingCount() }}</span>
+        <p class="text-brand-darker/60 text-base md:text-lg font-medium">
+          <span class="trust-counter text-brand-darker font-bold" [attr.aria-label]="bookingCount()">
+            @for (digit of bookingDigits(); track $index; let isLast = $last) {
+              <span class="trust-counter__digit" [class.trust-counter__digit--bump]="isLast && bookingCounterBump()">{{ digit }}</span>
+            }
+          </span>
           cuộc hẹn đã được đặt hôm nay
         </p>
       </div>
@@ -61,11 +65,72 @@
 
   <div class="home-below-surface">
     <!-- Featured Salons Section -->
-    <app-salon-carousel title="Các Salon gần bạn" viewAllLink="/search" [salons]="salons()"></app-salon-carousel>
+    <app-salon-carousel title="Các Salon gần bạn" viewAllLink="/search" [salons]="salons()" [animateHeader]="false" [animateCards]="false"></app-salon-carousel>
     <app-salon-carousel title="Top Salon" viewAllLink="/search" [salons]="topSalons()"></app-salon-carousel>
 
+    <section class="w-full px-6 py-20 md:py-24">
+      <div class="max-w-6xl mx-auto">
+        <div class="text-center max-w-2xl mx-auto mb-10 md:mb-14" appRevealOnScroll="fade-up" [revealDistance]="20">
+          <h2 class="font-serif text-3xl md:text-5xl font-bold text-brand-darker leading-tight">
+            Tìm kiếm Tiệm Nail Thật Dễ Dàng
+          </h2>
+          <p class="mt-4 text-brand-darker/60 text-base md:text-lg font-medium">
+            Quy trình 3 bước đơn giản để có bộ móng ưng ý
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+          <div class="min-h-[265px] rounded-3xl border border-[#E8DDD6] bg-[#FBF7F1] px-7 py-8 md:px-8 md:py-9 flex flex-col items-start text-left" appRevealOnScroll="fade-up" [revealDelay]="120" [revealDistance]="24">
+            <div class="w-14 h-14 rounded-2xl bg-[#F9A8B6]/18 text-brand flex items-center justify-center">
+              <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+            </div>
+            <h3 class="mt-7 text-lg font-bold text-[#F27F9A]">Chọn vị trí</h3>
+            <p class="mt-4 text-sm md:text-base leading-relaxed text-brand-darker/58">
+              Tìm các salon uy tín ngay tại khu vực bạn sinh sống hoặc làm việc.
+            </p>
+          </div>
+
+          <div class="min-h-[265px] rounded-3xl border border-[#E8DDD6] bg-[#FBF7F1] px-7 py-8 md:px-8 md:py-9 flex flex-col items-start text-left" appRevealOnScroll="fade-up" [revealDelay]="260" [revealDistance]="24">
+            <div class="w-14 h-14 rounded-2xl bg-[#F9A8B6]/18 text-brand flex items-center justify-center">
+              <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 7h16" />
+                <path d="M7 7v13" />
+                <path d="M17 7v13" />
+                <path d="M8 4h8l1 3H7l1-3z" />
+                <path d="M10 11h4" />
+                <path d="M10 15h4" />
+              </svg>
+            </div>
+            <h3 class="mt-7 text-lg font-bold text-[#F27F9A]">Chọn dịch vụ</h3>
+            <p class="mt-4 text-sm md:text-base leading-relaxed text-brand-darker/58">
+              Từ sơn gel đến đắp bột, hàng ngàn mẫu móng nghệ thuật đang chờ bạn.
+            </p>
+          </div>
+
+          <div class="min-h-[265px] rounded-3xl border border-[#E8DDD6] bg-[#FBF7F1] px-7 py-8 md:px-8 md:py-9 flex flex-col items-start text-left" appRevealOnScroll="fade-up" [revealDelay]="400" [revealDistance]="24">
+            <div class="w-14 h-14 rounded-2xl bg-[#F9A8B6]/18 text-brand flex items-center justify-center">
+              <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="4" y="5" width="16" height="15" rx="3" />
+                <path d="M8 3v4" />
+                <path d="M16 3v4" />
+                <path d="M4 10h16" />
+                <path d="m9 15 2 2 4-4" />
+              </svg>
+            </div>
+            <h3 class="mt-7 text-lg font-bold text-[#F27F9A]">Đặt lịch ngay</h3>
+            <p class="mt-4 text-sm md:text-base leading-relaxed text-brand-darker/58">
+              Xác nhận lịch hẹn tức thì, không cần chờ đợi qua điện thoại.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Business Section -->
-    <section class="b2b-showcase w-full px-6 py-24 md:py-32" appRevealOnScroll="fade-up" [revealDistance]="30">
+    <section class="b2b-showcase w-full px-6 py-24 md:py-32">
       <div class="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center gap-14 md:gap-16">
         <div class="flex-1 flex flex-col items-start gap-6">
           <h2 class="font-bold text-3xl md:text-4xl text-brand-darker max-w-sm" appRevealOnScroll="fade-up" [revealDelay]="120">Phát triển Salon của bạn cùng Ellora</h2>

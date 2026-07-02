@@ -3,16 +3,19 @@
   [class.main-layout--home]="isHomePage"
   [style.--footer-reveal-height.px]="footerRevealHeight()"
 >
-  <div class="main-layout__content">
-    @if (isHomePage) {
-      <div class="home-hero-bg" aria-hidden="true">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-      </div>
-    }
+  @if (isHomePage) {
+    <div class="home-hero-bg" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+  }
 
-    <app-header></app-header>
+  <div class="main-layout__header">
+    <app-header class="site-header"></app-header>
+  </div>
+
+  <div class="main-layout__content page-surface">
     <main class="main-layout__main flex-grow flex flex-col w-full pt-6">
       <router-outlet></router-outlet>
     </main>

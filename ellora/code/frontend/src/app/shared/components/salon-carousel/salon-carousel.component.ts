@@ -16,6 +16,8 @@ export class SalonCarouselComponent implements AfterViewInit {
   @Input({ required: true }) title!: string;
   @Input({ required: true }) viewAllLink!: string;
   @Input({ required: true }) salons: Salon[] = [];
+  @Input() animateHeader = true;
+  @Input() animateCards = true;
 
   @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLElement>;
 

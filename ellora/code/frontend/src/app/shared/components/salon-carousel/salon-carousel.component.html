@@ -1,8 +1,15 @@
-<section class="max-w-7xl mx-auto w-full px-6 pb-20 pt-8" appRevealOnScroll="fade-up" [revealDistance]="24">
-  <div class="flex items-center justify-between mb-8">
-    <h2 class="font-bold text-2xl text-brand-darker tracking-tight">{{ title }}</h2>
-    <a [routerLink]="viewAllLink" class="text-sm font-semibold text-brand hover:text-brand-darker transition-colors" appRevealOnScroll="fade" [revealDelay]="120">Xem tất cả</a>
-  </div>
+<section class="max-w-7xl mx-auto w-full px-6 pb-20 pt-8">
+  @if (animateHeader) {
+    <div class="flex items-center justify-between mb-8" appRevealOnScroll="fade-up" [revealDistance]="24">
+      <h2 class="font-bold text-2xl text-brand-darker tracking-tight">{{ title }}</h2>
+      <a [routerLink]="viewAllLink" class="text-sm font-semibold text-brand hover:text-brand-darker transition-colors" appRevealOnScroll="fade" [revealDelay]="120">Xem tất cả</a>
+    </div>
+  } @else {
+    <div class="flex items-center justify-between mb-8">
+      <h2 class="font-bold text-2xl text-brand-darker tracking-tight">{{ title }}</h2>
+      <a [routerLink]="viewAllLink" class="text-sm font-semibold text-brand hover:text-brand-darker transition-colors">Xem tất cả</a>
+    </div>
+  }
   
   <div class="relative group">
     <div #scrollContainer (scroll)="onScroll()" class="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory hide-scrollbar scroll-smooth" style="scrollbar-width: none; -ms-overflow-style: none;">
@@ -10,9 +17,15 @@
       <style> .hide-scrollbar::-webkit-scrollbar { display: none; } </style>
       
       @for (salon of salons; track salon.id; let index = $index) {
-        <div class="w-[85vw] sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)] shrink-0 snap-start" appRevealOnScroll="fade-up" [revealDelay]="index * 140" [revealDistance]="24">
-          <app-salon-card [salon]="salon" class="block h-full"></app-salon-card>
-        </div>
+        @if (animateCards) {
+          <div class="w-[85vw] sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)] shrink-0 snap-start" appRevealOnScroll="fade-up" [revealDelay]="index * 140" [revealDistance]="24">
+            <app-salon-card [salon]="salon" class="block h-full"></app-salon-card>
+          </div>
+        } @else {
+          <div class="w-[85vw] sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)] shrink-0 snap-start">
+            <app-salon-card [salon]="salon" class="block h-full"></app-salon-card>
+          </div>
+        }
       }
     </div>
 

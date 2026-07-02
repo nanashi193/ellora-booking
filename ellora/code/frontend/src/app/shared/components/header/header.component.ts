@@ -50,25 +50,8 @@ export class Header implements OnInit {
   @HostListener('window:scroll')
   onWindowScroll(): void {
     const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-    
     this.isAtTop = currentScroll <= 20;
-
-    if (currentScroll <= 80) {
-      this.isHidden = false;
-      this.lastScrollTop = currentScroll;
-      return;
-    }
-
-    if (Math.abs(currentScroll - this.lastScrollTop) <= this.scrollThreshold) {
-      return;
-    }
-
-    if (currentScroll > this.lastScrollTop) {
-      this.isHidden = true;
-    } else {
-      this.isHidden = false;
-    }
-
+    this.isHidden = false;
     this.lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
   }
 
