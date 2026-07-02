@@ -19,6 +19,7 @@ export class Header implements OnInit {
 
   private lastScrollTop = 0;
   private scrollThreshold = 10;
+  isAtTop = true;
 
   isAuthChecking = true;
   isLoggedIn = false;
@@ -49,6 +50,8 @@ export class Header implements OnInit {
   @HostListener('window:scroll')
   onWindowScroll(): void {
     const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+    
+    this.isAtTop = currentScroll <= 20;
 
     if (currentScroll <= 80) {
       this.isHidden = false;

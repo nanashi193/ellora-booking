@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Salon } from '../../../models/ellora.model';
 import { SalonCard } from '../salon-card/salon-card.component';
+import { RevealOnScrollDirective } from '../../directives/reveal-on-scroll.directive';
 
 @Component({
   selector: 'app-salon-carousel',
   standalone: true,
-  imports: [CommonModule, RouterModule, SalonCard],
+  imports: [CommonModule, RouterModule, SalonCard, RevealOnScrollDirective],
   templateUrl: './salon-carousel.component.html',
   styleUrl: './salon-carousel.component.scss'
 })
