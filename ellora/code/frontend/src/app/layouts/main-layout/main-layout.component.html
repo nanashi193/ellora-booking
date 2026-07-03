@@ -1,7 +1,9 @@
 <div
   class="main-layout min-h-screen"
   [class.main-layout--home]="isHomePage"
-  [style.--footer-reveal-height.px]="footerRevealHeight()"
+  [class.main-layout--no-header]="!showHeader"
+  [class.main-layout--no-footer]="!showFooter"
+  [style.--footer-reveal-height.px]="showFooter ? footerRevealHeight() : 0"
 >
   @if (isHomePage) {
     <div class="home-hero-bg" aria-hidden="true">
@@ -11,9 +13,11 @@
     </div>
   }
 
-  <div class="main-layout__header">
-    <app-header class="site-header"></app-header>
-  </div>
+  @if (showHeader) {
+    <div class="main-layout__header">
+      <app-header class="site-header"></app-header>
+    </div>
+  }
 
   <div class="main-layout__content page-surface">
     <main class="main-layout__main flex-grow flex flex-col w-full pt-6">
@@ -21,7 +25,9 @@
     </main>
   </div>
 
-  <div #footerRevealLayer class="footer-reveal-layer">
-    <app-footer></app-footer>
-  </div>
+  @if (showFooter) {
+    <div #footerRevealLayer class="footer-reveal-layer">
+      <app-footer></app-footer>
+    </div>
+  }
 </div>

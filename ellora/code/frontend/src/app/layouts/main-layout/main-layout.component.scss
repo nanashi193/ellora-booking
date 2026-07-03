@@ -8,6 +8,11 @@
   --footer-reveal-radius: 34px;
 }
 
+.main-layout--no-footer {
+  background: #fdfbf7;
+  padding-bottom: 0;
+}
+
 .main-layout__content {
   position: relative;
   z-index: 2;
@@ -26,6 +31,17 @@
   contain: paint;
   padding-top: 112px;
   transform: translate3d(0, 2px, 0);
+}
+
+.main-layout--no-footer .page-surface {
+  border-radius: 0;
+  clip-path: none;
+  overflow: visible;
+  transform: none;
+}
+
+.main-layout--no-header .page-surface {
+  padding-top: 0;
 }
 
 .main-layout__header {

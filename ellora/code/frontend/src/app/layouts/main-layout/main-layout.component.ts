@@ -15,18 +15,50 @@ export class MainLayout implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
   private footerResizeObserver?: ResizeObserver;
+  private footerRevealLayer?: ElementRef<HTMLElement>;
+  private viewInitialized = false;
 
   footerRevealHeight = signal(360);
 
   @ViewChild('footerRevealLayer')
-  private footerRevealLayer?: ElementRef<HTMLElement>;
+  private set footerRevealLayerRef(elementRef: ElementRef<HTMLElement> | undefined) {
+    this.footerRevealLayer = elementRef;
+    if (this.viewInitialized) {
+      this.observeFooterHeight();
+    }
+  }
 
   get isHomePage(): boolean {
-    return this.router.url.split('?')[0].split('#')[0] === '/';
+    return this.currentPath === '/';
+  }
+
+  get showHeader(): boolean {
+    return !this.currentPath.startsWith('/booking');
+  }
+
+  get showFooter(): boolean {
+    const path = this.currentPath;
+    return path !== '/search' && !path.startsWith('/setting') && !path.startsWith('/booking');
+  }
+
+  private get currentPath(): string {
+    return this.router.url.split('?')[0].split('#')[0];
   }
 
   ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId) || !this.footerRevealLayer?.nativeElement) {
+    this.viewInitialized = true;
+    this.observeFooterHeight();
+  }
+
+  ngOnDestroy(): void {
+    this.footerResizeObserver?.disconnect();
+  }
+
+  private observeFooterHeight(): void {
+    this.footerResizeObserver?.disconnect();
+    this.footerResizeObserver = undefined;
+
+    if (!isPlatformBrowser(this.platformId) || !this.footerRevealLayer?.nativeElement || !this.showFooter) {
       return;
     }
 
@@ -38,9 +70,5 @@ export class MainLayout implements AfterViewInit, OnDestroy {
     updateFooterHeight();
     this.footerResizeObserver = new ResizeObserver(updateFooterHeight);
     this.footerResizeObserver.observe(footerElement);
-  }
-
-  ngOnDestroy(): void {
-    this.footerResizeObserver?.disconnect();
   }
 }
