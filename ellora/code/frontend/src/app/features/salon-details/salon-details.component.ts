@@ -1,5 +1,5 @@
-import { Component, inject, computed, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, OnDestroy, PLATFORM_ID, ViewChild, computed, inject, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MockDataService } from '../../services/mock-data.service';
 import { ServiceCard } from '../../shared/components/service-card/service-card.component';
@@ -12,16 +12,32 @@ import { Service } from '../../models/ellora.model';
   templateUrl: './salon-details.component.html',
   styleUrl: './salon-details.component.scss'
 })
-export class SalonDetails {
+export class SalonDetails implements AfterViewInit, OnDestroy {
   private dataService = inject(MockDataService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private titleObserver?: IntersectionObserver;
 
   salon = computed(() => this.dataService.salons()[0]);
   services = this.dataService.services;
   reviews = this.dataService.reviews;
+  showStickySummary = signal(false);
+  nearbySalons = computed(() => this.dataService.salons().slice(0, 4));
+
+  @ViewChild('salonTitle')
+  private salonTitle?: ElementRef<HTMLElement>;
 
   // Service tabs
   readonly tabs = ['Nổi bật', 'Làm móng tay', 'Nối móng', 'Nghệ thuật làm móng'];
   activeTab = signal('Nổi bật');
+  readonly bookingHours = [
+    ['Monday', '10:00 AM - 8:00 PM'],
+    ['Tuesday', '10:00 AM - 8:00 PM'],
+    ['Wednesday', '10:00 AM - 8:00 PM'],
+    ['Thursday', '10:00 AM - 8:00 PM'],
+    ['Friday', '10:00 AM - 8:00PM'],
+    ['Saturday', '10:00 AM - 8:00 PM'],
+    ['Sunday', '10:00 AM - 8:00 PM']
+  ] as const;
 
   // Selected services for booking widget
   selectedServices = signal<Service[]>([]);
@@ -31,9 +47,23 @@ export class SalonDetails {
     return this.services();
   });
 
-  totalPrice = computed(() => {
-    return this.selectedServices().reduce((sum, s) => sum + s.price, 0);
-  });
+  ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId) || !this.salonTitle?.nativeElement || !window.matchMedia('(min-width: 1024px)').matches) {
+      return;
+    }
+
+    this.titleObserver = new IntersectionObserver(
+      ([entry]) => {
+        this.showStickySummary.set(!entry.isIntersecting && entry.boundingClientRect.top < 96);
+      },
+      { rootMargin: '-96px 0px 0px 0px', threshold: 0 }
+    );
+    this.titleObserver.observe(this.salonTitle.nativeElement);
+  }
+
+  ngOnDestroy(): void {
+    this.titleObserver?.disconnect();
+  }
 
   setTab(tab: string): void {
     this.activeTab.set(tab);
@@ -45,10 +75,6 @@ export class SalonDetails {
       return;
     }
     this.selectedServices.set([...current, service]);
-  }
-
-  removeService(serviceId: string): void {
-    this.selectedServices.update(list => list.filter(s => s.id !== serviceId));
   }
 
   getOpenStatusText(): string {

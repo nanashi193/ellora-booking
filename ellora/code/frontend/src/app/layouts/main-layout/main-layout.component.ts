@@ -32,6 +32,10 @@ export class MainLayout implements AfterViewInit, OnDestroy {
     return this.currentPath === '/';
   }
 
+  get isSalonDetailPage(): boolean {
+    return this.currentPath.startsWith('/salon/');
+  }
+
   get showHeader(): boolean {
     return !this.currentPath.startsWith('/booking');
   }

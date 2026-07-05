@@ -61,6 +61,16 @@
   overflow: hidden;
 }
 
+@media (min-width: 1024px) {
+  .main-layout--salon-detail .page-surface,
+  .main-layout--salon-detail .main-layout__main {
+    overflow: visible;
+    clip-path: none;
+    contain: none;
+    transform: none;
+  }
+}
+
 .main-layout--home .page-surface {
   background: transparent;
   padding-top: 0;
