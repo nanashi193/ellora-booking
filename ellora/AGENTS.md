@@ -7,6 +7,48 @@ Dự án này đi theo định hướng sản phẩm được mô tả chi tiế
 
 ---
 
+## 🎯 Agent Instructions & Phân Định Quyền Hạn
+
+**Before making changes, always read:**
+- `docs/ai/context.md`
+- `docs/ai/conventions.md`
+- `docs/ai/workflows.md`
+
+**Project Owners:**
+- **Frontend owner:** Hung
+- **Backend owner:** Thinh
+
+**Core Directives:**
+- If a decision affects architecture, database, API contract, UI behavior, or team workflow, create a short note in `docs/decisions/`.
+- Do not assume backend contracts. If API behavior is unclear, check `docs/api-database-guidelines.md` or ask before changing.
+
+**Required Hermes/Codex Workflow:**
+Every non-trivial task must move through this sequence:
+
+```text
+Task mới
+  -> Hermes reads architect.md
+  -> Hermes produces an Implementation Plan
+  -> Codex reads codex.md
+  -> Codex implements the plan
+  -> Hermes reads review.md
+  -> Hermes reviews the implementation
+  -> Codex fixes review findings
+  -> Hermes reads verify.md
+  -> Hermes verifies the task
+  -> Done
+```
+
+Workflow rules:
+- Hermes owns planning, review, and final verification.
+- Codex owns implementation and fixes.
+- Codex must not start implementation for non-trivial tasks until an Implementation Plan exists.
+- Review findings must be fixed by Codex before verify.
+- A task is Done only after Hermes verify passes or the user explicitly accepts the remaining risk.
+- Trivial one-line changes may skip Hermes planning only when the scope is obvious, low-risk, and documented in the final summary.
+
+---
+
 ## 1. Mạng Lưới Tài Liệu Kỹ Thuật (Knowledge Index)
 
 Hệ thống quy tắc kỹ thuật đã được module hóa. **BẮT BUỘC dùng tool `view_file` để đọc file guideline tương ứng trong `docs/` trước khi bắt đầu code:**
