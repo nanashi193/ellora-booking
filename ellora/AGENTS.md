@@ -27,17 +27,23 @@ Every non-trivial task must move through this sequence:
 
 ```text
 Task mới
-  -> Hermes reads architect.md
+  -> Hermes reads docs/ai/prompts/architect.md
   -> Hermes produces an Implementation Plan
-  -> Codex reads codex.md
+  -> Codex reads docs/ai/prompts/codex.md
   -> Codex implements the plan
-  -> Hermes reads review.md
+  -> Hermes reads docs/ai/prompts/review.md
   -> Hermes reviews the implementation
   -> Codex fixes review findings
-  -> Hermes reads verify.md
+  -> Hermes reads docs/ai/prompts/verify.md
   -> Hermes verifies the task
   -> Done
 ```
+
+Prompt registry:
+- `docs/ai/prompts/architect.md` — Hermes planning prompt for new non-trivial tasks.
+- `docs/ai/prompts/codex.md` — Codex implementation prompt generated from the plan.
+- `docs/ai/prompts/review.md` — Hermes review prompt for recent diffs.
+- `docs/ai/prompts/verify.md` — Hermes final verification prompt after fixes.
 
 Workflow rules:
 - Hermes owns planning, review, and final verification.
