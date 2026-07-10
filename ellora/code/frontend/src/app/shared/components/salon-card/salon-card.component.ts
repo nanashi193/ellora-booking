@@ -13,4 +13,5 @@ import { RevealOnScrollDirective } from '../../directives/reveal-on-scroll.direc
 })
 export class SalonCard {
   salon = input.required<Salon>();
+  variant = input<'default' | 'home'>('default');
 }
