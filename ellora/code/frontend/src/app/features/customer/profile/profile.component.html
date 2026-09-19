@@ -6,7 +6,17 @@
       <nav class="flex flex-col gap-2 text-sm font-medium">
         <a routerLink="/profile" class="py-2.5 px-4 bg-dusty-pink-500/10 text-dusty-pink-600 rounded-sm">Personal Info</a>
         <a routerLink="/my-bookings" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm transition-colors">My Bookings</a>
-        <a href="#" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm transition-colors">Payment Methods</a>
+        @if (user()?.role === 'ADMIN') {
+          <a routerLink="/admin/approvals" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Duyệt đăng ký salon</a>
+        } @else if (user()?.role === 'SALON_OWNER') {
+          <a routerLink="/owner/dashboard" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Quản lý salon</a>
+        } @else if (user()?.role === 'CUSTOMER') {
+          <a routerLink="/business-registration" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Đăng ký / trạng thái đối tác</a>
+        }
+        <button type="button" class="py-2.5 px-4 text-left text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm transition-colors" (click)="showPaymentNotice.set(true)">Payment Methods</button>
+        @if (showPaymentNotice()) {
+          <p role="status" class="px-4 text-sm text-charcoal-800/60">Chưa hỗ trợ quản lý phương thức thanh toán.</p>
+        }
         <a href="#" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm transition-colors">Settings</a>
         <div class="h-px bg-charcoal-800/10 my-2"></div>
         <a href="#" class="py-2.5 px-4 text-red-600 hover:bg-red-50 rounded-sm transition-colors">Log out</a>
@@ -17,29 +27,25 @@
     <div class="flex-1">
       <h2 class="font-serif text-2xl text-charcoal-900 mb-6">Personal Information</h2>
       
+      @if (loading()) { <p role="status">Đang tải thông tin tài khoản…</p> } @else if (error()) { <p role="alert">{{ error() }}</p><button type="button" (click)="loadProfile()">Thử lại</button> } @else if (user(); as profile) {
       <div class="p-6 md:p-8 bg-white border border-charcoal-800/10 shadow-sm flex flex-col gap-6">
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-charcoal-900">First Name</label>
-          <input type="text" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent" [value]="user().firstName">
-        </div>
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-charcoal-900">Last Name</label>
-          <input type="text" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent" [value]="user().lastName">
+          <label class="text-sm font-medium text-charcoal-900">Họ và tên</label>
+          <input type="text" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent" [value]="profile.fullName" readonly>
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-charcoal-900">Email Address</label>
-          <input type="email" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent text-charcoal-800" [value]="user().email" disabled>
+          <input type="email" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent text-charcoal-800" [value]="profile.email" readonly>
           <span class="text-xs text-charcoal-800/60 mt-1">To change your email address, please contact support.</span>
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-charcoal-900">Phone Number</label>
-          <input type="tel" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent" [value]="user().phone">
+          <input type="tel" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent" [value]="profile.phone || ''" placeholder="Chưa cập nhật" readonly>
         </div>
 
-        <div class="pt-6 mt-2 border-t border-charcoal-800/10">
-          <button class="px-6 py-2.5 bg-charcoal-900 text-white text-sm font-medium hover:bg-charcoal-800 transition-colors">Save Changes</button>
-        </div>
+        <p class="text-sm text-charcoal-800/60">Thông tin hồ sơ hiện chỉ hỗ trợ xem.</p>
       </div>
+      }
     </div>
   </div>
 </div>

@@ -1,9 +1,22 @@
 <main class="account-page">
   <section class="account-panel">
     <img src="/ellora-logo.png?v=1" alt="Ellora" />
-    <p class="status">Đăng nhập thành công</p>
-    <h1>{{ profile?.name || 'Tài khoản Ellora' }}</h1>
-    <p class="email">{{ profile?.email }}</p>
-    <button type="button" (click)="logout()">Đăng xuất</button>
+    <h1>Bảo mật tài khoản</h1>
+    <p class="email">{{ profile()?.email }}</p>
+    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" [attr.aria-busy]="saving()">
+      <h2>Đổi mật khẩu</h2>
+      <label for="current-password">Mật khẩu hiện tại</label>
+      <input id="current-password" [type]="showPasswords() ? 'text' : 'password'" formControlName="currentPassword" autocomplete="current-password" required>
+      <label for="new-password">Mật khẩu mới</label>
+      <input id="new-password" [type]="showPasswords() ? 'text' : 'password'" formControlName="newPassword" autocomplete="new-password" aria-describedby="password-hint" required>
+      <p id="password-hint" class="hint">Ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
+      <label for="confirm-password">Nhập lại mật khẩu mới</label>
+      <input id="confirm-password" [type]="showPasswords() ? 'text' : 'password'" formControlName="confirmPassword" autocomplete="new-password" required>
+      <label class="show-password"><input type="checkbox" [checked]="showPasswords()" (change)="showPasswords.set(!showPasswords())"> Hiện mật khẩu</label>
+      @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+      @if (success()) { <p class="success" role="status">{{ success() }}</p> }
+      <button type="submit" [disabled]="saving()">{{ saving() ? 'Đang cập nhật…' : 'Đổi mật khẩu' }}</button>
+    </form>
+    <button class="logout" type="button" [disabled]="saving()" (click)="logout()">Đăng xuất</button>
   </section>
 </main>

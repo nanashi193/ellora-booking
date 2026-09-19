@@ -32,6 +32,7 @@ target/
 Thumbs.db
 
 # Secrets / Environment files
+**/.env.supabase
 **/.env
 **/.env.local
 **/.env.*.local

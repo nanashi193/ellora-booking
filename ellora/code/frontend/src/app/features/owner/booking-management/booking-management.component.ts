@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, effect, ElementRef } from '@angular/core';
+import { Component, computed, inject, signal, effect, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BookingService, BookingEvent } from '../../../services/booking.service';
 
@@ -22,7 +22,7 @@ export interface ServiceCategory {
   templateUrl: './booking-management.component.html',
   styleUrl: './booking-management.component.scss'
 })
-export class BookingManagement {
+export class BookingManagement implements OnInit {
   currentDate = 'Hôm nay, 24 Thg 10';
   
   // 1 hour = 100px
@@ -111,6 +111,10 @@ export class BookingManagement {
         }, 100);
       }
     }, { allowSignalWrites: true });
+  }
+
+  async ngOnInit(): Promise<void> {
+    await this.bookingService.loadSalonBookings(1);
   }
 
   // Helper method to format time from hours (e.g. 9.5 -> "09:30")

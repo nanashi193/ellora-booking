@@ -55,3 +55,17 @@ button {
   font-weight: 800;
   cursor: pointer;
 }
+
+form { margin-top: 24px; text-align: left; }
+h2 { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; }
+label { display: block; margin: 16px 0 8px; font-size: .9rem; }
+input:not([type='checkbox']) { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #d9c8cf; border-radius: 6px; font: inherit; }
+input:focus-visible, button:focus-visible { outline: 2px solid #8f4869; outline-offset: 3px; }
+.hint { margin-top: 8px; font-size: .8rem; color: #66545c; }
+.show-password { display: flex; align-items: center; gap: 8px; }
+.error { color: #b42318; margin-top: 16px; }
+.success { color: #2d7a4f; margin-top: 16px; }
+form button { width: 100%; }
+button:disabled { opacity: .6; cursor: wait; }
+.logout { background: transparent; color: #8f4869; margin-top: 12px; }
+@media (max-width: 480px) { .account-panel { padding: 24px; } }

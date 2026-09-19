@@ -1,45 +1,74 @@
 <div class="max-w-4xl mx-auto px-6 py-12 lg:py-20 min-h-[calc(100vh-80px)]">
   <div class="flex items-center justify-between mb-8">
-    <h1 class="font-serif text-3xl md:text-4xl text-charcoal-900 font-medium">My Bookings</h1>
-    <a routerLink="/search" class="text-sm font-medium text-dusty-pink-500 hover:text-dusty-pink-600 transition-colors">Book New Appointment</a>
+    <h1 class="font-serif text-3xl md:text-4xl text-charcoal-900 font-medium">Lịch hẹn của tôi</h1>
+    <a routerLink="/search" class="text-sm font-medium text-dusty-pink-500 hover:text-dusty-pink-600 transition-colors">Đặt lịch mới</a>
   </div>
 
-  <div class="flex flex-col gap-6">
-    @for (booking of bookings(); track booking.id) {
-      <div class="border border-charcoal-800/10 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all hover:border-charcoal-800/20 bg-white shadow-sm">
-        <div class="flex flex-col gap-1">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="text-xs uppercase tracking-wider font-medium" 
-                  [class.text-dusty-pink-500]="booking.status === 'upcoming'"
-                  [class.text-charcoal-800]="booking.status === 'completed'">
-              {{ booking.status }}
-            </span>
-            <span class="text-xs text-charcoal-800/60 font-mono">{{ booking.id }}</span>
+  @if (isLoading()) {
+    <div class="py-16 text-center text-charcoal-800/60">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-dusty-pink-500 mb-3"></div>
+      <p>Đang tải danh sách đặt lịch...</p>
+    </div>
+  } @else if (error()) {
+    <div class="p-6 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center justify-between">
+      <span>{{ error() }}</span>
+      <button (click)="loadBookings()" class="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors">Thử lại</button>
+    </div>
+  } @else {
+    <div class="flex flex-col gap-6">
+      @for (booking of bookings(); track booking.id) {
+        <div class="border border-charcoal-800/10 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all hover:border-charcoal-800/20 bg-white shadow-sm rounded-lg">
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="text-xs uppercase tracking-wider font-semibold px-2 py-0.5 rounded"
+                    [class.bg-amber-100]="booking.status === 'PENDING'"
+                    [class.text-amber-800]="booking.status === 'PENDING'"
+                    [class.bg-emerald-100]="booking.status === 'CONFIRMED'"
+                    [class.text-emerald-800]="booking.status === 'CONFIRMED'"
+                    [class.bg-blue-100]="booking.status === 'IN_PROGRESS'"
+                    [class.text-blue-800]="booking.status === 'IN_PROGRESS'"
+                    [class.bg-gray-100]="booking.status === 'COMPLETED'"
+                    [class.text-charcoal-800]="booking.status === 'COMPLETED'"
+                    [class.bg-red-100]="booking.status === 'CANCELLED' || booking.status === 'REJECTED'"
+                    [class.text-red-700]="booking.status === 'CANCELLED' || booking.status === 'REJECTED'">
+                {{ statusLabel(booking.status) }}
+              </span>
+              <span class="text-xs text-charcoal-800/60 font-mono">#{{ booking.id }}</span>
+            </div>
+            <h3 class="font-serif text-xl text-charcoal-900 font-medium">{{ booking.serviceName }}</h3>
+            <p class="text-charcoal-800/80">{{ booking.salonName }}</p>
+            @if (booking.employeeName) {
+              <p class="text-xs text-charcoal-800/60">Chuyên viên: <span class="font-medium text-charcoal-900">{{ booking.employeeName }}</span></p>
+            }
           </div>
-          <h3 class="font-serif text-xl text-charcoal-900">{{ booking.service }}</h3>
-          <p class="text-charcoal-800/80">{{ booking.salonName }}</p>
-        </div>
 
-        <div class="flex flex-col md:items-end gap-1 text-sm md:text-right">
-          <span class="font-medium text-charcoal-900">{{ booking.date | date:'mediumDate' }}</span>
-          <span class="text-charcoal-800/80">{{ booking.time }}</span>
-          <span class="font-medium mt-2">{{ booking.price }}</span>
-        </div>
+          <div class="flex flex-col md:items-end gap-1 text-sm md:text-right">
+            <span class="font-medium text-charcoal-900">{{ formatScheduled(booking.scheduledAt).date }}</span>
+            <span class="text-charcoal-800/80">{{ formatScheduled(booking.scheduledAt).time }}</span>
+            <span class="font-semibold text-charcoal-900 mt-2 text-base">{{ formatPrice(booking.servicePrice) }}</span>
+          </div>
 
-        <div class="flex flex-row md:flex-col gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-charcoal-800/10">
-          @if (booking.status === 'upcoming') {
-            <button class="px-4 py-2 bg-charcoal-900 text-white text-sm font-medium hover:bg-charcoal-800 transition-colors">Reschedule</button>
-            <button class="px-4 py-2 border border-charcoal-800/20 text-charcoal-900 text-sm font-medium hover:bg-charcoal-800/5 transition-colors">Cancel</button>
-          } @else {
-            <button class="px-4 py-2 bg-dusty-pink-500 text-white text-sm font-medium hover:bg-dusty-pink-600 transition-colors">Book Again</button>
-            <button class="px-4 py-2 border border-charcoal-800/20 text-charcoal-900 text-sm font-medium hover:bg-charcoal-800/5 transition-colors">Leave Review</button>
-          }
+          <div class="flex flex-row md:flex-col gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-charcoal-800/10">
+            @if (isUpcoming(booking.status)) {
+              <button
+                (click)="cancelBooking(booking.id)"
+                [disabled]="cancellingId() === booking.id"
+                class="px-4 py-2 border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50">
+                {{ cancellingId() === booking.id ? 'Đang hủy...' : 'Hủy lịch' }}
+              </button>
+            } @else {
+              <a routerLink="/booking" class="px-4 py-2 bg-dusty-pink-500 text-white text-sm font-medium hover:bg-dusty-pink-600 transition-colors text-center">
+                Đặt lại
+              </a>
+            }
+          </div>
         </div>
-      </div>
-    } @empty {
-      <div class="py-12 text-center border border-dashed border-charcoal-800/20 text-charcoal-800/60">
-        You have no bookings yet.
-      </div>
-    }
-  </div>
+      } @empty {
+        <div class="py-16 text-center border border-dashed border-charcoal-800/20 text-charcoal-800/60 rounded-lg">
+          <p class="text-base font-medium">Bạn chưa có lịch hẹn nào.</p>
+          <a routerLink="/search" class="mt-3 inline-block text-sm text-dusty-pink-500 hover:underline">Khám phá salon &amp; đặt lịch ngay &rarr;</a>
+        </div>
+      }
+    </div>
+  }
 </div>

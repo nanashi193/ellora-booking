@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostBinding, HostListener, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostBinding, HostListener, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -15,6 +15,7 @@ export class Header implements OnInit {
   private readonly router = inject(Router);
   private readonly elementRef = inject(ElementRef);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   private lastScrollTop = 0;
   private scrollThreshold = 10;
@@ -35,6 +36,7 @@ export class Header implements OnInit {
       return;
     }
     await this.checkAuthState();
+    this.changeDetectorRef.markForCheck();
   }
 
   @HostListener('window:scroll')

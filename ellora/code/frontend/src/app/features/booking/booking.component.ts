@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MockDataService } from '../../services/mock-data.service';
 import { AuthService } from '../../services/auth.service';
+import { BookingApiService } from '../../services/booking-api.service';
 
 interface CalendarDay {
   date: number;
@@ -24,6 +25,10 @@ export class BookingComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private bookingApi = inject(BookingApiService);
+
+  isSubmitting = signal(false);
+  submitError = signal<string | null>(null);
 
   // Data
   salon = computed(() => this.dataService.salons()[0]);
@@ -187,11 +192,52 @@ export class BookingComponent implements OnInit, OnDestroy {
   }
 
 
-  confirmBooking() {
-    if (this.customerForm.invalid) return;
-    this.showSuccessPopup.set(true);
-    this.countdown.set(30);
-    this.startCountdown();
+  async confirmBooking() {
+    if (this.customerForm.invalid) {
+      this.customerForm.markAllAsTouched();
+      return;
+    }
+
+    const isAuth = await this.authService.isAuthenticated();
+    if (!isAuth) {
+      alert('Vui lòng đăng nhập để hoàn tất đặt lịch hẹn.');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    try {
+      this.isSubmitting.set(true);
+      this.submitError.set(null);
+
+      const serviceIdStr = this.selectedServiceIds()[0] ?? '1';
+      const serviceId = parseInt(serviceIdStr.replace(/\D/g, '')) || 1;
+
+      let employeeId: number | undefined;
+      if (this.selectedStaffId() && this.selectedStaffId() !== 'any') {
+        employeeId = parseInt(this.selectedStaffId()!.replace(/\D/g, '')) || 1;
+      }
+
+      const scheduledAt = `${this.selectedDate()}T${this.selectedTime()}:00`;
+
+      await this.bookingApi.createBooking({
+        salonId: 1,
+        serviceId: serviceId,
+        employeeId: employeeId,
+        scheduledAt: scheduledAt,
+        customerNote: this.customerForm.value.notes?.trim() || undefined
+      });
+
+      this.showSuccessPopup.set(true);
+      this.countdown.set(30);
+      this.startCountdown();
+    } catch (e: any) {
+      console.error('Failed to create booking', e);
+      const msg = e?.error?.message || 'Có lỗi xảy ra khi tạo lịch hẹn. Vui lòng thử lại.';
+      this.submitError.set(msg);
+      alert(msg);
+    } finally {
+      this.isSubmitting.set(false);
+    }
   }
 
   startCountdown() {

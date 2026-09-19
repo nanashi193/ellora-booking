@@ -47,6 +47,7 @@ public class ProfileService {
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
+                .phone(user.getPhone())
                 .role(user.getRole())
                 .build();
     }

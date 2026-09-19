@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
+import { roleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -36,6 +37,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/customer/profile/profile.component').then(m => m.Profile)
       },
       {
+        path: 'business-registration', canActivate: [authGuard],
+        loadComponent: () => import('./features/business-registration/business-registration.component').then(m => m.BusinessRegistrationComponent),
+      },
+      {
+        path: 'admin/approvals', canActivate: [roleGuard], data: { role: 'ADMIN' },
+        loadComponent: () => import('./features/admin-approvals/admin-approvals.component').then(m => m.AdminApprovalsComponent),
+      },
+      {
         path: 'account',
         canActivate: [authGuard],
         loadComponent: () =>
@@ -45,6 +54,7 @@ export const routes: Routes = [
   },
   {
     path: 'owner',
+    canActivate: [roleGuard], canActivateChild: [roleGuard], data: { role: 'SALON_OWNER' },
     loadComponent: () => import('./layouts/owner-layout/owner-layout').then(m => m.OwnerLayout),
     children: [
       {

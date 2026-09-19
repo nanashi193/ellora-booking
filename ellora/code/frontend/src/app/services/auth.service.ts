@@ -10,6 +10,7 @@ import {
   signInWithRedirect,
   signOut,
   signUp,
+  updatePassword,
 } from 'aws-amplify/auth';
 import { cognitoUserPoolsTokenProvider } from 'aws-amplify/auth/cognito';
 import { defaultStorage, sessionStorage } from 'aws-amplify/utils';
@@ -275,6 +276,23 @@ export class AuthService {
   async logout(): Promise<void> {
     if (isCognitoConfigured()) {
       await signOut();
+    }
+  }
+
+  async changePassword(oldPassword: string, newPassword: string): Promise<LoginResult> {
+    try {
+      await updatePassword({ oldPassword, newPassword });
+      return { success: true };
+    } catch (error) {
+      const name = this.getErrorName(error);
+      return {
+        success: false,
+        message: name === 'NotAuthorizedException'
+          ? 'Mật khẩu hiện tại không đúng hoặc phiên đăng nhập đã hết hạn.'
+          : name === 'UserUnAuthenticatedException'
+            ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
+            : this.getErrorMessage(error),
+      };
     }
   }
 
