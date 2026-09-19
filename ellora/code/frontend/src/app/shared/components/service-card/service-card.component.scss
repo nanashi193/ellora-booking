@@ -102,3 +102,6 @@
     gap: 16px;
   }
 }
+
+.service-card__image {width:88px;height:88px;object-fit:cover;border-radius:8px;flex-shrink:0;}
+@media(max-width:600px){.service-card{flex-wrap:wrap;}.service-card__image{width:64px;height:64px;}}

@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { apiConfig } from '../config/api.config';
 
 export interface SalonRegistration {
+  logoUrl?: string; imageUrls?: string[];
   id: number; name: string; address: string; city: string; district: string;
   phone: string | null; email: string | null; description: string | null;
   ownerName: string; ownerId: string;

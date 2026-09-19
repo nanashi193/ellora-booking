@@ -1,33 +1,37 @@
-import { Component, inject, computed, ViewChild, ElementRef, signal, AfterViewInit } from '@angular/core';
+import { Component, inject, ViewChild, ElementRef, signal, AfterViewInit, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MockDataService } from '../../../services/mock-data.service';
+import { SalonApiService } from '../../../services/salon-api.service';
+import { Salon } from '../../../models/ellora.model';
+import { FormsModule } from '@angular/forms';
 import { SalonCard } from '../../../shared/components/salon-card/salon-card.component';
 import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, SalonCard],
+  imports: [CommonModule, RouterModule, SalonCard, FormsModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class Home implements AfterViewInit {
-  private dataService = inject(MockDataService);
+export class Home implements AfterViewInit, OnInit {
+  private dataService = inject(SalonApiService);
   
   @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLElement>;
   
   canScrollLeft = signal(false);
-  canScrollRight = signal(true);
+  canScrollRight = signal(false);
   
-  salons = this.dataService.salons;
-  categories = this.dataService.categories;
-  
-  promo = computed(() => ({
-    id: 'p1',
-    title: 'Elevate your business with Ellora.',
-    description: 'Join our curated network of premium wellness providers and reach clients who value quality.',
-  }));
-
+  salons = signal<Salon[]>([]);
+  loading = signal(true);
+  error = signal('');
+  keyword = '';
+  ngOnInit() { void this.load(); }
+  async load() {
+    this.loading.set(true); this.error.set(''); this.salons.set([]);
+    try { this.salons.set((await this.dataService.search('', 0, 12)).content); setTimeout(() => this.checkScroll()); }
+    catch { this.error.set('Không tải được danh sách salon. Vui lòng thử lại.'); }
+    finally { this.loading.set(false); }
+  }
   ngAfterViewInit() {
     setTimeout(() => this.checkScroll(), 100);
   }

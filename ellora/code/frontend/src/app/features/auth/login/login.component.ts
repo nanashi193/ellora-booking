@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { ReactiveFormsModule, Validators, NonNullableFormBuilder } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -61,9 +62,13 @@ export class LoginComponent implements OnInit {
       const profile = await this.profileApiService.syncCurrentUser();
       this.isSuccess = true;
       await this.router.navigateByUrl(roleHome(profile.role));
-    } catch {
+    } catch (error) {
       this.showAlert = true;
-      this.alertMessage = 'Đã đăng nhập Google nhưng không kết nối được backend.';
+      this.alertMessage = error instanceof HttpErrorResponse
+        ? error.status === 0
+          ? 'Đã đăng nhập Google nhưng không kết nối được backend. Kiểm tra backend cổng 8080.'
+          : `Đã đăng nhập Google nhưng không đồng bộ được hồ sơ (HTTP ${error.status}).`
+        : 'Đã đăng nhập Google nhưng không lấy được thông tin tài khoản từ Cognito. Vui lòng đăng nhập lại.';
     } finally {
       this.isLoading = false;
       this.changeDetectorRef.detectChanges();

@@ -100,8 +100,7 @@ public class SalonService {
         Page<Salon> salonsPage;
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            salonsPage = salonRepository.findByNameContainingIgnoreCaseAndStatus(
-                    keyword.trim(), SalonStatus.ACTIVE, pageable);
+            salonsPage = salonRepository.searchActive(keyword.trim(), pageable);
         } else {
             salonsPage = salonRepository.findByStatus(SalonStatus.ACTIVE, pageable);
         }

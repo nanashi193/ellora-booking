@@ -9,6 +9,10 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
     return next(request);
   }
 
+  if (request.method === 'GET' && request.url.startsWith(apiConfig.baseUrl + '/customer/salons')) {
+    return next(request);
+  }
+
   const authService = inject(AuthService);
 
   return from(authService.getAccessToken()).pipe(

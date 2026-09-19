@@ -1,116 +1,101 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
+import { PhotoUpload } from '../../../shared/components/photo-upload.component';
 import { CommonModule } from '@angular/common';
-
-export interface ServiceItem {
-  id: number;
-  name: string;
-  category: string;
-  categoryLabel: string;
-  duration: string;
-  price: string;
-  status: 'active' | 'inactive';
-  iconType: 'nails' | 'art' | 'spa' | 'makeup' | 'eyelash';
-}
-
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { OwnerApiService, OwnerService, ownerError } from '../../../services/owner-api.service';
 @Component({
   selector: 'app-service-management',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ReactiveFormsModule, PhotoUpload],
   templateUrl: './service-management.component.html',
-  styleUrl: './service-management.component.scss'
+  styleUrl: '../owner-data.scss',
 })
-export class ServiceManagement {
-  
-  // Categories
-  categories = signal([
-    { id: 'all', name: 'Tất cả' },
-    { id: 'nails', name: 'Làm móng (Nails)' },
-    { id: 'spa', name: 'Chăm sóc da (Spa)' },
-    { id: 'eyelash', name: 'Nối mi (Eyelash)' },
-    { id: 'makeup', name: 'Trang điểm (Makeup)' }
-  ]);
-  
-  selectedCategory = signal<string>('all');
-
-  // Mock Data
-  allServices = signal<ServiceItem[]>([
-    { id: 1, name: 'Sơn Gel Cao Cấp', category: 'nails', categoryLabel: 'NAILS', duration: '45 Phút', price: '350.000đ', status: 'active', iconType: 'nails' },
-    { id: 2, name: 'Vẽ Móng Nghệ Thuật', category: 'nails', categoryLabel: 'ART', duration: '15+ Phút', price: 'Từ 50.000đ', status: 'active', iconType: 'art' },
-    { id: 3, name: 'Massage Tay & Tẩy Tế Bào', category: 'spa', categoryLabel: 'SPA', duration: '25 Phút', price: '200.000đ', status: 'active', iconType: 'spa' },
-    { id: 4, name: 'Đắp Móng Bột Tự Nhiên', category: 'nails', categoryLabel: 'NAILS', duration: '60 Phút', price: '450.000đ', status: 'active', iconType: 'nails' },
-    { id: 5, name: 'Phủ Bóng Hàn Quốc', category: 'nails', categoryLabel: 'NAILS', duration: '30 Phút', price: '250.000đ', status: 'active', iconType: 'nails' },
-    { id: 6, name: 'Chăm Sóc Da Mặt Chuyên Sâu', category: 'spa', categoryLabel: 'SPA', duration: '90 Phút', price: '650.000đ', status: 'active', iconType: 'spa' },
-    { id: 7, name: 'Nối Mi Classic', category: 'eyelash', categoryLabel: 'LASH', duration: '60 Phút', price: '300.000đ', status: 'active', iconType: 'eyelash' },
-    { id: 8, name: 'Nối Mi Volume', category: 'eyelash', categoryLabel: 'LASH', duration: '90 Phút', price: '450.000đ', status: 'active', iconType: 'eyelash' },
-    { id: 9, name: 'Trang Điểm Cô Dâu', category: 'makeup', categoryLabel: 'MAKEUP', duration: '120 Phút', price: '1.500.000đ', status: 'active', iconType: 'makeup' },
-    { id: 10, name: 'Trang Điểm Dự Tiệc', category: 'makeup', categoryLabel: 'MAKEUP', duration: '60 Phút', price: '500.000đ', status: 'active', iconType: 'makeup' },
-    { id: 11, name: 'Tháo Móng Bột', category: 'nails', categoryLabel: 'NAILS', duration: '30 Phút', price: '100.000đ', status: 'active', iconType: 'nails' },
-    { id: 12, name: 'Gội Đầu Dưỡng Sinh', category: 'spa', categoryLabel: 'SPA', duration: '45 Phút', price: '150.000đ', status: 'active', iconType: 'spa' },
-    { id: 13, name: 'Đắp Mặt Nạ Vàng', category: 'spa', categoryLabel: 'SPA', duration: '30 Phút', price: '200.000đ', status: 'active', iconType: 'spa' },
-    { id: 14, name: 'Uốn Mi Phủ Collagen', category: 'eyelash', categoryLabel: 'LASH', duration: '45 Phút', price: '250.000đ', status: 'active', iconType: 'eyelash' },
-    { id: 15, name: 'Sơn Thạch', category: 'nails', categoryLabel: 'NAILS', duration: '45 Phút', price: '250.000đ', status: 'active', iconType: 'nails' },
-    { id: 16, name: 'Nối Móng Úp', category: 'nails', categoryLabel: 'NAILS', duration: '60 Phút', price: '300.000đ', status: 'active', iconType: 'nails' },
-    { id: 17, name: 'Massage Chân Ấn Huyệt', category: 'spa', categoryLabel: 'SPA', duration: '45 Phút', price: '300.000đ', status: 'inactive', iconType: 'spa' },
-    { id: 18, name: 'Đính Đá Swarovski', category: 'nails', categoryLabel: 'ART', duration: '20 Phút', price: 'Từ 100.000đ', status: 'active', iconType: 'art' },
-    { id: 19, name: 'Vẽ Gel Nổi 3D', category: 'nails', categoryLabel: 'ART', duration: '30 Phút', price: 'Từ 150.000đ', status: 'active', iconType: 'art' },
-    { id: 20, name: 'Trang Điểm Cá Nhân', category: 'makeup', categoryLabel: 'MAKEUP', duration: '45 Phút', price: '350.000đ', status: 'active', iconType: 'makeup' },
-    { id: 21, name: 'Tẩy Tế Bào Chết Toàn Thân', category: 'spa', categoryLabel: 'SPA', duration: '60 Phút', price: '450.000đ', status: 'active', iconType: 'spa' },
-    { id: 22, name: 'Lấy Khóe Móng', category: 'nails', categoryLabel: 'NAILS', duration: '15 Phút', price: '50.000đ', status: 'inactive', iconType: 'nails' },
-    { id: 23, name: 'Nối Mi Thiết Kế', category: 'eyelash', categoryLabel: 'LASH', duration: '90 Phút', price: '500.000đ', status: 'active', iconType: 'eyelash' },
-    { id: 24, name: 'Sơn Móng Thường', category: 'nails', categoryLabel: 'NAILS', duration: '30 Phút', price: '100.000đ', status: 'active', iconType: 'nails' },
-  ]);
-
-  // Pagination State
-  pageSize = signal<number>(5);
-  currentPage = signal<number>(1);
-
-  // Computed Derived State
-  filteredServices = computed(() => {
-    const cat = this.selectedCategory();
-    if (cat === 'all') {
-      return this.allServices();
-    }
-    return this.allServices().filter(s => s.category === cat);
+export class ServiceManagement implements OnInit {
+  private readonly api = inject(OwnerApiService);
+  private readonly fb = inject(FormBuilder);
+  items = signal<OwnerService[]>([]);
+  loading = signal(true);
+  saving = signal(false);
+  error = signal('');
+  success = signal('');
+  editing = signal(false);
+  editingId: number | undefined;
+  private categoryId: number | null = null;
+  form = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]],
+    price: [100000, [Validators.required, Validators.min(1)]],
+    durationMinutes: [30, [Validators.required, Validators.min(1), Validators.pattern(/^[0-9]+$/)]],
+    description: ['', Validators.maxLength(1000)],
   });
-
-  paginatedServices = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize();
-    const end = start + this.pageSize();
-    return this.filteredServices().slice(start, end);
-  });
-
-  totalPages = computed(() => {
-    return Math.ceil(this.filteredServices().length / this.pageSize());
-  });
-
-  pagesArray = computed(() => {
-    const count = this.totalPages();
-    return Array.from({length: count}, (_, i) => i + 1);
-  });
-
-  // Actions
-  selectCategory(categoryId: string) {
-    this.selectedCategory.set(categoryId);
-    this.currentPage.set(1); // Reset to page 1 when filtering
+  ngOnInit() {
+    void this.load();
   }
-
-  goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages()) {
-      this.currentPage.set(page);
+  async load() {
+    this.loading.set(true);
+    this.error.set('');
+    this.items.set([]);
+    try {
+      this.items.set(await this.api.services());
+    } catch (e) {
+      this.error.set(ownerError(e));
+    } finally {
+      this.loading.set(false);
     }
   }
-
-  previousPage() {
-    const p = this.currentPage();
-    if (p > 1) {
-      this.currentPage.set(p - 1);
+  edit(item?: OwnerService) {
+    this.categoryId = item?.categoryId ?? null;
+    this.editingId = item?.id;
+    this.form.reset(
+      item
+        ? {
+            name: item.name,
+            price: item.price,
+            durationMinutes: item.durationMinutes,
+            description: item.description || '',
+          }
+        : { name: '', price: 100000, durationMinutes: 30, description: '' },
+    );
+    this.editing.set(true);
+    this.success.set('');
+    this.error.set('');
+  }
+  async save() {
+    if (this.saving() || this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    this.saving.set(true);
+    this.error.set('');
+    this.success.set('');
+    try {
+      await this.api.saveService(
+        { ...this.form.getRawValue(), categoryId: this.categoryId },
+        this.editingId,
+      );
+      this.editing.set(false);
+      await this.load();
+      this.success.set('Đã lưu thành công.');
+    } catch (e) {
+      this.error.set(ownerError(e));
+    } finally {
+      this.saving.set(false);
     }
   }
-
-  nextPage() {
-    const p = this.currentPage();
-    if (p < this.totalPages()) {
-      this.currentPage.set(p + 1);
+  async remove(item: OwnerService) {
+    if (this.saving() || !confirm('Ngừng sử dụng mục này? Dữ liệu lịch hẹn cũ vẫn được giữ.'))
+      return;
+    this.saving.set(true);
+    this.error.set('');
+    this.success.set('');
+    try {
+      await this.api.remove('services', item.id);
+      this.editing.set(false);
+      await this.load();
+      this.success.set('Đã ngừng sử dụng.');
+    } catch (e) {
+      this.error.set(ownerError(e));
+    } finally {
+      this.saving.set(false);
     }
   }
 }

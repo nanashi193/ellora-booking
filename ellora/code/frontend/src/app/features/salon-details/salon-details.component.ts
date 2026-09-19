@@ -1,9 +1,10 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { MockDataService } from '../../services/mock-data.service';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { SalonApiService } from '../../services/salon-api.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ServiceCard } from '../../shared/components/service-card/service-card.component';
-import { Service } from '../../models/ellora.model';
+import { Salon, Review, Service } from '../../models/ellora.model';
 
 @Component({
   selector: 'app-salon-details',
@@ -12,16 +13,36 @@ import { Service } from '../../models/ellora.model';
   templateUrl: './salon-details.component.html',
   styleUrl: './salon-details.component.scss'
 })
-export class SalonDetails {
-  private dataService = inject(MockDataService);
+export class SalonDetails implements OnInit {
+  private dataService = inject(SalonApiService);
 
-  salon = computed(() => this.dataService.salons()[0]);
-  services = this.dataService.services;
-  reviews = this.dataService.reviews;
-
+  private route = inject(ActivatedRoute);
+  private destroy = inject(DestroyRef);
+  private request = 0;
+  salon = signal<Salon | null>(null);
+  services = signal<Service[]>([]);
+  reviews = signal<Review[]>([]);
+  loading = signal(true); error = signal(''); reviewPage = signal(0); reviewsLast = signal(true); reviewsLoading = signal(false); reviewError = signal('');
+  ngOnInit() { this.route.paramMap.pipe(takeUntilDestroyed(this.destroy)).subscribe(() => { void this.load(); }); }
+  async load() {
+    const request = ++this.request;
+    this.loading.set(true); this.error.set(''); this.salon.set(null); this.services.set([]); this.reviews.set([]); this.selectedServices.set([]);
+    const id = this.route.snapshot.paramMap.get('id') || '';
+    try { const [salon, services, reviews] = await Promise.all([this.dataService.detail(id), this.dataService.services(id), this.dataService.reviews(id)]);
+      if(request !== this.request) return;
+      this.salon.set(salon); this.services.set(services); this.reviews.set(reviews.content); this.reviewPage.set(0); this.reviewsLast.set(reviews.last);
+    } catch { if(request === this.request) this.error.set('Không tải được salon hoặc salon chưa được duyệt.'); }
+    finally { if(request === this.request) this.loading.set(false); }
+  }
+  async moreReviews() {
+    const id = this.salon()?.id; if(!id || this.reviewsLoading()) return;
+    this.reviewsLoading.set(true); this.reviewError.set('');
+    try { const result = await this.dataService.reviews(id, this.reviewPage()+1); if(this.salon()?.id !== id) return; this.reviews.update(items=>[...items,...result.content]); this.reviewPage.set(result.pageNumber); this.reviewsLast.set(result.last); }
+    catch { this.reviewError.set('Không tải được thêm đánh giá.'); } finally { this.reviewsLoading.set(false); }
+  }
   // Service tabs
-  readonly tabs = ['Nổi bật', 'Làm móng tay', 'Nối móng', 'Nghệ thuật làm móng'];
-  activeTab = signal('Nổi bật');
+  readonly tabs = ['Dịch vụ'];
+  activeTab = signal('Dịch vụ');
 
   // Selected services for booking widget
   selectedServices = signal<Service[]>([]);
@@ -44,7 +65,7 @@ export class SalonDetails {
     if (current.some(s => s.id === service.id)) {
       return;
     }
-    this.selectedServices.set([...current, service]);
+    this.selectedServices.set([service]);
   }
 
   removeService(serviceId: string): void {
@@ -54,11 +75,11 @@ export class SalonDetails {
   getOpenStatusText(): string {
     const s = this.salon();
     if (!s) return '';
-    return s.isOpen ? 'Đang mở cửa' : 'Đã đóng cửa';
+    return 'Liên hệ salon để biết giờ mở cửa';
   }
 
   getCloseTimeText(): string {
-    return 'Đóng cửa lúc 8:00 Tối';
+    return '';
   }
 
   getGoogleMapsUrl(): string {

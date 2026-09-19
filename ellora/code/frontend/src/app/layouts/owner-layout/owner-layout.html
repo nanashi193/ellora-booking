@@ -44,10 +44,10 @@
     <div class="mb-6">
       <div class="h-px bg-gray-100 mx-6 mb-4"></div>
       <nav class="flex flex-col text-[14px] font-medium text-gray-600">
-        <a href="#" class="flex items-center gap-3 px-6 py-3 hover:bg-gray-50 transition-colors">
+        <button type="button" (click)="supportDialog.showModal()" class="flex items-center gap-3 px-6 py-3 hover:bg-gray-50 transition-colors">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
           Hỗ trợ
-        </a>
+        </button>
         <a href="#" class="flex items-center gap-3 px-6 py-3 hover:bg-gray-50 transition-colors">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           Cài đặt
@@ -88,15 +88,15 @@
                   @for (booking of pendingBookings(); track booking.id) {
                     <div class="p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer" (click)="focusBooking(booking.id)">
                       <div class="flex justify-between items-start mb-1">
-                        <p class="font-bold text-[14px] text-charcoal-900">{{ booking.customerName }}</p>
-                        <span class="text-[12px] font-medium text-charcoal-800/60">{{ booking.startTime }}:00</span>
+                        <p class="font-bold text-[14px] text-charcoal-900">Lịch hẹn #{{ booking.id }}</p>
+                        <span class="text-[12px] font-medium text-charcoal-800/60">{{ booking.scheduledAt | date:'dd/MM HH:mm' }}</span>
                       </div>
                       <p class="text-[13px] text-charcoal-800/80">{{ booking.serviceName }}</p>
                     </div>
                   }
                 } @else {
                   <div class="p-6 text-center text-charcoal-800/60 text-sm font-medium">
-                    Không có thông báo mới
+                    {{ notificationsLoading() ? 'Đang tải…' : (notificationError() || 'Không có thông báo mới') }}
                   </div>
                 }
               </div>
@@ -117,7 +117,7 @@
 
         <div class="relative user-dropdown-container flex items-center gap-3">
           <div class="text-right hidden sm:block mr-2">
-            <div class="font-bold text-[15px] text-charcoal-900 leading-tight">{{ userName || 'Minh Anh' }}</div>
+            <div class="font-bold text-[15px] text-charcoal-900 leading-tight">{{ userName || 'Chủ salon' }}</div>
             <div class="text-[12px] text-charcoal-800/60 font-medium">Chủ Salon</div>
           </div>
           <button class="w-[46px] h-[46px] rounded-full border-2 border-[#F2A4BB] p-0.5 focus:outline-none focus:ring-2 focus:ring-[#8C3A5A] focus:ring-offset-2 transition-all overflow-hidden bg-[#FDF6F8] flex items-center justify-center text-[#8C3A5A] font-bold text-lg" (click)="toggleDropdown()">
@@ -156,3 +156,13 @@
     <router-outlet></router-outlet>
   </div>
 </div>
+
+<dialog #supportDialog class="support-dialog" aria-labelledby="support-title" (click)="closeSupportBackdrop($event, supportDialog)">
+  <div class="support-content">
+    <div class="support-heading"><h2 id="support-title">Liên hệ hỗ trợ</h2><button type="button" aria-label="Đóng cửa sổ hỗ trợ" (click)="supportDialog.close()" autofocus>×</button></div>
+    <p>Liên hệ admin để được hỗ trợ sử dụng Ellora.</p>
+    <dl><dt>Email</dt><dd><a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a></dd>
+    <dt>Số điện thoại</dt><dd>@if(supportPhone){<a [href]="'tel:' + supportPhone">{{ supportPhone }}</a>}@else{<span>Chưa cập nhật</span>}</dd></dl>
+    <button type="button" class="support-close" (click)="supportDialog.close()">Đóng</button>
+  </div>
+</dialog>

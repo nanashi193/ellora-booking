@@ -265,6 +265,19 @@ export class AuthService {
   }
 
   async getUserProfile(): Promise<{ email: string; name: string; phone_number?: string }> {
+    const session = await fetchAuthSession();
+    const scope = session.tokens?.accessToken.payload['scope'];
+    if (typeof scope === 'string' && !scope.split(' ').includes('aws.cognito.signin.user.admin')) {
+      const claims = session.tokens?.idToken?.payload;
+      if (!claims || typeof claims['email'] !== 'string' || !claims['email']) {
+        throw new Error('Không nhận được email từ phiên đăng nhập Google.');
+      }
+      return {
+        email: claims['email'],
+        name: typeof claims['name'] === 'string' && claims['name'] ? claims['name'] : claims['email'],
+        phone_number: typeof claims['phone_number'] === 'string' ? claims['phone_number'] : undefined,
+      };
+    }
     const attributes = await fetchUserAttributes();
     return {
       email: attributes.email ?? '',

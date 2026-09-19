@@ -1,8 +1,9 @@
 import { Component, inject, signal, computed, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { MockDataService } from '../../services/mock-data.service';
+import { SalonApiService } from '../../services/salon-api.service';
+import { Salon, Service, Staff } from '../../models/ellora.model';
 import { AuthService } from '../../services/auth.service';
 import { BookingApiService } from '../../services/booking-api.service';
 
@@ -21,7 +22,8 @@ interface CalendarDay {
   styleUrl: './booking.component.scss'
 })
 export class BookingComponent implements OnInit, OnDestroy {
-  private dataService = inject(MockDataService);
+  private dataService = inject(SalonApiService);
+  private route = inject(ActivatedRoute);
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
@@ -31,9 +33,11 @@ export class BookingComponent implements OnInit, OnDestroy {
   submitError = signal<string | null>(null);
 
   // Data
-  salon = computed(() => this.dataService.salons()[0]);
-  services = this.dataService.services;
-  staffList = this.dataService.staff;
+  salon = signal<Salon | null>(null);
+  services = signal<Service[]>([]);
+  staffList = signal<Staff[]>([]);
+  loading = signal(true);
+  loadError = signal('');
 
   // Wizard state: 1=Dịch vụ, 2=Thợ nail, 3=Thời gian, 4=Xác nhận
   currentStep = signal<1 | 2 | 3 | 4>(1);
@@ -63,6 +67,7 @@ export class BookingComponent implements OnInit, OnDestroy {
   });
 
   async ngOnInit() {
+    await this.loadSalon();
     try {
       const profile = await this.authService.getUserProfile();
       this.customerForm.patchValue({
@@ -72,6 +77,15 @@ export class BookingComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.warn('Could not fetch user profile from Cognito', e);
     }
+  }
+
+  async loadSalon() {
+    const id=this.route.snapshot.queryParamMap.get('salonId');
+    this.loading.set(true); this.loadError.set('');
+    if(!id) { this.loadError.set('Vui lòng chọn salon từ trang tìm kiếm trước khi đặt lịch.'); this.loading.set(false); return; }
+    try { const [salon,services,staff]=await Promise.all([this.dataService.detail(id),this.dataService.services(id),this.dataService.employees(id)]);this.salon.set(salon);this.services.set(services);this.staffList.set(staff); const chosen=this.route.snapshot.queryParamMap.get('serviceId'); if(chosen && services.some(s=>s.id===chosen))this.selectedServiceIds.set([chosen]); }
+    catch { this.loadError.set('Không tải được thông tin đặt lịch. Vui lòng thử lại.'); }
+    finally { this.loading.set(false); }
   }
 
   // ─── Computed ───────────────────────────────────────
@@ -151,7 +165,7 @@ export class BookingComponent implements OnInit, OnDestroy {
 
   toggleService(id: string) {
     this.selectedServiceIds.update(ids =>
-      ids.includes(id) ? ids.filter(i => i !== id) : [...ids, id]
+      ids.includes(id) ? [] : [id]
     );
   }
 
@@ -193,6 +207,7 @@ export class BookingComponent implements OnInit, OnDestroy {
 
 
   async confirmBooking() {
+    if (this.isSubmitting() || !this.salon() || this.selectedServices().length !== 1 || !this.selectedDate() || !this.selectedTime()) return;
     if (this.customerForm.invalid) {
       this.customerForm.markAllAsTouched();
       return;
@@ -209,18 +224,12 @@ export class BookingComponent implements OnInit, OnDestroy {
       this.isSubmitting.set(true);
       this.submitError.set(null);
 
-      const serviceIdStr = this.selectedServiceIds()[0] ?? '1';
-      const serviceId = parseInt(serviceIdStr.replace(/\D/g, '')) || 1;
-
-      let employeeId: number | undefined;
-      if (this.selectedStaffId() && this.selectedStaffId() !== 'any') {
-        employeeId = parseInt(this.selectedStaffId()!.replace(/\D/g, '')) || 1;
-      }
-
+      const serviceId = Number(this.selectedServices()[0].id);
+      const employeeId = this.selectedStaffId() && this.selectedStaffId() !== 'any' ? Number(this.selectedStaffId()) : undefined;
       const scheduledAt = `${this.selectedDate()}T${this.selectedTime()}:00`;
 
       await this.bookingApi.createBooking({
-        salonId: 1,
+        salonId: Number(this.salon()!.id),
         serviceId: serviceId,
         employeeId: employeeId,
         scheduledAt: scheduledAt,

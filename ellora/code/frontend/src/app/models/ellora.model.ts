@@ -29,6 +29,7 @@ export interface Salon {
 }
 
 export interface Service {
+  imageUrl?: string;
   id: string;
   salonId: string;
   name: string;

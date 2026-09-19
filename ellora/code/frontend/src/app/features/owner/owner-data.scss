@@ -1,0 +1,153 @@
+:host {
+  display: block;
+  color: #302c2d;
+}
+.owner-page {
+  max-width: 1280px;
+  margin: auto;
+  padding: 24px 32px 48px;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+p {
+  margin: 8px 0;
+}
+.muted {
+  color: #756b70;
+}
+.card {
+  background: white;
+  border: 1px solid #eadfe3;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.metric {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  color: #8c3a5a;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d9cbd1;
+  border-radius: 8px;
+  background: white;
+  font: inherit;
+  font-weight: 400;
+}
+textarea {
+  min-height: 80px;
+}
+button,
+.link {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #d9cbd1;
+  background: white;
+  cursor: pointer;
+  display: inline-block;
+}
+button.primary,
+.link {
+  background: #8c3a5a;
+  color: white;
+  border-color: #8c3a5a;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #8c3a5a;
+  outline-offset: 2px;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+th,
+td {
+  padding: 16px 12px;
+  border-bottom: 1px solid #eee5e9;
+}
+th {
+  color: #756b70;
+  font-size: 14px;
+}
+.error {
+  color: #a12238;
+  background: #fff0f2;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+.success {
+  color: #21643c;
+  margin-bottom: 16px;
+}
+.empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: #756b70;
+}
+.pager {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+@media (max-width: 640px) {
+  .owner-page {
+    padding: 16px;
+  }
+  header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .card {
+    padding: 16px;
+  }
+}

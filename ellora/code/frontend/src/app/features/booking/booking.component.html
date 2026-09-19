@@ -1,3 +1,4 @@
+@if (loading()) { <p class="p-8" role="status">Đang tải dịch vụ…</p> } @else if (loadError()) { <div class="p-8" role="alert">{{ loadError() }} <button (click)="loadSalon()">Thử lại</button> <a routerLink="/search">Tìm salon</a></div> } @else {
 <div class="booking-page">
 
   <!-- ═══ Step Indicator ═══ -->
@@ -26,8 +27,9 @@
   @if (currentStep() === 1) {
     <div class="step-content">
       <h1 class="step-heading">Tạo kiểu cho bạn.</h1>
-      <p class="step-sub">Chọn các dịch vụ chăm sóc và làm đẹp để bắt đầu hành trình thư giãn tại Ellora.</p>
+      <p class="step-sub">Chọn một dịch vụ cho lịch hẹn của bạn.</p>
 
+      @if (!services().length) { <p>Salon chưa thêm dịch vụ để đặt lịch.</p> }
       <div class="service-grid">
         @for (s of services(); track s.id) {
           <div class="service-card" [class.service-card--selected]="selectedServiceIds().includes(s.id)" (click)="toggleService(s.id)">
@@ -36,6 +38,7 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
             }
+            @if(s.imageUrl){<img [src]="s.imageUrl" [alt]="s.name" style="width:100%;height:150px;object-fit:cover;border-radius:12px 12px 0 0"/>}
             <div class="service-card__body">
               <div>
                 <p class="service-card__name">{{ s.name }}</p>
@@ -107,7 +110,7 @@
               </div>
             }
             <div class="staff-card__avatar">
-              <img [src]="staff.avatar" [alt]="staff.name" />
+              <img [src]="staff.avatar || '/salon-placeholder.svg'" [alt]="staff.name" />
             </div>
             <p class="staff-card__name">{{ staff.name }}</p>
             <p class="staff-card__role">
@@ -234,7 +237,7 @@
         <!-- Booking summary card -->
         <div class="confirm-summary-card">
           <div class="confirm-summary-card__img">
-            <img [src]="salon()?.images?.[0]" [alt]="salon()?.name" />
+            <img [src]="salon()?.images?.[0] || '/salon-placeholder.svg'" [alt]="salon()?.name" />
           </div>
           <div class="confirm-summary-card__info">
             <div class="confirm-summary-card__section">
@@ -292,16 +295,11 @@
                 <span>{{ formatPrice(s.price) }}</span>
               </div>
             }
-            @if (selectedStaffId() && selectedStaffId() !== 'any') {
-              <div class="order-card__row">
-                <span>Phụ phí chuyên gia</span>
-                <span>150.000đ</span>
-              </div>
-            }
+
           </div>
           <div class="order-card__total">
             <span>Tổng cộng</span>
-            <span class="order-card__total-price">{{ formatPrice(totalPrice() + (selectedStaffId() && selectedStaffId() !== 'any' ? 150000 : 0)) }}</span>
+            <span class="order-card__total-price">{{ formatPrice(totalPrice()) }}</span>
           </div>
           <button type="button" class="btn-pay" [disabled]="isSubmitting()" (click)="confirmBooking()">
             {{ isSubmitting() ? 'ĐANG XỬ LÝ...' : 'ĐẶT LỊCH' }}
@@ -355,3 +353,4 @@
     </div>
   }
 </div>
+}

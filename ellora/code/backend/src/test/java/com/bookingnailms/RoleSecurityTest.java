@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest({SalonRegistrationController.class, BookingController.class})
+@WebMvcTest({SalonRegistrationController.class, BookingController.class, com.bookingnailms.controller.owner.OwnerController.class})
 @Import(SecurityConfig.class)
 class RoleSecurityTest {
     @Autowired MockMvc mvc;
@@ -30,6 +30,10 @@ class RoleSecurityTest {
     @MockBean SalonService salonService;
     @MockBean AdminService admin;
     @MockBean BookingService bookings;
+    @MockBean NailServiceService services;
+    @MockBean EmployeeService employees;
+    @MockBean ReviewService reviews;
+    @MockBean OwnerDashboardService dashboard;
     private final UUID id = UUID.randomUUID();
 
     void as(Role role) {
@@ -39,6 +43,27 @@ class RoleSecurityTest {
 
     @Test void anonymousCannotReadAdminQueue() throws Exception {
         mvc.perform(get("/admin/salons/pending")).andExpect(status().isUnauthorized());
+    }
+    @Test void ownerServiceCreationUsesAuthenticatedSalonAndRejectsInvalidInput() throws Exception {
+        as(Role.SALON_OWNER);
+        when(salonService.getMySalon(id)).thenReturn(com.bookingnailms.dto.salon.SalonResponse.builder().id(42L).build());
+        mvc.perform(post("/owner/services").header("Authorization", "Bearer test-token")
+                .contentType("application/json")
+                .content("{\"name\":\"Gel nails\",\"price\":150000,\"durationMinutes\":45,\"salonId\":999}"))
+                .andExpect(status().isOk());
+        verify(services).addService(any(), eq(42L));
+        mvc.perform(post("/owner/services").header("Authorization", "Bearer test-token")
+                .contentType("application/json").content("{\"name\":\"\",\"price\":-1,\"durationMinutes\":0}"))
+                .andExpect(status().isBadRequest());
+        verifyNoMoreInteractions(services);
+    }
+    @Test void customerCannotManageOwnerData() throws Exception {
+        as(Role.CUSTOMER);
+        for (String path : List.of("/owner/services", "/owner/employees", "/owner/reviews", "/owner/dashboard")) {
+            mvc.perform(get(path).header("Authorization", "Bearer test-token")).andExpect(status().isForbidden());
+            mvc.perform(post(path).header("Authorization", "Bearer test-token")).andExpect(status().isForbidden());
+        }
+        verifyNoInteractions(services, employees, reviews, dashboard);
     }
     @Test void customerCannotApproveOrReadOwnerBookings() throws Exception {
         as(Role.CUSTOMER);

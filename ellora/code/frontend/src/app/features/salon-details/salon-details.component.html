@@ -1,4 +1,6 @@
-@if (salon()) {
+@if (loading()) { <p class="p-8" role="status">Đang tải salon…</p> }
+@if (error()) { <div class="p-8" role="alert">{{ error() }} <button (click)="load()">Thử lại</button></div> }
+@if (salon(); as currentSalon) {
   <div class="salon-detail">
 
     <!-- ═══ Main Content ═══ -->
@@ -10,23 +12,23 @@
         <!-- ═══ Gallery ═══ -->
         <section class="gallery">
           <div class="gallery__main">
-            <img [src]="salon().images[0]" [alt]="salon().name" class="gallery__img" />
+            <img [src]="(currentSalon.images[0] || '/salon-placeholder.svg')" [alt]="currentSalon.name" class="gallery__img" />
             <button class="gallery__back" routerLink="/search" aria-label="Quay lại">
               <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             </button>
           </div>
           <div class="gallery__side">
-            <img [src]="salon().images[1] || salon().images[0]" alt="Gallery 2" class="gallery__img" />
-            <img [src]="salon().images[2] || salon().images[0]" alt="Gallery 3" class="gallery__img" />
+            <img [src]="currentSalon.images[1] || (currentSalon.images[0] || '/salon-placeholder.svg')" alt="Gallery 2" class="gallery__img" />
+            <img [src]="currentSalon.images[2] || (currentSalon.images[0] || '/salon-placeholder.svg')" alt="Gallery 3" class="gallery__img" />
           </div>
         </section>
 
         <!-- Salon Info -->
         <section class="salon-info">
           <div class="salon-info__header">
-            <h1 class="salon-info__name">{{ salon().name }}</h1>
+            <h1 class="salon-info__name">{{ currentSalon.name }}</h1>
             <div class="salon-info__status">
-              <span class="salon-info__status-dot" [class.salon-info__status-dot--open]="salon().isOpen"></span>
+              <span class="salon-info__status-dot" [class.salon-info__status-dot--open]="currentSalon.isOpen"></span>
               <div class="salon-info__status-text">
                 <span class="salon-info__status-label">{{ getOpenStatusText() }}</span>
                 <span class="salon-info__status-hours">{{ getCloseTimeText() }}</span>
@@ -37,17 +39,17 @@
           <div class="salon-info__meta">
             <div class="salon-info__rating">
               <svg class="salon-info__star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-              <span class="salon-info__rating-value">{{ salon().rating }}</span>
-              <a class="salon-info__review-count">({{ salon().reviewCount }} đánh giá)</a>
+              <span class="salon-info__rating-value">{{ currentSalon.rating }}</span>
+              <a class="salon-info__review-count">({{ currentSalon.reviewCount }} đánh giá)</a>
             </div>
             <span class="salon-info__separator">·</span>
             <span class="salon-info__location">
               <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              {{ salon().city }}
+              {{ currentSalon.city }}
             </span>
           </div>
 
-          <p class="salon-info__desc">{{ salon().description }}</p>
+          <p class="salon-info__desc">{{ currentSalon.description }}</p>
         </section>
 
         <!-- ═══ Vị trí ═══ -->
@@ -65,7 +67,7 @@
             <div class="location-card__info">
               <span class="location-card__label">Địa chỉ</span>
               <h3 class="location-card__area">SoHo, New York</h3>
-              <p class="location-card__address">{{ salon().address }}, {{ salon().city }}</p>
+              <p class="location-card__address">{{ currentSalon.address }}, {{ currentSalon.city }}</p>
               <a
                 class="location-card__directions"
                 [href]="getGoogleMapsUrl()"
@@ -98,6 +100,7 @@
           </div>
 
           <!-- Service List -->
+          @if (!services().length) { <p>Salon chưa thêm dịch vụ.</p> }
           <div class="services-list">
             @for (service of filteredServices(); track service.id) {
               <app-service-card [service]="service" (book)="addService($event)"></app-service-card>
@@ -112,7 +115,7 @@
 
           <!-- Rating Summary -->
           <div class="review-summary">
-            <span class="review-summary__score">{{ salon().rating }}</span>
+            <span class="review-summary__score">{{ currentSalon.rating }}</span>
             <div class="review-summary__stars-wrap">
               <div class="review-summary__stars">
                 @for (star of [1,2,3,4,5]; track star) {
@@ -121,10 +124,12 @@
                   </svg>
                 }
               </div>
-              <span class="review-summary__count">Dựa trên {{ salon().reviewCount }} đánh giá</span>
+              <span class="review-summary__count">Dựa trên {{ currentSalon.reviewCount }} đánh giá</span>
             </div>
           </div>
 
+          @if (reviewError()) { <p role="alert">{{ reviewError() }}</p> }
+          @if (!reviews().length) { <p>Chưa có đánh giá.</p> }
           <!-- Review Cards -->
           <div class="review-list">
             @for (review of reviews(); track review.id) {
@@ -150,8 +155,8 @@
             }
           </div>
 
-          <button type="button" class="reviews-section__read-all">
-            Đọc tất cả {{ salon().reviewCount }} đánh giá
+          <button type="button" class="reviews-section__read-all" (click)="moreReviews()" [hidden]="reviewsLast()" [disabled]="reviewsLoading()">
+            {{ reviewsLoading() ? "Đang tải…" : "Xem thêm đánh giá" }}
           </button>
         </section>
       </div>
@@ -172,7 +177,7 @@
                     <span class="booking-widget__service-duration">{{ s.durationMinutes }} Phút</span>
                   </div>
                   <div class="booking-widget__service-right">
-                    <span class="booking-widget__service-price">${{ s.price }}</span>
+                    <span class="booking-widget__service-price">{{ s.price | number }} đ</span>
                     <button type="button" class="booking-widget__service-remove" (click)="removeService(s.id)" aria-label="Xóa">×</button>
                   </div>
                 </div>
@@ -208,16 +213,16 @@
           <div class="booking-widget__total-section">
             <div class="booking-widget__total-row booking-widget__total-row--sub">
               <span>Tổng phụ</span>
-              <span>${{ totalPrice() }}</span>
+              <span>{{ totalPrice() | number }} đ</span>
             </div>
             <div class="booking-widget__total-row booking-widget__total-row--main">
               <span>Tổng cộng</span>
-              <span>${{ totalPrice() }}</span>
+              <span>{{ totalPrice() | number }} đ</span>
             </div>
           </div>
 
           <!-- CTA -->
-          <a class="booking-widget__cta" routerLink="/booking">Tiến hành Đặt ngay</a>
+          <a class="booking-widget__cta" routerLink="/booking" [queryParams]="{salonId: currentSalon.id, serviceId: selectedServices()[0]?.id}">Tiến hành Đặt ngay</a>
           <p class="booking-widget__note">Bạn sẽ chưa bị tính phí</p>
         </div>
       </aside>

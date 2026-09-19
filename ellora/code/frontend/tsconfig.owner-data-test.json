@@ -1,0 +1,1 @@
+{"extends":"./tsconfig.spec.json","include":["src/app/services/owner-data.spec.ts","src/**/*.d.ts"]}

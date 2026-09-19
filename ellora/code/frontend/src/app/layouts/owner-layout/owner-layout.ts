@@ -1,26 +1,38 @@
-import { Component, ElementRef, HostListener, inject, OnInit } from '@angular/core';
+import { Component, ChangeDetectorRef, ElementRef, HostListener, inject, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { BookingService } from '../../services/booking.service';
 @Component({
   selector: 'app-owner-layout',
+  providers: [BookingService],
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
   templateUrl: './owner-layout.html',
   styleUrl: './owner-layout.css',
 })
 export class OwnerLayout implements OnInit {
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly elementRef = inject(ElementRef);
   private readonly bookingService = inject(BookingService);
+
+  readonly supportEmail = 'nphucthinh22@gmail.com';
+  readonly supportPhone = '0342052188';
+  closeSupportBackdrop(event: MouseEvent, dialog: HTMLDialogElement): void {
+    if(event.target !== dialog) return;
+    const rect=dialog.getBoundingClientRect();
+    if(event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
+  }
 
   userName = '';
   userInitial = '';
   isDropdownOpen = false;
   isNotificationOpen = false;
 
+  notificationError = this.bookingService.error;
+  notificationsLoading = this.bookingService.isLoading;
   pendingCount = this.bookingService.pendingCount;
   pendingBookings = this.bookingService.pendingBookings;
 
@@ -63,7 +75,7 @@ export class OwnerLayout implements OnInit {
   }
 
   focusBooking(id: number): void {
-    this.bookingService.focusedBookingId.set(id);
+
     this.isNotificationOpen = false;
     this.router.navigate(['/owner/bookings']);
   }
