@@ -1,5 +1,7 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { OwnerApiService, OwnerReview, ownerError } from '../../../services/owner-api.service';
 
 export interface ReviewItem {
   id: number;
@@ -18,24 +20,51 @@ export interface ReviewItem {
 @Component({
   selector: 'app-review-management',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './review-management.component.html',
   styleUrl: './review-management.component.scss'
 })
-export class ReviewManagement {
+export class ReviewManagement implements OnInit {
+  private readonly api = inject(OwnerApiService);
+  readonly error = signal('');
+  readonly replyingId = signal<number | null>(null);
+  replyText = '';
+  async ngOnInit(): Promise<void> { await this.load(); }
+  async load(): Promise<void> {
+    try {
+      const items: OwnerReview[] = [];
+      for (let page = 0; page < 50; page++) {
+        const result = await this.api.reviews(page);
+        items.push(...result.content);
+        if (result.last) break;
+      }
+      this.allReviews.set(items.map(item => ({
+        id: item.id, customerName: item.customerName, customerInitials: item.customerName.slice(0, 2).toUpperCase(),
+        timeAgo: new Date(item.createdAt).toLocaleDateString('vi-VN'), rating: item.rating, staffName: '—',
+        content: item.comment, images: [], isReplied: Boolean(item.salonReply), repliedTimeAgo: item.salonReply ? '' : undefined
+      })));
+      this.ratingDistribution = [5, 4, 3, 2, 1].map(stars => ({ stars, count: items.filter(item => item.rating === stars).length, percentage: items.length ? items.filter(item => item.rating === stars).length / items.length * 100 : 0 }));
+      this.error.set('');
+    } catch (error) { this.error.set(ownerError(error)); }
+  }
+  async sendReply(id: number): Promise<void> {
+    if (!this.replyText.trim()) { this.error.set('Vui lòng nhập nội dung phản hồi.'); return; }
+    try { await this.api.reply(id, this.replyText.trim()); this.replyingId.set(null); this.replyText = ''; await this.load(); }
+    catch (error) { this.error.set(ownerError(error)); }
+  }
   
   // Stats Data
-  satisfactionRate = 95;
-  growthRate = 2.4;
+  satisfactionRate = '—';
+  growthRate = '—';
   topStaff = {
-    name: 'Linh Nguyễn',
-    avatar: 'https://ui-avatars.com/api/?name=Linh+Nguyen&background=random',
-    mentions: 24
+    name: '—',
+    avatar: '/salon-placeholder.svg',
+    mentions: 0
   };
 
   ratingDistribution = [
-    { stars: 5, count: 124, percentage: 88.5 },
-    { stars: 4, count: 16, percentage: 11.4 },
+    { stars: 5, count: 0, percentage: 0 },
+    { stars: 4, count: 0, percentage: 0 },
     { stars: 3, count: 0, percentage: 0 },
     { stars: 2, count: 0, percentage: 0 },
     { stars: 1, count: 0, percentage: 0 }
@@ -48,81 +77,7 @@ export class ReviewManagement {
   selectedImage = signal<string | null>(null);
 
   // Mock Data
-  allReviews = signal<ReviewItem[]>([
-    {
-      id: 1,
-      customerName: 'Minh Hạnh',
-      customerInitials: 'MH',
-      timeAgo: '2 giờ trước',
-      rating: 5,
-      staffName: 'Linh Nguyễn',
-      staffAvatar: 'https://ui-avatars.com/api/?name=Linh+Nguyen&background=random',
-      content: 'Trải nghiệm tuyệt vời tại Ellora! Linh làm móng rất kỹ và nhẹ nhàng. Mình cực kỳ ưng bộ móng ombre hồng lần này, đúng như ý muốn. Không gian salon sang trọng và thư giãn, trà thơm rất ngon. Chắc chắn sẽ quay lại!',
-      images: [
-        'https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&q=80&w=400',
-        'https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&q=80&w=400'
-      ],
-      isReplied: false
-    },
-    {
-      id: 2,
-      customerName: 'Anh ThW',
-      customerInitials: 'AT',
-      timeAgo: '5 giờ trước',
-      rating: 4,
-      staffName: 'Mai Ka',
-      staffAvatar: 'https://ui-avatars.com/api/?name=Mai+Ka&background=random',
-      content: 'Rất hài lòng với dịch vụ chăm sóc da tay và sơn gel. Màu sơn bền, bóng đẹp. Tuy nhiên hôm nay tiệm hơi đông nên mình phải chờ khoảng 10 phút dù đã đặt lịch trước. Bù lại nhân viên rất nhiệt tình xin lỗi và phục vụ nước uống chu đáo.',
-      isReplied: true,
-      repliedTimeAgo: '1 giờ trước'
-    },
-    {
-      id: 3,
-      customerName: 'Nguyễn Thị Hoa',
-      customerInitials: 'NH',
-      timeAgo: '1 ngày trước',
-      rating: 5,
-      staffName: 'Vũ Minh Đức',
-      content: 'Chăm sóc móng xuất sắc. Nhân viên nhiệt tình, tư vấn màu sơn rất hợp với tone da của mình. Sẽ giới thiệu bạn bè tới đây.',
-      isReplied: true,
-      repliedTimeAgo: '20 giờ trước'
-    },
-    {
-      id: 4,
-      customerName: 'Trần Bích Phương',
-      customerInitials: 'TP',
-      timeAgo: '2 ngày trước',
-      rating: 3,
-      staffName: 'Đặng Mai Phương',
-      content: 'Màu sơn đẹp nhưng nhân viên làm hơi vội vàng, có một ngón bị lem một chút xíu. Hy vọng lần sau tiệm sẽ làm cẩn thận hơn.',
-      isReplied: false
-    },
-    {
-      id: 5,
-      customerName: 'Lê Ngọc Lan',
-      customerInitials: 'LL',
-      timeAgo: '3 ngày trước',
-      rating: 5,
-      staffName: 'Linh Nguyễn',
-      staffAvatar: 'https://ui-avatars.com/api/?name=Linh+Nguyen&background=random',
-      content: 'Linh làm móng siêu đỉnh! Mình rất thích không gian nhẹ nhàng của Ellora.',
-      images: [
-        'https://images.unsplash.com/photo-1519014816548-bf5fe059e98b?auto=format&fit=crop&q=80&w=400'
-      ],
-      isReplied: false
-    },
-    {
-      id: 6,
-      customerName: 'Hoàng Yến',
-      customerInitials: 'HY',
-      timeAgo: '4 ngày trước',
-      rating: 5,
-      staffName: 'Phạm Hải Đăng',
-      content: 'Mình làm combo chăm sóc chân và sơn gel. Tuyệt vời!',
-      isReplied: true,
-      repliedTimeAgo: '3 ngày trước'
-    }
-  ]);
+  allReviews = signal<ReviewItem[]>([]);
 
   // Derived state based on filter
   filteredReviews = computed(() => {

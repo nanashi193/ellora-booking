@@ -16,6 +16,8 @@ import java.util.UUID;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
+    long countBySalonId(Long salonId);
+    long countBySalonIdAndStatus(Long salonId, BookingStatus status);
 
     Page<Booking> findByCustomerIdOrderByCreatedAtDesc(UUID customerId, Pageable pageable);
 

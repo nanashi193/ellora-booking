@@ -5,20 +5,22 @@
         
         <!-- Search Filters Header -->
         <div class="flex flex-col gap-4">
-          <h1 class="font-serif text-3xl text-charcoal-900 font-medium">Salons in New York</h1>
+          <h1 class="font-serif text-3xl text-charcoal-900 font-medium">Tìm salon</h1>
+          <input type="search" aria-label="Tìm theo tên salon" placeholder="Tên salon" class="border rounded-lg p-3" [value]="keyword()" (input)="keyword.set($any($event.target).value)" (keyup.enter)="page.set(0); search()" />
+          @if (error()) { <p role="alert" class="text-red-700">{{ error() }}</p> }
           
           <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            <app-badge color="dark" size="md" class="shrink-0 cursor-pointer">All</app-badge>
+            <app-badge color="dark" size="md" class="shrink-0">All</app-badge>
             @for (category of categories(); track category.id) {
-              <app-badge color="outline" size="md" class="shrink-0 cursor-pointer hover:bg-ivory-100 transition-colors">
+              <app-badge color="outline" size="md" class="shrink-0 opacity-60" title="Bộ lọc danh mục chưa khả dụng">
                 {{ category.name }}
               </app-badge>
             }
           </div>
           
           <div class="flex items-center justify-between text-sm text-charcoal-800 border-b border-charcoal-800/10 pb-4">
-            <span>{{ salons().length }} results found</span>
-            <button class="flex items-center gap-1.5 font-medium hover:text-dusty-pink-600 transition-colors">
+            <span>{{ total() }} salon</span>
+            <button disabled title="Sắp xếp chưa khả dụng" class="flex items-center gap-1.5 font-medium opacity-60">
               Sort by: Recommended
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" /></svg>
             </button>
@@ -30,6 +32,11 @@
           @for (salon of salons(); track salon.id) {
             <app-salon-card [salon]="salon"></app-salon-card>
           }
+        </div>
+        <div class="flex justify-center gap-4 mt-4">
+          <button type="button" [disabled]="page() === 0" (click)="move(-1)" class="disabled:opacity-40">Trang trước</button>
+          <span>Trang {{ page() + 1 }}</span>
+          <button type="button" [disabled]="last()" (click)="move(1)" class="disabled:opacity-40">Trang sau</button>
         </div>
         
       </div>

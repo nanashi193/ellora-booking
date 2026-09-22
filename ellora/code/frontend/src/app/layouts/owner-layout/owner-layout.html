@@ -89,7 +89,7 @@
                     <div class="p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer" (click)="focusBooking(booking.id)">
                       <div class="flex justify-between items-start mb-1">
                         <p class="font-bold text-[14px] text-charcoal-900">{{ booking.customerName }}</p>
-                        <span class="text-[12px] font-medium text-charcoal-800/60">{{ booking.startTime }}:00</span>
+                        <span class="text-[12px] font-medium text-charcoal-800/60">{{ booking.date }} {{ formatTime(booking.startTime) }}</span>
                       </div>
                       <p class="text-[13px] text-charcoal-800/80">{{ booking.serviceName }}</p>
                     </div>

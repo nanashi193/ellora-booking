@@ -1,6 +1,7 @@
-import { Component, computed, inject, signal, effect, ElementRef } from '@angular/core';
+import { Component, computed, inject, signal, effect, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BookingService, BookingEvent } from '../../../services/booking.service';
+import { OwnerApiService } from '../../../services/owner-api.service';
 
 export interface Staff {
   id: number;
@@ -22,8 +23,8 @@ export interface ServiceCategory {
   templateUrl: './booking-management.component.html',
   styleUrl: './booking-management.component.scss'
 })
-export class BookingManagement {
-  currentDate = 'Hôm nay, 24 Thg 10';
+export class BookingManagement implements OnInit {
+  currentDate = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' });
   
   // 1 hour = 100px
   hourHeight = 120;
@@ -35,33 +36,7 @@ export class BookingManagement {
   isSidebarOpen = false;
   searchQuery = signal('');
 
-  serviceCategories = signal<ServiceCategory[]>([
-    {
-      name: 'Chăm sóc tóc',
-      count: 3,
-      services: [
-        { name: 'Cắt tóc tạo kiểu', duration: '45p', price: '150.000₫' },
-        { name: 'Sấy bồng bềnh', duration: '30p', price: '100.000₫' },
-        { name: 'Nhuộm màu thời trang', duration: '1h 30p', price: '500.000₫' }
-      ]
-    },
-    {
-      name: 'Làm móng (Nails)',
-      count: 2,
-      services: [
-        { name: 'Cắt da & Sơn gel', duration: '1h', price: '200.000₫' },
-        { name: 'Đắp móng bột', duration: '1h 30p', price: '350.000₫' }
-      ]
-    },
-    {
-      name: 'Chăm sóc da',
-      count: 2,
-      services: [
-        { name: 'Massage mặt chuyên sâu', duration: '1h', price: '300.000₫' },
-        { name: 'Lấy nhân mụn chuẩn y khoa', duration: '45p', price: '250.000₫' }
-      ]
-    }
-  ]);
+  serviceCategories = signal<ServiceCategory[]>([]);
 
   filteredServiceCategories = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
@@ -74,17 +49,27 @@ export class BookingManagement {
     })).filter(category => category.count > 0);
   });
 
-  staffs = signal<Staff[]>([
-    { id: 1, name: 'Anna', role: 'Kỹ thuật viên nail', avatar: 'https://i.pravatar.cc/150?img=5' },
-    { id: 2, name: 'Ben', role: 'Chuyên viên massage', avatar: 'https://i.pravatar.cc/150?img=11' },
-    { id: 3, name: 'Chloe', role: 'Chuyên viên thẩm mỹ', avatar: 'https://i.pravatar.cc/150?img=9' },
-    { id: 4, name: 'Daniel', role: 'Nhà tạo mẫu tóc', avatar: 'https://i.pravatar.cc/150?img=12' }
-  ]);
+  staffs = signal<Staff[]>([{ id: 0, name: 'Chưa phân công', role: '', avatar: '/salon-placeholder.svg' }]);
 
   private readonly bookingService = inject(BookingService);
+  private readonly ownerApi = inject(OwnerApiService);
   private readonly elementRef = inject(ElementRef);
   
   bookings = this.bookingService.bookings;
+  error = this.bookingService.error;
+
+  async ngOnInit(): Promise<void> {
+    void this.bookingService.loadSalonBookings();
+    try {
+      const [services, employees] = await Promise.all([this.ownerApi.services(), this.ownerApi.employees()]);
+      this.serviceCategories.set([{ name: 'Dịch vụ', count: services.length, services: services.map(service => ({
+        name: service.name, duration: `${service.durationMinutes}p`, price: `${service.price.toLocaleString('vi-VN')}₫`
+      })) }]);
+      this.staffs.set([{ id: 0, name: 'Chưa phân công', role: '', avatar: '/salon-placeholder.svg' }, ...employees.map(employee => ({
+        id: employee.id, name: employee.fullName, role: employee.bio, avatar: employee.avatarUrl || '/salon-placeholder.svg'
+      }))]);
+    } catch { this.error.set('Không tải được dữ liệu nhân viên hoặc dịch vụ.'); }
+  }
 
   constructor() {
     effect(() => {
@@ -122,7 +107,9 @@ export class BookingManagement {
 
   // Get bookings for a specific staff member
   getBookingsForStaff(staffId: number) {
-    return this.bookings().filter(b => b.staffId === staffId && (b.status === 'confirmed' || b.status === 'pending'));
+    const today = new Date();
+    const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    return this.bookings().filter(b => b.staffId === staffId && b.date === date && (b.status === 'confirmed' || b.status === 'pending'));
   }
 
   // Calculate top position based on start time

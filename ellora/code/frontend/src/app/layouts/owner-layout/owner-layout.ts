@@ -25,6 +25,7 @@ export class OwnerLayout implements OnInit {
   pendingBookings = this.bookingService.pendingBookings;
 
   async ngOnInit(): Promise<void> {
+    void this.bookingService.loadSalonBookings();
     try {
       const profile = await this.authService.getUserProfile();
       this.userName = profile.name || profile.email;
@@ -66,6 +67,12 @@ export class OwnerLayout implements OnInit {
     this.bookingService.focusedBookingId.set(id);
     this.isNotificationOpen = false;
     this.router.navigate(['/owner/bookings']);
+  }
+
+  formatTime(hours: number): string {
+    const hour = Math.floor(hours);
+    const minute = Math.round((hours - hour) * 60);
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   }
 
   async logout(): Promise<void> {

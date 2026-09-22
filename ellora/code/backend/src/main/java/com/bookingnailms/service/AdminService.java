@@ -47,13 +47,20 @@ public class AdminService {
 
     @Transactional
     public void approveSalon(Long salonId) {
-        Salon salon = salonRepository.findById(salonId)
+        Salon salon = salonRepository.findForUpdateById(salonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Salon", "id", salonId));
 
         if (salon.getStatus() != SalonStatus.PENDING_APPROVAL) {
             throw new BadRequestException("Salon is not in pending approval status");
         }
 
+        User owner = userRepository.findForUpdateById(salon.getOwner().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Owner not found"));
+        if (owner.getRole() != com.bookingnailms.enums.Role.CUSTOMER || !owner.isEnabled() || owner.isLocked()) {
+            throw new BadRequestException("Tài khoản đăng ký không đủ điều kiện cấp quyền chủ salon");
+        }
+        owner.setRole(com.bookingnailms.enums.Role.SALON_OWNER);
+        userRepository.save(owner);
         salon.setStatus(SalonStatus.ACTIVE);
         salonRepository.save(salon);
         log.info("Salon approved: {}", salon.getName());
@@ -61,7 +68,7 @@ public class AdminService {
 
     @Transactional
     public void rejectSalon(Long salonId) {
-        Salon salon = salonRepository.findById(salonId)
+        Salon salon = salonRepository.findForUpdateById(salonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Salon", "id", salonId));
 
         if (salon.getStatus() != SalonStatus.PENDING_APPROVAL) {

@@ -117,6 +117,7 @@ public class NailServiceService {
                 .durationMinutes(nailService.getDurationMinutes())
                 .imageUrl(nailService.getImageUrl())
                 .categoryName(nailService.getCategory() != null ? nailService.getCategory().getName() : null)
+                .categoryId(nailService.getCategory() != null ? nailService.getCategory().getId() : null)
                 .active(nailService.isActive())
                 .build();
     }

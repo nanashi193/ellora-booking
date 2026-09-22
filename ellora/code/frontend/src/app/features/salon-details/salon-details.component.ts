@@ -1,9 +1,9 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, PLATFORM_ID, ViewChild, computed, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, PLATFORM_ID, ViewChild, computed, inject, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { MockDataService } from '../../services/mock-data.service';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { SalonApiService } from '../../services/salon-api.service';
 import { ServiceCard } from '../../shared/components/service-card/service-card.component';
-import { Service } from '../../models/ellora.model';
+import { Review, Salon, Service } from '../../models/ellora.model';
 
 @Component({
   selector: 'app-salon-details',
@@ -12,16 +12,38 @@ import { Service } from '../../models/ellora.model';
   templateUrl: './salon-details.component.html',
   styleUrl: './salon-details.component.scss'
 })
-export class SalonDetails implements AfterViewInit, OnDestroy {
-  private dataService = inject(MockDataService);
+export class SalonDetails implements OnInit, AfterViewInit, OnDestroy {
+  private salonApi = inject(SalonApiService);
+  private route = inject(ActivatedRoute);
   private readonly platformId = inject(PLATFORM_ID);
   private titleObserver?: IntersectionObserver;
 
-  salon = computed(() => this.dataService.salons()[0]);
-  services = this.dataService.services;
-  reviews = this.dataService.reviews;
+  salon = signal<Salon | null>(null);
+  services = signal<Service[]>([]);
+  reviews = signal<Review[]>([]);
+  error = signal('');
   showStickySummary = signal(false);
-  nearbySalons = computed(() => this.dataService.salons().slice(0, 4));
+  nearbySalons = signal<Salon[]>([]);
+
+  ngOnInit(): void {
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) void this.load(id);
+    });
+  }
+
+  private async load(id: string): Promise<void> {
+    this.salon.set(null); this.services.set([]); this.reviews.set([]); this.selectedServices.set([]);
+    try {
+      const [salon, services, reviews, nearby] = await Promise.all([
+        this.salonApi.detail(id), this.salonApi.services(id), this.salonApi.reviews(id), this.salonApi.search('', 0, 5)
+      ]);
+      this.salon.set(salon); this.services.set(services); this.reviews.set(reviews.content);
+      this.nearbySalons.set(nearby.content.filter(item => item.id !== id).slice(0, 4));
+      this.error.set('');
+      if (isPlatformBrowser(this.platformId)) setTimeout(() => this.observeTitle(), 0);
+    } catch { this.error.set('Không tải được thông tin salon. Vui lòng thử lại.'); }
+  }
 
   @ViewChild('salonTitle')
   private salonTitle?: ElementRef<HTMLElement>;
@@ -29,15 +51,7 @@ export class SalonDetails implements AfterViewInit, OnDestroy {
   // Service tabs
   readonly tabs = ['Nổi bật', 'Làm móng tay', 'Nối móng', 'Nghệ thuật làm móng'];
   activeTab = signal('Nổi bật');
-  readonly bookingHours = [
-    ['Monday', '10:00 AM - 8:00 PM'],
-    ['Tuesday', '10:00 AM - 8:00 PM'],
-    ['Wednesday', '10:00 AM - 8:00 PM'],
-    ['Thursday', '10:00 AM - 8:00 PM'],
-    ['Friday', '10:00 AM - 8:00PM'],
-    ['Saturday', '10:00 AM - 8:00 PM'],
-    ['Sunday', '10:00 AM - 8:00 PM']
-  ] as const;
+  readonly bookingHours: readonly (readonly [string, string])[] = [];
 
   // Selected services for booking widget
   selectedServices = signal<Service[]>([]);
@@ -48,10 +62,15 @@ export class SalonDetails implements AfterViewInit, OnDestroy {
   });
 
   ngAfterViewInit(): void {
+    this.observeTitle();
+  }
+
+  private observeTitle(): void {
     if (!isPlatformBrowser(this.platformId) || !this.salonTitle?.nativeElement || !window.matchMedia('(min-width: 1024px)').matches) {
       return;
     }
 
+    this.titleObserver?.disconnect();
     this.titleObserver = new IntersectionObserver(
       ([entry]) => {
         this.showStickySummary.set(!entry.isIntersecting && entry.boundingClientRect.top < 96);
@@ -74,17 +93,17 @@ export class SalonDetails implements AfterViewInit, OnDestroy {
     if (current.some(s => s.id === service.id)) {
       return;
     }
-    this.selectedServices.set([...current, service]);
+    this.selectedServices.set([service]);
   }
 
   getOpenStatusText(): string {
     const s = this.salon();
     if (!s) return '';
-    return s.isOpen ? 'Đang mở cửa' : 'Đã đóng cửa';
+    return s.isOpen === undefined ? 'Chưa có giờ mở cửa' : s.isOpen ? 'Đang mở cửa' : 'Đã đóng cửa';
   }
 
   getCloseTimeText(): string {
-    return 'Đóng cửa lúc 8:00 Tối';
+    return '';
   }
 
   getGoogleMapsUrl(): string {

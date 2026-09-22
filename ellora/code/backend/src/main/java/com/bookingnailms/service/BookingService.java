@@ -47,11 +47,14 @@ public class BookingService {
 
         Salon salon = salonRepository.findById(request.getSalonId())
                 .orElseThrow(() -> new ResourceNotFoundException("Salon", "id", request.getSalonId()));
+        if (salon.getStatus() != com.bookingnailms.enums.SalonStatus.ACTIVE) {
+            throw new BadRequestException("Salon is not accepting bookings");
+        }
 
         NailService nailService = nailServiceRepository.findById(request.getServiceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Service", "id", request.getServiceId()));
 
-        if (!nailService.getSalon().getId().equals(salon.getId())) {
+        if (!nailService.isActive() || !nailService.getSalon().getId().equals(salon.getId())) {
             throw new BadRequestException("Service does not belong to the specified salon");
         }
 
@@ -60,7 +63,7 @@ public class BookingService {
             employee = employeeRepository.findById(request.getEmployeeId())
                     .orElseThrow(() -> new ResourceNotFoundException("Employee", "id", request.getEmployeeId()));
 
-            if (!employee.getSalon().getId().equals(salon.getId())) {
+            if (!employee.isActive() || !employee.getSalon().getId().equals(salon.getId())) {
                 throw new BadRequestException("Employee does not belong to the specified salon");
             }
         }
@@ -164,6 +167,7 @@ public class BookingService {
                 .id(booking.getId())
                 .salonId(booking.getSalon().getId())
                 .salonName(booking.getSalon().getName())
+                .customerName(booking.getCustomer().getFullName())
                 .serviceId(booking.getService().getId())
                 .serviceName(booking.getService().getName())
                 .servicePrice(booking.getService().getPrice())

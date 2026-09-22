@@ -4,6 +4,11 @@ server:
     context-path: /api
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+      file-size-threshold: 6MB
   application:
     name: booking-nail-ms
 
@@ -39,6 +44,8 @@ app:
   cognito:
     issuer-uri: https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_iUMERg77o
     client-id: 10ivodmqmsklu4gqkqj1qcgr0h
+    region: ap-southeast-2
+    user-pool-id: ap-southeast-2_iUMERg77o
 
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}

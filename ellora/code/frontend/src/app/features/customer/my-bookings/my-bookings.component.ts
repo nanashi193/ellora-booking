@@ -1,5 +1,6 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BookingApiService, BookingItem } from '../../../services/booking-api.service';
 
 @Component({
   selector: 'app-my-bookings',
@@ -8,45 +9,40 @@ import { CommonModule } from '@angular/common';
   templateUrl: './my-bookings.component.html',
   styleUrl: './my-bookings.component.scss'
 })
-export class MyBookings {
+export class MyBookings implements OnInit {
+  private readonly api = inject(BookingApiService);
   activeTab = signal<'all' | 'upcoming' | 'completed'>('all');
+  bookings = signal<BookingItem[]>([]);
+  page = signal(0);
+  hasMore = signal(false);
+  loading = signal(false);
+  error = signal('');
 
-  bookings = signal([
-    {
-      id: 'BK-101',
-      service: 'Nối mi Classic tự nhiên',
-      salonName: 'Ellora Boutique - Quận 1',
-      date: '30 Tháng 5, 2024',
-      time: '10:00',
-      price: '350.000đ',
-      status: 'upcoming',
-      image: 'https://images.unsplash.com/photo-1512496015851-a1c8ae9db134?auto=format&fit=crop&q=80&w=200&h=200'
-    },
-    {
-      id: 'BK-100',
-      service: 'Sơn Gel & Trang trí đá',
-      salonName: 'Ellora Boutique - Quận 1',
-      date: '24 Tháng 5, 2024',
-      time: '14:00',
-      price: '250.000đ',
-      status: 'completed',
-      image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&q=80&w=200&h=200'
-    },
-    {
-      id: 'BK-099',
-      service: 'Chăm sóc móng tay cơ bản',
-      salonName: 'Ellora Spa - Quận 7',
-      date: '10 Tháng 5, 2024',
-      time: '09:30',
-      price: '150.000đ',
-      status: 'completed',
-      image: 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&q=80&w=200&h=200'
-    }
-  ]);
+  ngOnInit(): void { void this.load(true); }
+
+  async load(reset = false): Promise<void> {
+    if (this.loading()) return;
+    this.loading.set(true); this.error.set('');
+    try {
+      const page = reset ? 0 : this.page() + 1;
+      const result = await this.api.getMyBookings(page);
+      this.bookings.update(current => reset ? result.content : [...current, ...result.content]);
+      this.page.set(page); this.hasMore.set(!result.last);
+    } catch { this.error.set('Không tải được lịch sử đặt chỗ. Vui lòng thử lại.'); }
+    finally { this.loading.set(false); }
+  }
+
+  async cancel(id: number): Promise<void> {
+    try {
+      await this.api.cancelBooking(id);
+      this.bookings.update(current => current.map(booking => booking.id === id ? { ...booking, status: 'CANCELLED' } : booking));
+    } catch { this.error.set('Không hủy được lịch này. Vui lòng tải lại.'); }
+  }
 
   filteredBookings = computed(() => {
     const currentTab = this.activeTab();
     if (currentTab === 'all') return this.bookings();
-    return this.bookings().filter(b => b.status === currentTab);
+    if (currentTab === 'completed') return this.bookings().filter(b => b.status === 'COMPLETED');
+    return this.bookings().filter(b => b.status === 'PENDING' || b.status === 'CONFIRMED' || b.status === 'IN_PROGRESS');
   });
 }

@@ -16,6 +16,7 @@ public class BookingResponse {
     private Long id;
     private Long salonId;
     private String salonName;
+    private String customerName;
     private Long serviceId;
     private String serviceName;
     private java.math.BigDecimal servicePrice;

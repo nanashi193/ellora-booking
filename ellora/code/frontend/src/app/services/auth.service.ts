@@ -10,6 +10,7 @@ import {
   signInWithRedirect,
   signOut,
   signUp,
+  updatePassword,
 } from 'aws-amplify/auth';
 import { cognitoUserPoolsTokenProvider } from 'aws-amplify/auth/cognito';
 import { defaultStorage, sessionStorage } from 'aws-amplify/utils';
@@ -289,12 +290,32 @@ export class AuthService {
     if (!isPlatformBrowser(this.platformId)) {
       return { email: '', name: '' };
     }
+    const session = await fetchAuthSession();
+    const scope = session.tokens?.accessToken.payload['scope'];
+    if (typeof scope === 'string' && !scope.split(' ').includes('aws.cognito.signin.user.admin')) {
+      const claims = session.tokens?.idToken?.payload;
+      if (typeof claims?.['email'] !== 'string') throw new Error('Không nhận được email từ phiên đăng nhập.');
+      return {
+        email: claims['email'],
+        name: typeof claims['name'] === 'string' ? claims['name'] : claims['email'],
+        phone_number: typeof claims['phone_number'] === 'string' ? claims['phone_number'] : undefined,
+      };
+    }
     const attributes = await fetchUserAttributes();
     return {
       email: attributes.email ?? '',
       name: attributes.name ?? attributes.email ?? '',
       phone_number: attributes.phone_number
     };
+  }
+
+  async changePassword(oldPassword: string, newPassword: string): Promise<LoginResult> {
+    try {
+      await updatePassword({ oldPassword, newPassword });
+      return { success: true, message: 'Đổi mật khẩu thành công.' };
+    } catch (error) {
+      return { success: false, message: this.getErrorMessage(error) };
+    }
   }
 
   async logout(): Promise<void> {

@@ -1,8 +1,10 @@
 import { Component, inject, signal, computed, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { MockDataService } from '../../services/mock-data.service';
+import { SalonApiService } from '../../services/salon-api.service';
+import { BookingApiService } from '../../services/booking-api.service';
+import { Salon, Service, Staff } from '../../models/ellora.model';
 import { AuthService } from '../../services/auth.service';
 
 interface CalendarDay {
@@ -20,15 +22,19 @@ interface CalendarDay {
   styleUrl: './booking.component.scss'
 })
 export class BookingComponent implements OnInit, OnDestroy {
-  private dataService = inject(MockDataService);
+  private salonApi = inject(SalonApiService);
+  private bookingApi = inject(BookingApiService);
+  private route = inject(ActivatedRoute);
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
 
   // Data
-  salon = computed(() => this.dataService.salons()[0]);
-  services = this.dataService.services;
-  staffList = this.dataService.staff;
+  salon = signal<Salon | null>(null);
+  services = signal<Service[]>([]);
+  staffList = signal<Staff[]>([]);
+  error = signal('');
+  saving = signal(false);
 
   // Wizard state: 1=Dịch vụ, 2=Thợ nail, 3=Thời gian, 4=Xác nhận
   currentStep = signal<1 | 2 | 3 | 4>(1);
@@ -58,6 +64,19 @@ export class BookingComponent implements OnInit, OnDestroy {
   });
 
   async ngOnInit() {
+    const salonId = this.route.snapshot.queryParamMap.get('salonId');
+    if (!salonId) {
+      this.error.set('Vui lòng chọn salon trước khi đặt lịch.');
+      return;
+    }
+    try {
+      const [salon, services, staff] = await Promise.all([
+        this.salonApi.detail(salonId), this.salonApi.services(salonId), this.salonApi.employees(salonId)
+      ]);
+      this.salon.set(salon); this.services.set(services); this.staffList.set(staff);
+      const serviceId = this.route.snapshot.queryParamMap.get('serviceId');
+      if (serviceId && services.some(service => service.id === serviceId)) this.selectedServiceIds.set([serviceId]);
+    } catch { this.error.set('Không tải được thông tin salon. Vui lòng thử lại.'); }
     try {
       const profile = await this.authService.getUserProfile();
       this.customerForm.patchValue({
@@ -145,9 +164,7 @@ export class BookingComponent implements OnInit, OnDestroy {
   // ─── Actions ────────────────────────────────────────
 
   toggleService(id: string) {
-    this.selectedServiceIds.update(ids =>
-      ids.includes(id) ? ids.filter(i => i !== id) : [...ids, id]
-    );
+    this.selectedServiceIds.update(ids => ids.includes(id) ? [] : [id]);
   }
 
   prevMonth() {
@@ -187,8 +204,25 @@ export class BookingComponent implements OnInit, OnDestroy {
   }
 
 
-  confirmBooking() {
-    if (this.customerForm.invalid) return;
+  async confirmBooking() {
+    this.customerForm.markAllAsTouched();
+    if (this.customerForm.invalid) { this.error.set('Vui lòng nhập họ tên và số điện thoại.'); return; }
+    if (!this.salon() || !this.selectedServiceIds()[0] || !this.selectedDate() || !this.selectedTime() || this.saving()) return;
+    this.saving.set(true); this.error.set('');
+    try {
+      await this.bookingApi.createBooking({
+        salonId: Number(this.salon()!.id),
+        serviceId: Number(this.selectedServiceIds()[0]),
+        employeeId: this.selectedStaffId() && this.selectedStaffId() !== 'any' ? Number(this.selectedStaffId()) : undefined,
+        scheduledAt: `${this.selectedDate()}T${this.selectedTime()}:00`,
+        customerNote: this.customerForm.controls.notes.value,
+      });
+    } catch {
+      this.error.set('Không đặt được lịch. Vui lòng kiểm tra thời gian và thử lại.');
+      this.saving.set(false);
+      return;
+    }
+    this.saving.set(false);
     this.showSuccessPopup.set(true);
     this.countdown.set(30);
     this.startCountdown();
@@ -206,7 +240,7 @@ export class BookingComponent implements OnInit, OnDestroy {
   closeSuccessPopupAndRedirect() {
     if (this.countdownTimer) clearInterval(this.countdownTimer);
     this.showSuccessPopup.set(false);
-    this.router.navigate(['/my-bookings']);
+    this.router.navigate(['/setting/my-bookings']);
   }
 
   ngOnDestroy() {

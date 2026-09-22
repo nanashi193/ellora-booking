@@ -32,20 +32,22 @@
   </div>
 
   <div class="flex flex-col gap-4">
+    @if (error()) { <p role="alert" class="text-red-700">{{ error() }}</p> }
+    @if (loading() && !bookings().length) { <p role="status">Đang tải lịch hẹn…</p> }
     @for (booking of filteredBookings(); track booking.id) {
       <div class="group flex items-center justify-between p-4 md:p-5 rounded-xl border border-charcoal-800/10 hover:border-dusty-pink-500/30 hover:shadow-sm transition-all cursor-pointer bg-[#FCF9F6]/30">
         
         <div class="flex items-center gap-5">
           <!-- Image -->
           <div class="w-16 h-16 rounded-xl overflow-hidden shrink-0 shadow-sm border border-black/5">
-            <img [src]="booking.image" [alt]="booking.service" class="w-full h-full object-cover">
+            <img src="/salon-placeholder.svg" [alt]="booking.serviceName" class="w-full h-full object-cover">
           </div>
           
           <!-- Info -->
           <div class="flex flex-col gap-1">
-            <h3 class="font-bold text-charcoal-900 text-[15px] group-hover:text-dusty-pink-700 transition-colors">{{ booking.service }}</h3>
+            <h3 class="font-bold text-charcoal-900 text-[15px] group-hover:text-dusty-pink-700 transition-colors">{{ booking.serviceName }}</h3>
             <p class="text-sm text-charcoal-800/70">{{ booking.salonName }}</p>
-            <p class="text-sm text-charcoal-800/90 font-medium">{{ booking.time }}, {{ booking.date }}</p>
+            <p class="text-sm text-charcoal-800/90 font-medium">{{ booking.scheduledAt | date:'short' }}</p>
           </div>
         </div>
 
@@ -53,11 +55,12 @@
           <!-- Status Badge -->
           <span class="px-4 py-1.5 rounded-full text-xs font-bold tracking-wide"
                 [ngClass]="{
-                  'bg-dusty-pink-200/50 text-dusty-pink-700': booking.status === 'upcoming',
-                  'bg-pink-100/50 text-pink-600': booking.status === 'completed'
+                  'bg-dusty-pink-200/50 text-dusty-pink-700': booking.status === 'PENDING' || booking.status === 'CONFIRMED' || booking.status === 'IN_PROGRESS',
+                  'bg-pink-100/50 text-pink-600': booking.status === 'COMPLETED'
                 }">
-            {{ booking.status === 'upcoming' ? 'Sắp tới' : 'Hoàn thành' }}
+            {{ booking.status === 'PENDING' ? 'Chờ xác nhận' : booking.status === 'CONFIRMED' ? 'Đã xác nhận' : booking.status === 'IN_PROGRESS' ? 'Đang thực hiện' : booking.status === 'COMPLETED' ? 'Hoàn thành' : booking.status === 'CANCELLED' ? 'Đã hủy' : 'Đã từ chối' }}
           </span>
+          @if (booking.status === 'PENDING' || booking.status === 'CONFIRMED') { <button type="button" class="text-sm text-red-700" (click)="cancel(booking.id)">Hủy lịch</button> }
           
           <!-- Arrow -->
           <button class="w-8 h-8 flex items-center justify-center text-charcoal-800/40 group-hover:text-charcoal-900 transition-colors">
@@ -72,9 +75,9 @@
     }
   </div>
 
-  @if (filteredBookings().length > 0) {
+  @if (hasMore()) {
     <div class="mt-8 text-center">
-      <button class="text-sm font-bold text-dusty-pink-600 hover:text-dusty-pink-700 transition-colors">
+      <button class="text-sm font-bold text-dusty-pink-600 hover:text-dusty-pink-700 transition-colors" [disabled]="loading()" (click)="load()">
         Xem thêm lịch sử
       </button>
     </div>
