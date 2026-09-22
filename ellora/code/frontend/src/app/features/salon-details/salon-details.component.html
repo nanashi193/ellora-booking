@@ -4,8 +4,9 @@
     <!-- ═══ Main Content ═══ -->
     <div class="content">
 
-      <!-- Left Column -->
-      <div class="content__left">
+      <div class="salon-main-layout">
+        <!-- Left Column -->
+        <div class="content__left">
 
         <!-- ═══ Gallery ═══ -->
         <section class="gallery">
@@ -24,7 +25,7 @@
         <!-- Salon Info -->
         <section class="salon-info">
           <div class="salon-info__header">
-            <h1 class="salon-info__name">{{ salon().name }}</h1>
+            <h1 #salonTitle class="salon-info__name">{{ salon().name }}</h1>
             <div class="salon-info__status">
               <span class="salon-info__status-dot" [class.salon-info__status-dot--open]="salon().isOpen"></span>
               <div class="salon-info__status-text">
@@ -107,120 +108,146 @@
 
         <!-- ═══ Đánh giá ═══ -->
         <section class="reviews-section">
-          <h2 class="section-title section-title--bold">Đánh giá</h2>
-          <p class="reviews-section__subtitle">Khách hàng của chúng tôi nói gì</p>
+          <h2 class="section-title section-title--bold">Reviews</h2>
 
           <!-- Rating Summary -->
-          <div class="review-summary">
-            <span class="review-summary__score">{{ salon().rating }}</span>
-            <div class="review-summary__stars-wrap">
-              <div class="review-summary__stars">
-                @for (star of [1,2,3,4,5]; track star) {
-                  <svg class="review-summary__star" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-                  </svg>
-                }
-              </div>
-              <span class="review-summary__count">Dựa trên {{ salon().reviewCount }} đánh giá</span>
+          <div class="review-summary" [attr.aria-label]="salon().rating + ' out of 5 stars, ' + salon().reviewCount + ' reviews'">
+            <div class="review-summary__stars" aria-hidden="true">
+              @for (star of [1,2,3,4,5]; track star) {
+                <svg class="review-summary__star" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                </svg>
+              }
             </div>
+            <span class="review-summary__score">{{ salon().rating }}</span>
+            <span class="review-summary__count">({{ salon().reviewCount }})</span>
           </div>
 
           <!-- Review Cards -->
-          <div class="review-list">
+          <div class="reviews-grid">
             @for (review of reviews(); track review.id) {
               <div class="review-card">
                 <div class="review-card__header">
-                  <div class="review-card__author">
-                    <div class="review-card__avatar">{{ review.authorName.split(' ').map(w => w[0]).join('').substring(0, 2) }}</div>
-                    <div class="review-card__author-info">
-                      <span class="review-card__name">{{ review.authorName }}</span>
-                      <span class="review-card__date">{{ getRelativeTime(review.date) }}</span>
-                    </div>
-                  </div>
-                  <div class="review-card__stars">
-                    @for (star of [1,2,3,4,5]; track star) {
-                      <svg class="review-card__star" [class.review-card__star--filled]="star <= review.rating" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-                      </svg>
-                    }
+                  <div class="review-card__avatar">{{ review.authorName.split(' ').map(w => w[0]).join('').substring(0, 2) }}</div>
+                  <div class="review-card__author-info">
+                    <span class="review-card__name">{{ review.authorName }}</span>
+                    <span class="review-card__date">{{ getRelativeTime(review.date) }}</span>
                   </div>
                 </div>
+                <div class="review-card__stars" [attr.aria-label]="review.rating + ' out of 5 stars'">
+                  @for (star of [1,2,3,4,5]; track star) {
+                    <svg class="review-card__star" [class.review-card__star--filled]="star <= review.rating" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                  }
+                </div>
                 <p class="review-card__comment">{{ review.comment }}</p>
+                @if (review.comment.length > 120) {
+                  <span class="review-card__read-more">Read more</span>
+                }
               </div>
             }
           </div>
 
           <button type="button" class="reviews-section__read-all">
-            Đọc tất cả {{ salon().reviewCount }} đánh giá
+            See all
           </button>
         </section>
-      </div>
+        </div>
 
-      <!-- ═══ Right Column — Booking Widget ═══ -->
-      <aside class="booking-widget-wrapper">
-        <div class="booking-widget">
-          <h3 class="booking-widget__title">Đặt chỗ của bạn</h3>
-          <p class="booking-widget__subtitle">Chọn dịch vụ để tiếp tục</p>
-
-          <!-- Selected Services -->
-          @if (selectedServices().length > 0) {
-            <div class="booking-widget__services">
-              @for (s of selectedServices(); track s.id) {
-                <div class="booking-widget__service-item">
-                  <div class="booking-widget__service-info">
-                    <span class="booking-widget__service-name">{{ s.name }}</span>
-                    <span class="booking-widget__service-duration">{{ s.durationMinutes }} Phút</span>
-                  </div>
-                  <div class="booking-widget__service-right">
-                    <span class="booking-widget__service-price">${{ s.price }}</span>
-                    <button type="button" class="booking-widget__service-remove" (click)="removeService(s.id)" aria-label="Xóa">×</button>
+        <!-- ═══ Right Column — Booking Widget ═══ -->
+        <aside class="booking-widget-wrapper">
+          <div class="booking-widget">
+            <div class="booking-widget__top">
+              @if (showStickySummary()) {
+                <div class="booking-widget__summary booking-widget__summary--visible">
+                  <h2 class="booking-widget__title">Spa Viet - Professional Foot &amp; Body Massage</h2>
+                  <div class="booking-widget__rating" aria-label="5.0 trên 5 sao, 3 đánh giá">
+                    <span class="booking-widget__rating-score">5.0</span>
+                    <span class="booking-widget__stars" aria-hidden="true">
+                      @for (star of [1,2,3,4,5]; track star) {
+                        <svg class="booking-widget__star" viewBox="0 0 24 24">
+                          <path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                        </svg>
+                      }
+                    </span>
+                    <a class="booking-widget__review-link">(3)</a>
                   </div>
                 </div>
               }
+              <a class="booking-widget__cta" routerLink="/booking">Đặt lịch ngay</a>
             </div>
+
+            <div class="booking-widget__details">
+              <details class="booking-widget__hours">
+                <summary class="booking-widget__hours-summary">
+                  <span class="booking-widget__summary-left">
+                    <svg class="booking-widget__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="9"/>
+                      <path d="M12 7v5l3 2"/>
+                    </svg>
+                    <span><span class="booking-widget__open">Open</span> - closes soon at 8:00 PM</span>
+                  </span>
+                  <svg class="booking-widget__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m18 15-6-6-6 6"/>
+                  </svg>
+                </summary>
+                <div class="booking-widget__hours-list">
+                  @for (hour of bookingHours; track hour[0]) {
+                    <div class="booking-widget__hour-row" [class.booking-widget__hour-row--today]="hour[0] === 'Friday'">
+                      <span class="booking-widget__day"><span class="booking-widget__day-dot"></span>{{ hour[0] }}</span>
+                      <span>{{ hour[1] }}</span>
+                    </div>
+                  }
+                </div>
+              </details>
+
+              <div class="booking-widget__address">
+                <svg class="booking-widget__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 10c0 5.5-8 11-8 11s-8-5.5-8-11a8 8 0 1 1 16 0Z"/>
+                  <circle cx="12" cy="10" r="2.5"/>
+                </svg>
+                <p>
+                  SPA VIỆT I MASSAGE CỔ VAI GÁY - FOOT &amp; BODY MASSAGE - GỘI DƯỠNG SINH, Phường 11, Ho Chi Minh City, 79/1 Đường Trần Huy Liệu, Hồ Chí Minh
+                  <a [href]="getGoogleMapsUrl()" target="_blank" rel="noopener noreferrer">Get directions</a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <section class="venues-nearby-section">
+        <h2 class="venues-nearby-section__title">Venues nearby</h2>
+        <div class="venues-nearby-grid">
+          @for (nearbySalon of nearbySalons(); track nearbySalon.id) {
+            <a class="venue-card" [routerLink]="['/salon', nearbySalon.id]">
+              <div class="venue-card__image-wrap">
+                <img
+                  [src]="nearbySalon.images[0]"
+                  [alt]="nearbySalon.name"
+                  class="venue-card__image"
+                  loading="lazy"
+                />
+                <span class="venue-card__rating">
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path fill="currentColor" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                  {{ nearbySalon.rating }}
+                </span>
+              </div>
+              <div class="venue-card__content">
+                <div class="venue-card__title-row">
+                  <h3>{{ nearbySalon.name }}</h3>
+                  <span>{{ nearbySalon.rating }}</span>
+                </div>
+                <p class="venue-card__address">{{ nearbySalon.city }}, {{ nearbySalon.address }}</p>
+                <p class="venue-card__meta">Nail Salon · {{ nearbySalon.reviewCount }} reviews</p>
+              </div>
+            </a>
           }
-
-          <!-- Stylist Selector -->
-          <div class="booking-widget__selectors">
-            <button type="button" class="booking-widget__selector">
-              <div class="booking-widget__selector-left">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-                <span>Bất kỳ nhà tạo mẫu nào</span>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-
-            <button type="button" class="booking-widget__selector">
-              <div class="booking-widget__selector-left">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                <span>Chọn ngày &amp; giờ</span>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
-
-          <!-- Total -->
-          <div class="booking-widget__total-section">
-            <div class="booking-widget__total-row booking-widget__total-row--sub">
-              <span>Tổng phụ</span>
-              <span>${{ totalPrice() }}</span>
-            </div>
-            <div class="booking-widget__total-row booking-widget__total-row--main">
-              <span>Tổng cộng</span>
-              <span>${{ totalPrice() }}</span>
-            </div>
-          </div>
-
-          <!-- CTA -->
-          <a class="booking-widget__cta" routerLink="/booking">Tiến hành Đặt ngay</a>
-          <p class="booking-widget__note">Bạn sẽ chưa bị tính phí</p>
         </div>
-      </aside>
+      </section>
 
     </div>
   </div>

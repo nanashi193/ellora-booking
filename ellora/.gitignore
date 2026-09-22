@@ -39,3 +39,4 @@ Thumbs.db
 **/application-*.properties
 !**/application-supabase.yml
 !**/application.yml
+.hermes/

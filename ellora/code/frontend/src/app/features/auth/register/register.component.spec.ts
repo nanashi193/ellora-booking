@@ -48,6 +48,7 @@ describe('RegisterComponent', () => {
   it('should not submit when email is invalid', async () => {
     component.registerForm.setValue({
       fullName: 'Nguyen An',
+      phone: '0912345678',
       email: 'invalid-email',
       password: 'Demo1234!',
       confirmPassword: 'Demo1234!',
@@ -62,6 +63,7 @@ describe('RegisterComponent', () => {
   it('should not submit when passwords do not match', async () => {
     component.registerForm.setValue({
       fullName: 'Nguyen An',
+      phone: '0912345678',
       email: 'an@example.com',
       password: 'Demo1234!',
       confirmPassword: 'wrong-password',
@@ -80,6 +82,7 @@ describe('RegisterComponent', () => {
     });
     component.registerForm.setValue({
       fullName: 'Nguyen An',
+      phone: '0912345678',
       email: 'an@example.com',
       password: 'Demo1234!',
       confirmPassword: 'Demo1234!',
@@ -89,8 +92,10 @@ describe('RegisterComponent', () => {
 
     expect(authService.register).toHaveBeenCalledWith({
       fullName: 'Nguyen An',
+      phone: '+84912345678',
       email: 'an@example.com',
       password: 'Demo1234!',
+      confirmPassword: 'Demo1234!',
     });
     expect(component.requiresConfirmation).toBe(true);
     expect(component.isSuccess).toBe(false);

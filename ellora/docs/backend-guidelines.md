@@ -1,0 +1,75 @@
+# Backend Guidelines
+
+Tài liệu này định nghĩa cấu trúc phân lớp, quy tắc code Spring Boot, cấu trúc Entity, và luồng trạng thái Booking cho backend của dự án Ellora.
+
+## 1. Cấu Trúc Backend
+
+Backend nên dùng cấu trúc phân lớp rõ ràng của Spring Boot:
+`controller → service → repository → database`
+
+```text
+backend/src/main/java/.../
+├── controller/
+├── service/
+├── repository/
+├── entity/
+├── dto/
+├── config/
+├── exception/
+└── security/
+```
+
+## 2. Quy Tắc Lập Trình Spring Boot
+
+- Controller chỉ nhận request và trả response.
+- Business logic đặt trong service.
+- Truy cập database đặt trong repository.
+- Dùng DTO cho request và response.
+- Dùng validation annotation cho các field bắt buộc.
+- Không expose dữ liệu nhạy cảm như password hash.
+- Không trả entity trực tiếp nếu DTO phù hợp hơn.
+- Giữ response API nhất quán.
+- Không tự tạo endpoint mới nếu task không yêu cầu.
+- Ưu tiên service method rõ ràng, dễ đọc hơn abstraction quá chung chung.
+- Dùng `@RestController` cho REST controller.
+- Dùng `@Service` cho business logic.
+- Dùng `JpaRepository` cho repository.
+- Dùng `@Valid` và validation annotations cho input validation.
+- Dùng `@ControllerAdvice` để xử lý lỗi tập trung khi cần.
+- Tránh đặt business logic trong controller.
+- Tránh trả entity trực tiếp từ public API.
+
+## 3. Entity Backend Chính
+
+Các entity core của dự án:
+- **User** (mapped to `@Table(name = "profiles")`)
+- **Role** (lưu dạng Enum: `CUSTOMER`, `SALON_OWNER`, `ADMIN`)
+- **Salon** (table `salons`, có quan hệ `owner` 1-1 với `User`)
+- **Employee** (table `employees` thay cho `Staff`)
+- **WorkingSchedule** (table `working_schedules` thay cho `SalonHour`)
+- **NailService** (table `nail_services` thay cho `Service`)
+- **ServiceCategory** (table `service_categories` phân loại dịch vụ)
+- **Booking** (table `bookings`)
+- **Review** (table `reviews` để lại sau booking)
+- **Payment** (table `payments` lưu thông tin thanh toán nếu có)
+- **Media**: Sử dụng lưu trữ URL trực tiếp trong các cột thực thể (ví dụ: `avatarUrl`, `logoUrl`, `imageUrls` kiểu ElementCollection) thay vì bảng Media riêng.
+
+## 4. Booking Status & Logic
+
+Dùng booking status từ enum `BookingStatus`:
+
+```text
+PENDING        // Chờ xác nhận
+CONFIRMED      // Đã xác nhận
+IN_PROGRESS    // Đang làm
+COMPLETED      // Hoàn thành
+CANCELLED      // Đã hủy
+REJECTED        // Bị từ chối
+```
+
+### Quy tắc booking:
+- Booking mới tạo phải bắt đầu với trạng thái `PENDING`.
+- Chủ salon có thể xác nhận (`CONFIRMED`), từ chối (`REJECTED`), bắt đầu thực hiện (`IN_PROGRESS`), hoặc hoàn thành (`COMPLETED`) hoặc hủy (`CANCELLED`) booking.
+- Khách hàng chỉ có thể review sau khi booking ở trạng thái `COMPLETED`.
+- Tránh trùng booking cho cùng salon, employee, service, ngày và khung giờ.
+- Redis locking chỉ thêm sau nếu được yêu cầu rõ ràng để xử lý race condition.

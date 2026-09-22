@@ -1,61 +1,71 @@
-import { Component, inject, computed, ViewChild, ElementRef, signal, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, computed, HostListener, OnInit, OnDestroy, signal, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MockDataService } from '../../../services/mock-data.service';
-import { SalonCard } from '../../../shared/components/salon-card/salon-card.component';
+import { SalonCarouselComponent } from '../../../shared/components/salon-carousel/salon-carousel.component';
 import { RouterModule } from '@angular/router';
+import { RevealOnScrollDirective } from '../../../shared/directives/reveal-on-scroll.directive';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, SalonCard],
+  imports: [CommonModule, RouterModule, SalonCarouselComponent, RevealOnScrollDirective],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class Home implements AfterViewInit {
+export class Home implements OnInit, OnDestroy {
   private dataService = inject(MockDataService);
-  
-  @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLElement>;
-  
-  canScrollLeft = signal(false);
-  canScrollRight = signal(true);
-  
+  private platformId = inject(PLATFORM_ID);
+
   salons = this.dataService.salons;
+  topSalons = computed(() => {
+    return [...this.salons()].sort((a, b) => b.rating - a.rating).slice(0, 5);
+  });
+
   categories = this.dataService.categories;
-  
-  promo = computed(() => ({
-    id: 'p1',
-    title: 'Elevate your business with Ellora.',
-    description: 'Join our curated network of premium wellness providers and reach clients who value quality.',
-  }));
 
-  ngAfterViewInit() {
-    setTimeout(() => this.checkScroll(), 100);
+  bookingCount = signal(1003);
+  bookingDigits = computed(() => this.bookingCount().toString().split(''));
+  bookingCounterBump = signal(false);
+  showBackToTop = signal(false);
+  private liveBookingTimer: ReturnType<typeof setTimeout> | undefined;
+  private bookingBumpTimer: ReturnType<typeof setTimeout> | undefined;
+
+  ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.scheduleLiveBookingBump();
   }
 
-  onScroll() {
-    this.checkScroll();
+  ngOnDestroy(): void {
+    clearTimeout(this.liveBookingTimer);
+    clearTimeout(this.bookingBumpTimer);
   }
 
-  checkScroll() {
-    if (!this.scrollContainer) return;
-    const el = this.scrollContainer.nativeElement;
-    this.canScrollLeft.set(el.scrollLeft > 0);
-    this.canScrollRight.set(Math.ceil(el.scrollLeft) < el.scrollWidth - el.clientWidth);
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.showBackToTop.set(window.scrollY > 360);
   }
 
-  scrollLeft() {
-    if (this.scrollContainer) {
-      const el = this.scrollContainer.nativeElement;
-      const cardWidth = el.clientWidth > 768 ? el.clientWidth / 3 : el.clientWidth;
-      el.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-    }
+  scrollToTop(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  scrollRight() {
-    if (this.scrollContainer) {
-      const el = this.scrollContainer.nativeElement;
-      const cardWidth = el.clientWidth > 768 ? el.clientWidth / 3 : el.clientWidth;
-      el.scrollBy({ left: cardWidth, behavior: 'smooth' });
-    }
+  private scheduleLiveBookingBump(): void {
+    this.liveBookingTimer = setTimeout(() => {
+      this.bookingCount.update((count) => count + this.randomInt(1, 13));
+      this.bookingCounterBump.set(true);
+
+      clearTimeout(this.bookingBumpTimer);
+      this.bookingBumpTimer = setTimeout(() => {
+        this.bookingCounterBump.set(false);
+      }, 420);
+
+      this.scheduleLiveBookingBump();
+    }, 3000);
+  }
+
+  private randomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 }
