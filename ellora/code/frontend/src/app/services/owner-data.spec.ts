@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OwnerApiService } from './owner-api.service';
 import { BookingApiService } from './booking-api.service';
 import { BookingService } from './booking.service';
@@ -10,7 +10,30 @@ describe('Owner data', () => {
   const owner = { salon: vi.fn(), services: vi.fn(), employees: vi.fn(), saveService: vi.fn(), saveEmployee: vi.fn() };
   const bookings = { getSalonBookings: vi.fn() };
   beforeEach(() => {
+    sessionStorage.clear();
     vi.resetAllMocks(); TestBed.configureTestingModule({providers:[{provide:OwnerApiService,useValue:owner},{provide:BookingApiService,useValue:bookings}]});
+  });
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
+  it('rings for at most 30 seconds and does not ring again for the same booking', async () => {
+    vi.useFakeTimers();
+    const stop = vi.fn();
+    class AudioMock {
+      state = 'running'; currentTime = 0; destination = {};
+      resume = vi.fn().mockResolvedValue(undefined); close = vi.fn().mockResolvedValue(undefined);
+      createOscillator = () => ({ frequency: {value: 0}, connect: vi.fn(), disconnect: vi.fn(), start: vi.fn(), stop });
+      createGain = () => ({ gain: {setValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn()}, connect: vi.fn(), disconnect: vi.fn() });
+    }
+    vi.stubGlobal('AudioContext', AudioMock);
+    owner.salon.mockResolvedValue({id:42});
+    bookings.getSalonBookings.mockResolvedValue({content:[{id:9}],totalElements:1,totalPages:1});
+    const service=TestBed.inject(BookingService);
+    await service.loadSalonBookings(); expect(service.ringing()).toBe(false);
+    await service.enableSound(); expect(service.ringing()).toBe(true);
+    await vi.advanceTimersByTimeAsync(30000); expect(service.ringing()).toBe(false);
+    await service.loadSalonBookings(); expect(service.ringing()).toBe(false);
+    bookings.getSalonBookings.mockResolvedValue({content:[{id:10},{id:9}],totalElements:2,totalPages:1});
+    await service.loadSalonBookings(); expect(service.ringing()).toBe(true);
+    service.ngOnDestroy(); expect(service.ringing()).toBe(false); expect(stop).toHaveBeenCalled();
   });
   it('uses the current salon and clears previous notifications on empty results or failure', async () => {
     owner.salon.mockResolvedValue({id:42});

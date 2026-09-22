@@ -45,33 +45,37 @@ public class ReviewService {
         User customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", customerId));
 
-        Booking booking = bookingRepository.findById(request.getBookingId())
+        Booking booking = bookingRepository.findForUpdateById(request.getBookingId())
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", request.getBookingId()));
 
         if (!booking.getCustomer().getId().equals(customerId)) {
-            throw new UnauthorizedException("You can only review your own bookings");
+            throw new UnauthorizedException("Bạn chỉ có thể đánh giá lịch hẹn của mình.");
         }
 
         if (booking.getStatus() != BookingStatus.COMPLETED) {
-            throw new BadRequestException("You can only review completed bookings");
+            throw new BadRequestException("Chỉ có thể đánh giá lịch hẹn đã hoàn thành.");
         }
 
         if (reviewRepository.existsByBookingId(booking.getId())) {
-            throw new BadRequestException("You have already reviewed this booking");
+            throw new BadRequestException("Bạn đã đánh giá lịch hẹn này rồi.");
         }
+
+        // Serialize rating updates across different bookings for the same salon.
+        Salon salon = salonRepository.findForUpdateById(booking.getSalon().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Salon not found"));
 
         Review review = Review.builder()
                 .customer(customer)
-                .salon(booking.getSalon())
+                .salon(salon)
                 .booking(booking)
                 .rating(request.getRating())
-                .comment(request.getComment())
+                .comment(request.getComment() == null ? null : request.getComment().strip())
                 .build();
 
         review = reviewRepository.save(review);
 
         // Update salon average rating
-        updateSalonRating(booking.getSalon());
+        updateSalonRating(salon);
 
         log.info("Review created for booking: {} by customer: {}", booking.getId(), customer.getEmail());
 
@@ -96,14 +100,17 @@ public class ReviewService {
     @Transactional
     public ReviewResponse replyToReview(
             Long reviewId, ReviewReplyRequest request, UUID ownerId) {
-        Review review = reviewRepository.findById(reviewId)
+        Review review = reviewRepository.findForUpdateById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review", "id", reviewId));
 
         if (!review.getSalon().getOwner().getId().equals(ownerId)) {
             throw new UnauthorizedException("You are not the owner of this salon");
         }
 
-        review.setSalonReply(request.getReply());
+        if (review.getSalonReply() != null || review.getSalonRepliedAt() != null) {
+            throw new BadRequestException("Phản hồi đã gửi không thể chỉnh sửa hoặc gửi lại.");
+        }
+        review.setSalonReply(request.getReply().strip());
         review.setSalonRepliedAt(LocalDateTime.now());
 
         review = reviewRepository.save(review);
@@ -125,6 +132,43 @@ public class ReviewService {
                 BigDecimal.valueOf(avgRating).setScale(1, RoundingMode.HALF_UP));
         salon.setTotalReviews((int) allReviews.getTotalElements());
         salonRepository.save(salon);
+    }
+
+    @Transactional
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public void adminEdit(Long id, com.bookingnailms.dto.review.AdminReviewRequest request) {
+        Review review = reviewRepository.findForUpdateById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
+        Salon salon = salonRepository.findForUpdateById(review.getSalon().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Salon not found"));
+        review.setRating(request.rating());
+        review.setComment(request.comment() == null ? null : request.comment().strip());
+        reviewRepository.saveAndFlush(review);
+        updateSalonRating(salon);
+    }
+
+    @Transactional
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public void adminDelete(Long id) {
+        Review review = reviewRepository.findForUpdateById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
+        Salon salon = salonRepository.findForUpdateById(review.getSalon().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Salon not found"));
+        review.getBooking().setReview(null);
+        reviewRepository.delete(review);
+        reviewRepository.flush();
+        updateSalonRating(salon);
+    }
+
+    @Transactional
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public void adminReply(Long id, String reply) {
+        Review review = reviewRepository.findForUpdateById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
+        review.setSalonReply(reply == null ? null : reply.strip());
+        // Keep the timestamp on removal so the owner cannot repost moderated content.
+        review.setSalonRepliedAt(LocalDateTime.now());
+        reviewRepository.save(review);
     }
 
     private ReviewResponse mapToReviewResponse(Review review) {

@@ -771,3 +771,14 @@
   margin: 10px 0 0;
   font-weight: 500;
 }
+
+.gallery__main{min-width:0;min-height:0}.gallery__img{min-width:0;min-height:0;object-position:center}
+.review-card__reply {
+  margin-top: 16px;
+  padding: 16px;
+  border-left: 3px solid #d393a2;
+  border-radius: 0 8px 8px 0;
+  background: #fcf5f7;
+  strong, span { display: block; }
+  p { margin-top: 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+}

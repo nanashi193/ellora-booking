@@ -38,4 +38,16 @@ class OwnerPhotoTest {
   var photos=new OwnerPhotoService(salons,mock(NailServiceRepository.class),mock(EmployeeRepository.class),cloud);
   assertThrows(BadRequestException.class,()->photos.upload(owner,"gallery",42L,new MockMultipartFile("file",new byte[]{1})));verifyNoInteractions(cloud);
  }
+
+ @Test void deleteChecksOwnerAndClearsOnlySelectedImage(){
+  var salons=mock(SalonRepository.class);var services=mock(NailServiceRepository.class);var employees=mock(EmployeeRepository.class);var cloud=mock(CloudinaryImageService.class);
+  UUID owner=UUID.randomUUID();var salon=Salon.builder().id(42L).logoUrl("cover").imageUrls(new ArrayList<>(List.of("gallery"))).build();
+  when(salons.findByOwnerId(owner)).thenReturn(Optional.of(salon));when(salons.findForUpdateById(42L)).thenReturn(Optional.of(salon));
+  var photo=new OwnerPhotoService(salons,services,employees,cloud);
+  var other=NailService.builder().salon(Salon.builder().id(99L).build()).imageUrl("other").build();when(services.findById(8L)).thenReturn(Optional.of(other));
+  assertThrows(AccessDeniedException.class,()->photo.remove(owner,"services",8L));assertEquals("other",other.getImageUrl());verify(services,never()).save(any());
+  photo.remove(owner,"cover",42L);assertNull(salon.getLogoUrl());assertEquals(List.of("gallery"),salon.getImageUrls());
+  var employee=Employee.builder().salon(salon).avatarUrl("avatar").build();when(employees.findById(2L)).thenReturn(Optional.of(employee));
+  photo.remove(owner,"employees",2L);assertNull(employee.getAvatarUrl());verify(employees).save(employee);verifyNoInteractions(cloud);
+ }
 }

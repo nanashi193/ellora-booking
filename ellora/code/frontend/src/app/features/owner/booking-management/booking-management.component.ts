@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, effect, untracked, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -26,6 +26,12 @@ export class BookingManagement implements OnInit {
   page = signal(0);
   last = signal(true);
   filter: BookingStatus | '' = '';
+  constructor() {
+    effect(() => {
+      this.notifications.pendingIds();
+      untracked(() => { if (!this.loading() && !this.saving()) void this.load(this.page()); });
+    });
+  }
   labels: Record<BookingStatus, string> = {
     PENDING: 'Chờ xác nhận',
     CONFIRMED: 'Đã xác nhận',
@@ -59,6 +65,7 @@ export class BookingManagement implements OnInit {
     this.error.set('');
     try {
       await this.api.updateBookingStatus(item.id, { status });
+      this.notifications.stopRinging();
       await this.load(this.page());
       await this.notifications.loadSalonBookings();
     } catch (e) {

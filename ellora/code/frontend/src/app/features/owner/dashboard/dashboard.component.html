@@ -38,6 +38,8 @@
     </div>
   }
   @if (salon(); as current) {
+    <app-owner-revenue />
+    <app-owner-billing />
     <section class="card">
       <h2>Ảnh tiệm</h2>
       <p>Ảnh đại diện hiển thị trên homepage. Bộ ảnh hiển thị trong trang chi tiết salon.</p>
@@ -61,8 +63,8 @@
             <img
               [src]="url"
               alt="Ảnh salon"
-              style="width: 100%; height: 160px; object-fit: cover; border-radius: 10px"
-            /><button (click)="removeImage(url)" [disabled]="photoBusy()">Bỏ khỏi bộ ảnh</button>
+              style="width: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: center; border-radius: 10px"
+            /><button (click)="removeImage(url)" [disabled]="photoBusy()">Xóa ảnh khỏi bộ ảnh</button>
           </div>
         }
       </div>

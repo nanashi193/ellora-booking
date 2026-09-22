@@ -4,10 +4,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { OwnerApiService, OwnerSummary, ownerError } from '../../../services/owner-api.service';
 import { SalonRegistration } from '../../../services/salon-registration.service';
+import { OwnerRevenueComponent } from './revenue.component';
+import { OwnerBillingComponent } from './billing.component';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, PhotoUpload],
+  imports: [CommonModule, RouterLink, PhotoUpload, OwnerRevenueComponent, OwnerBillingComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: '../owner-data.scss',
 })

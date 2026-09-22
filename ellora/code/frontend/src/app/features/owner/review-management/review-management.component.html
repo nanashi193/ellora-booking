@@ -14,6 +14,11 @@
         <h2>{{ item.customerName }} · {{ item.rating }}/5</h2>
         <p class="muted">{{ item.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
         <p>{{ item.comment }}</p>
+        @if (item.salonReply != null || item.salonRepliedAt != null) {
+          <h3>Phản hồi của salon</h3>
+          <p style="white-space: pre-wrap; overflow-wrap: anywhere">{{ item.salonReply }}</p>
+          <p class="muted">Đã gửi phản hồi · Không thể chỉnh sửa</p>
+        } @else {
         <label [for]="'reply-' + item.id"
           >Phản hồi của salon<textarea
             [id]="'reply-' + item.id"
@@ -26,8 +31,10 @@
           (click)="reply(item)"
           [disabled]="saving() || !replies[item.id]?.trim()"
         >
-          Lưu phản hồi
+          {{ saving() ? 'Đang gửi...' : 'Gửi phản hồi' }}
         </button>
+        <p class="muted">Phản hồi chỉ được gửi một lần và không thể chỉnh sửa sau khi gửi.</p>
+        }
       </article>
     }
     @if (!error() && !items().length) {

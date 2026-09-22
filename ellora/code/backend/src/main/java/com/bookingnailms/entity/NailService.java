@@ -34,6 +34,7 @@ public class NailService {
     @Column(nullable = false, precision = 10, scale = 0)
     private BigDecimal price;
 
+
     /**
      * Duration in minutes
      */

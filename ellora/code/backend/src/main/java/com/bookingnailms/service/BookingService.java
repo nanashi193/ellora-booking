@@ -39,6 +39,7 @@ public class BookingService {
     private final NailServiceRepository nailServiceRepository;
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
+    private final BookingEmailService bookingEmails;
 
     @Transactional
     public BookingResponse createBooking(BookingRequest request, UUID customerId) {
@@ -75,11 +76,13 @@ public class BookingService {
                 .employee(employee)
                 .scheduledAt(request.getScheduledAt())
                 .durationMinutes(nailService.getDurationMinutes())
+                .servicePriceSnapshot(nailService.getPrice())
                 .status(BookingStatus.PENDING)
                 .customerNote(request.getCustomerNote())
                 .build();
 
         booking = bookingRepository.save(booking);
+        bookingEmails.enqueue(booking, false);
         log.info("Booking created: {} for customer: {}", booking.getId(), customer.getEmail());
 
         return mapToBookingResponse(booking);
@@ -87,7 +90,7 @@ public class BookingService {
 
     @Transactional
     public void cancelBooking(Long bookingId, UUID customerId) {
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findForUpdateById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
 
         if (!booking.getCustomer().getId().equals(customerId)) {
@@ -140,14 +143,29 @@ public class BookingService {
     @Transactional
     public BookingResponse updateBookingStatus(
             Long bookingId, BookingStatusUpdateRequest request, UUID ownerId) {
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findForUpdateById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
 
         if (!booking.getSalon().getOwner().getId().equals(ownerId)) {
             throw new UnauthorizedException("You are not the owner of this salon");
         }
 
+        if (booking.getStatus() == request.getStatus()) return mapToBookingResponse(booking);
+        boolean allowed = switch (booking.getStatus()) {
+            case PENDING -> request.getStatus() == BookingStatus.CONFIRMED || request.getStatus() == BookingStatus.REJECTED || request.getStatus() == BookingStatus.CANCELLED;
+            case CONFIRMED -> request.getStatus() == BookingStatus.IN_PROGRESS || request.getStatus() == BookingStatus.CANCELLED;
+            case IN_PROGRESS -> request.getStatus() == BookingStatus.COMPLETED || request.getStatus() == BookingStatus.CANCELLED;
+            default -> false;
+        };
+        if (!allowed) throw new BadRequestException("Invalid booking status transition");
         booking.setStatus(request.getStatus());
+        if (request.getStatus() == BookingStatus.COMPLETED) {
+            if (booking.getServicePriceSnapshot() == null) {
+                booking.setServicePriceSnapshot(booking.getService().getPrice());
+                booking.setRevenueEstimated(true);
+            }
+            booking.setCompletedAt(java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh")));
+        }
         if (request.getSalonNote() != null) {
             booking.setSalonNote(request.getSalonNote());
         }
@@ -158,6 +176,7 @@ public class BookingService {
 
         booking = bookingRepository.save(booking);
         log.info("Booking {} status updated to: {}", bookingId, request.getStatus());
+        if (booking.getStatus() == BookingStatus.CONFIRMED) bookingEmails.enqueue(booking, true);
 
         return mapToBookingResponse(booking);
     }
@@ -169,12 +188,13 @@ public class BookingService {
                 .salonName(booking.getSalon().getName())
                 .serviceId(booking.getService().getId())
                 .serviceName(booking.getService().getName())
-                .servicePrice(booking.getService().getPrice())
+                .servicePrice(booking.getServicePriceSnapshot() != null ? booking.getServicePriceSnapshot() : booking.getService().getPrice())
                 .employeeId(booking.getEmployee() != null ? booking.getEmployee().getId() : null)
                 .employeeName(booking.getEmployee() != null ? booking.getEmployee().getFullName() : null)
                 .scheduledAt(booking.getScheduledAt())
                 .durationMinutes(booking.getDurationMinutes())
                 .status(booking.getStatus())
+                .reviewed(booking.getReview() != null)
                 .customerNote(booking.getCustomerNote())
                 .salonNote(booking.getSalonNote())
                 .cancellationReason(booking.getCancellationReason())

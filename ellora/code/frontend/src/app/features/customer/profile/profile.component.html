@@ -8,6 +8,8 @@
         <a routerLink="/my-bookings" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm transition-colors">My Bookings</a>
         @if (user()?.role === 'ADMIN') {
           <a routerLink="/admin/approvals" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Duyệt đăng ký salon</a>
+          <a routerLink="/admin/content" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Quản lý nội dung</a>
+          <a routerLink="/admin/billing" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Phí nền tảng và thanh toán</a>
         } @else if (user()?.role === 'SALON_OWNER') {
           <a routerLink="/owner/dashboard" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Quản lý salon</a>
         } @else if (user()?.role === 'CUSTOMER') {
@@ -29,6 +31,7 @@
       
       @if (loading()) { <p role="status">Đang tải thông tin tài khoản…</p> } @else if (error()) { <p role="alert">{{ error() }}</p><button type="button" (click)="loadProfile()">Thử lại</button> } @else if (user(); as profile) {
       <div class="p-6 md:p-8 bg-white border border-charcoal-800/10 shadow-sm flex flex-col gap-6">
+        <div class="profile-avatar" aria-label="Ảnh đại diện cá nhân">@if(profile.avatarUrl){<img [src]="profile.avatarUrl" alt="Ảnh đại diện cá nhân"/>}@else{<span>{{ profile.fullName.charAt(0).toUpperCase() }}</span>}</div>
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-charcoal-900">Họ và tên</label>
           <input type="text" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent" [value]="profile.fullName" readonly>

@@ -39,6 +39,7 @@ export interface BookingItem {
   durationMinutes: number;
   status: BookingStatus;
   customerNote?: string;
+  reviewed?: boolean;
   salonNote?: string;
   cancellationReason?: string;
   createdAt: string;
@@ -67,6 +68,10 @@ interface PageResponse<T> {
 export class BookingApiService {
   private readonly http = inject(HttpClient);
   private readonly base = apiConfig.baseUrl;
+
+  async reviewBooking(bookingId: number, rating: number, comment: string): Promise<void> {
+    await firstValueFrom(this.http.post(`${this.base}/reviews`, { bookingId, rating, comment }));
+  }
 
   // ── CUSTOMER ──────────────────────────────────────────────────────────────
 

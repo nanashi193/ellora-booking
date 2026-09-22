@@ -45,6 +45,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin-approvals/admin-approvals.component').then(m => m.AdminApprovalsComponent),
       },
       {
+        path: 'admin/content', canActivate: [roleGuard], data: { role: 'ADMIN' },
+        loadComponent: () => import('./features/admin-content/admin-content.component').then(m => m.AdminContentComponent),
+      },
+      {
+        path: 'admin/billing', canActivate: [roleGuard], data: { role: 'ADMIN' },
+        loadComponent: () => import('./features/admin-content/billing.component').then(m => m.AdminBillingComponent),
+      },
+      {
         path: 'account',
         canActivate: [authGuard],
         loadComponent: () =>

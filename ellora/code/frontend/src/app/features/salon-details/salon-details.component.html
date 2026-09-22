@@ -151,6 +151,15 @@
                   </div>
                 </div>
                 <p class="review-card__comment">{{ review.comment }}</p>
+                @if (review.salonReply) {
+                  <div class="review-card__reply">
+                    <strong>Phản hồi từ {{ salon()?.name }}</strong>
+                    @if (review.salonRepliedAt) {
+                      <span class="review-card__date">{{ review.salonRepliedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                    }
+                    <p>{{ review.salonReply }}</p>
+                  </div>
+                }
               </div>
             }
           </div>

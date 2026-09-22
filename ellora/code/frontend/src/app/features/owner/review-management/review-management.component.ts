@@ -40,11 +40,12 @@ export class ReviewManagement implements OnInit {
   }
   async reply(item: OwnerReview) {
     const reply = (this.replies[item.id] || '').trim();
-    if (!reply || this.saving()) return;
+    if (!reply || this.saving() || item.salonReply != null || item.salonRepliedAt != null) return;
     this.saving.set(true);
     this.error.set('');
     try {
       await this.api.reply(item.id, reply);
+      this.items.update(items => items.map(review => review.id === item.id ? {...review, salonReply: reply} : review));
       await this.load(this.page());
     } catch (e) {
       this.error.set(ownerError(e));

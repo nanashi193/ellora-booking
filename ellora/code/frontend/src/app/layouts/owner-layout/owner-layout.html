@@ -62,6 +62,14 @@
     <!-- Top Header -->
     <header class="h-[80px] bg-[#F9F5F6] flex items-center justify-end px-8 shrink-0 relative z-50">
       <div class="flex items-center gap-6">
+        @if (!bookingService.soundEnabled()) {
+          <button type="button" class="text-sm text-[#8C3A5A] underline" (click)="bookingService.enableSound()">Bật chuông lịch hẹn</button>
+        } @else if (bookingService.ringing()) {
+          <button type="button" class="text-sm font-bold text-[#8C3A5A]" (click)="bookingService.stopRinging()" aria-live="polite">Có lịch hẹn mới — Tắt chuông</button>
+        } @else {
+          <span class="text-xs text-gray-500">Chuông đã bật</span>
+        }
+        @if (bookingService.soundError()) { <span role="alert" class="text-xs text-red-600">{{ bookingService.soundError() }}</span> }
         <!-- Notification Icon & Dropdown -->
         <div class="relative notification-container">
           <button class="text-charcoal-800 hover:text-[#8C3A5A] transition-colors relative" (click)="toggleNotification()">
@@ -120,9 +128,9 @@
             <div class="font-bold text-[15px] text-charcoal-900 leading-tight">{{ userName || 'Chủ salon' }}</div>
             <div class="text-[12px] text-charcoal-800/60 font-medium">Chủ Salon</div>
           </div>
-          <button class="w-[46px] h-[46px] rounded-full border-2 border-[#F2A4BB] p-0.5 focus:outline-none focus:ring-2 focus:ring-[#8C3A5A] focus:ring-offset-2 transition-all overflow-hidden bg-[#FDF6F8] flex items-center justify-center text-[#8C3A5A] font-bold text-lg" (click)="toggleDropdown()">
+          <button class="w-[46px] h-[46px] shrink-0 aspect-square rounded-full border-2 border-[#F2A4BB] p-0.5 focus:outline-none focus:ring-2 focus:ring-[#8C3A5A] focus:ring-offset-2 transition-all overflow-hidden bg-[#FDF6F8] flex items-center justify-center text-[#8C3A5A] font-bold text-lg" (click)="toggleDropdown()">
             @if (userName) {
-              <img [src]="'https://ui-avatars.com/api/?name=' + userName + '&background=random&color=fff'" alt="Avatar" class="w-full h-full rounded-full object-cover">
+              <img [src]="'https://ui-avatars.com/api/?name=' + userName + '&background=random&color=fff'" alt="Avatar" class="w-full h-full rounded-full object-cover object-center block">
             } @else {
               <span>{{ userInitial }}</span>
             }

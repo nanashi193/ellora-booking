@@ -16,7 +16,7 @@ export class OwnerLayout implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly elementRef = inject(ElementRef);
-  private readonly bookingService = inject(BookingService);
+  readonly bookingService = inject(BookingService);
 
   readonly supportEmail = 'nphucthinh22@gmail.com';
   readonly supportPhone = '0342052188';
@@ -37,6 +37,7 @@ export class OwnerLayout implements OnInit {
   pendingBookings = this.bookingService.pendingBookings;
 
   async ngOnInit(): Promise<void> {
+    this.bookingService.start();
     try {
       const profile = await this.authService.getUserProfile();
       this.userName = profile.name || profile.email;
@@ -75,7 +76,7 @@ export class OwnerLayout implements OnInit {
   }
 
   focusBooking(id: number): void {
-
+    this.bookingService.stopRinging();
     this.isNotificationOpen = false;
     this.router.navigate(['/owner/bookings']);
   }

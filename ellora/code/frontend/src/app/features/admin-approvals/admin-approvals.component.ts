@@ -1,10 +1,13 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { PendingPage, SalonRegistration, SalonRegistrationService } from '../../services/salon-registration.service';
 
-@Component({ standalone: true, template: `
+@Component({ standalone: true, imports:[RouterLink], template: `
   <main class="max-w-5xl mx-auto px-6 py-12">
     <p class="text-dusty-pink-600 mb-3">QUẢN TRỊ</p>
     <h1 class="font-serif text-3xl mb-8">Duyệt đăng ký salon</h1>
+    <a routerLink="/admin/content" class="underline block mb-6">Quản lý ảnh, đánh giá và phản hồi</a>
+    <a routerLink="/admin/billing" class="underline block mb-6">Phí nền tảng và thanh toán</a>
     @if (error()) { <p role="alert" class="text-red-700 mb-4">{{ error() }}</p> }
     @if (message()) { <p role="status" class="text-green-800 mb-4">{{ message() }}</p> }
     <button type="button" (click)="load()" [disabled]="busy()" class="underline mb-6">Tải lại danh sách</button>
