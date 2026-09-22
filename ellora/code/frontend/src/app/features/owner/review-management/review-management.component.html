@@ -1,4 +1,5 @@
 <div class="p-8 pb-20 w-full h-full flex flex-col max-w-[1200px] mx-auto bg-transparent relative">
+  @if (error()) { <p role="alert" class="text-red-700 mb-4">{{ error() }}</p> }
   <!-- Top Stats -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
     <!-- Satisfaction Rate Card -->
@@ -8,11 +9,11 @@
       
       <h3 class="text-sm font-bold uppercase tracking-wider mb-4 opacity-90 text-[#8C3A5A]">Chỉ số hài lòng</h3>
       <div class="text-[56px] font-bold leading-none mb-4 text-[#8C3A5A]">
-        {{ satisfactionRate }}<span class="text-4xl">%</span>
+        {{ satisfactionRate }}
       </div>
       <div class="flex items-center gap-1.5 text-sm font-bold text-[#8C3A5A]">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="17 7 22 7 22 12"></polyline><line x1="22" y1="7" x2="11" y2="18"></line><line x1="7" y1="18" x2="2" y2="22"></line></svg>
-        +{{ growthRate }}% so với tháng trước
+        Chưa có dữ liệu so sánh
       </div>
     </div>
 
@@ -39,7 +40,7 @@
         <img [src]="topStaff.avatar" alt="Avatar" class="w-full h-full rounded-full object-cover">
       </div>
       <h4 class="text-xl font-bold text-[#8C3A5A] mb-1">{{ topStaff.name }}</h4>
-      <p class="text-sm font-medium text-[#8C3A5A]/80">{{ topStaff.mentions }} lượt nhắc tên tuần này</p>
+      <p class="text-sm font-medium text-[#8C3A5A]/80">Chưa có dữ liệu nhân viên nổi bật</p>
     </div>
   </div>
 
@@ -120,21 +121,19 @@
         <!-- Right: Actions -->
         <div class="w-full md:w-[220px] shrink-0 flex flex-col gap-3 justify-center border-t md:border-t-0 md:border-l border-gray-200/60 pt-6 md:pt-0 md:pl-8">
           @if (!review.isReplied) {
-            <button class="w-full bg-[#F2A4BB] hover:bg-[#E88AA4] text-white font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-sm text-[15px]">
+            <button type="button" (click)="replyingId.set(review.id)" class="w-full bg-[#F2A4BB] hover:bg-[#E88AA4] text-white font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-sm text-[15px]">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
               Phản hồi ngay
             </button>
-            <button class="w-full bg-transparent border border-charcoal-800/20 hover:border-charcoal-800 text-charcoal-900 font-bold py-3 px-4 rounded-2xl transition-colors text-[15px]">
-              Lưu đánh giá
-            </button>
+            @if (replyingId() === review.id) {
+              <textarea aria-label="Nội dung phản hồi" [(ngModel)]="replyText" class="border rounded p-2 w-full"></textarea>
+              <button type="button" (click)="sendReply(review.id)" class="text-[#8C3A5A] font-bold">Gửi phản hồi</button>
+            }
           } @else {
             <div class="bg-[#FDE8E8]/50 text-[#8C3A5A] px-4 py-3 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold text-center">
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 shrink-0"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.177-7.86l-2.765-2.767L7 12.431l3.119 3.121a1 1 0 001.414 0l5.952-5.95-1.062-1.062-5.6 5.6z"></path></svg>
               Đã phản hồi {{ review.repliedTimeAgo }}
             </div>
-            <button class="w-full bg-white hover:bg-gray-50 border border-gray-200 text-charcoal-900 font-bold py-3 px-4 rounded-2xl transition-colors shadow-sm text-[15px]">
-              Xem phản hồi
-            </button>
           }
         </div>
 

@@ -8,6 +8,7 @@ export interface Profile {
   id: string;
   email: string;
   fullName: string;
+  phone?: string;
   role: 'CUSTOMER' | 'SALON_OWNER' | 'ADMIN';
 }
 

@@ -16,5 +16,6 @@ public class ProfileResponse {
     private UUID id;
     private String email;
     private String fullName;
+    private String phone;
     private Role role;
 }

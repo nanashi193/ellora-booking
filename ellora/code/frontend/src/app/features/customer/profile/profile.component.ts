@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../../services/auth.service';
+import { ProfileApiService } from '../../../services/profile-api.service';
 @Component({
   selector: 'app-profile',
   standalone: true,
@@ -9,7 +9,7 @@ import { AuthService } from '../../../services/auth.service';
   styleUrl: './profile.component.scss'
 })
 export class Profile implements OnInit {
-  private authService = inject(AuthService);
+  private profileApi = inject(ProfileApiService);
 
   user = signal({
     firstName: '',
@@ -20,18 +20,18 @@ export class Profile implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const profile = await this.authService.getUserProfile();
+      const profile = await this.profileApi.getCurrentUser();
       
       // Tách tên thành First/Last name đơn giản (hoặc gán hết vào firstName nếu cần)
-      const nameParts = (profile.name || '').split(' ');
+      const nameParts = (profile.fullName || '').split(' ');
       const lastName = nameParts.length > 1 ? nameParts.pop() || '' : '';
-      const firstName = nameParts.join(' ') || profile.name;
+      const firstName = nameParts.join(' ') || profile.fullName;
 
       this.user.set({
         firstName: firstName,
         lastName: lastName,
         email: profile.email || '',
-        phone: profile.phone_number || ''
+        phone: profile.phone || ''
       });
     } catch (error) {
       console.error('Lỗi khi tải thông tin cá nhân:', error);

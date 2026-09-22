@@ -1,5 +1,8 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { OwnerApiService, OwnerEmployee, ownerError } from '../../../services/owner-api.service';
+import { PhotoUpload } from '../../../shared/components/photo-upload.component';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 
@@ -8,18 +11,52 @@ export interface StaffItem {
   name: string;
   avatar: string;
   workingHours: string;
-  rating: number;
+  rating: string;
   status: 'working' | 'off';
 }
 
 @Component({
   selector: 'app-staff-management',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective],
+  imports: [CommonModule, BaseChartDirective, FormsModule, PhotoUpload],
   templateUrl: './staff-management.component.html',
   styleUrl: './staff-management.component.scss'
 })
-export class StaffManagement {
+export class StaffManagement implements OnInit {
+  private readonly api = inject(OwnerApiService);
+  readonly employees = signal<OwnerEmployee[]>([]);
+  readonly activeCount = computed(() => this.employees().filter(item => item.active).length);
+  readonly error = signal('');
+  readonly editorOpen = signal(false);
+  editingId: number | null = null;
+  draft = { fullName: '', phone: '', bio: '' };
+  ngOnInit(): void { void this.load(); }
+  async load(): Promise<void> {
+    try {
+      const data = await this.api.employees();
+      this.employees.set(data);
+      this.allStaffs.set(data.map(item => ({
+        id: item.id, name: item.fullName, avatar: item.avatarUrl || '/salon-placeholder.svg',
+        workingHours: 'Chưa cập nhật', rating: '—', status: item.active ? 'working' : 'off'
+      })));
+      this.error.set('');
+    } catch (error) { this.error.set(ownerError(error)); }
+  }
+  edit(item?: OwnerEmployee): void {
+    this.editingId = item?.id ?? null;
+    this.draft = { fullName: item?.fullName ?? '', phone: item?.phone ?? '', bio: item?.bio ?? '' };
+    this.editorOpen.set(true);
+  }
+  async save(): Promise<void> {
+    if (this.draft.fullName.trim().length < 2 || !this.draft.phone.trim()) { this.error.set('Vui lòng nhập tên và số điện thoại nhân viên.'); return; }
+    try { await this.api.saveEmployee(this.draft, this.editingId ?? undefined); this.editorOpen.set(false); await this.load(); }
+    catch (error) { this.error.set(ownerError(error)); }
+  }
+  async remove(id: number): Promise<void> {
+    if (!confirm('Xóa nhân viên này?')) return;
+    try { await this.api.remove('employees', id); await this.load(); }
+    catch (error) { this.error.set(ownerError(error)); }
+  }
   
   // Chart Configuration
   public barChartOptions: ChartConfiguration['options'] = {
@@ -62,17 +99,17 @@ export class StaffManagement {
   public barChartType: ChartType = 'bar';
 
   public barChartData: ChartData<'bar'> = {
-    labels: [ 'T2', 'T3', 'T4', 'T5', 'T6', 'T7' ],
+    labels: [],
     datasets: [
       { 
-        data: [ 50, 45, 60, 40, 70, 80 ], 
+        data: [],
         label: 'Doanh thu dịch vụ',
         backgroundColor: '#F9A8D4', // pink-300
         hoverBackgroundColor: '#F472B6', // pink-400
         barThickness: 32
       },
       { 
-        data: [ 20, 25, 10, 30, 20, 15 ], 
+        data: [],
         label: 'Đỉnh điểm cuối tuần',
         backgroundColor: '#E5E7EB', // gray-200
         hoverBackgroundColor: '#D1D5DB', // gray-300
@@ -81,19 +118,7 @@ export class StaffManagement {
     ]
   };
 
-  // Mock Data
-  allStaffs = signal<StaffItem[]>([
-    { id: 1, name: 'Lê Minh Anh', avatar: 'https://ui-avatars.com/api/?name=Le+Minh+Anh&background=random', workingHours: '09:00 - 18:00', rating: 4.9, status: 'working' },
-    { id: 2, name: 'Nguyễn Hoàng Nam', avatar: 'https://ui-avatars.com/api/?name=Nguyen+Hoang+Nam&background=random', workingHours: '11:00 - 20:00', rating: 4.7, status: 'off' },
-    { id: 3, name: 'Trần Thanh Vân', avatar: 'https://ui-avatars.com/api/?name=Tran+Thanh+Van&background=random', workingHours: '08:00 - 17:00', rating: 4.8, status: 'working' },
-    { id: 4, name: 'Phạm Hải Đăng', avatar: 'https://ui-avatars.com/api/?name=Pham+Hai+Dang&background=random', workingHours: '10:00 - 19:00', rating: 4.6, status: 'working' },
-    { id: 5, name: 'Lý Nhã Kỳ', avatar: 'https://ui-avatars.com/api/?name=Ly+Nha+Ky&background=random', workingHours: '13:00 - 21:00', rating: 4.9, status: 'working' },
-    { id: 6, name: 'Đặng Mai Phương', avatar: 'https://ui-avatars.com/api/?name=Dang+Mai+Phuong&background=random', workingHours: '09:00 - 18:00', rating: 4.5, status: 'off' },
-    { id: 7, name: 'Vũ Minh Đức', avatar: 'https://ui-avatars.com/api/?name=Vu+Minh+Duc&background=random', workingHours: '10:00 - 18:00', rating: 4.8, status: 'working' },
-    { id: 8, name: 'Bùi Thị Lan', avatar: 'https://ui-avatars.com/api/?name=Bui+Thi+Lan&background=random', workingHours: '08:00 - 17:00', rating: 4.9, status: 'working' },
-    { id: 9, name: 'Hồ Tuấn Anh', avatar: 'https://ui-avatars.com/api/?name=Ho+Tuan+Anh&background=random', workingHours: '11:00 - 20:00', rating: 4.7, status: 'working' },
-    { id: 10, name: 'Lâm Oanh', avatar: 'https://ui-avatars.com/api/?name=Lam+Oanh&background=random', workingHours: '09:00 - 18:00', rating: 4.4, status: 'off' }
-  ]);
+  allStaffs = signal<StaffItem[]>([]);
 
   // Pagination State
   pageSize = signal<number>(5);

@@ -36,6 +36,7 @@ export interface Service {
   durationMinutes: number;
   price: number;
   categoryId?: string;
+  imageUrl?: string;
 }
 
 export interface Staff {

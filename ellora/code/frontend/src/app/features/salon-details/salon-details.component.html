@@ -1,4 +1,5 @@
-@if (salon()) {
+@if (error()) { <p role="alert" class="text-center text-red-700 py-6">{{ error() }}</p> }
+@if (salon(); as currentSalon) {
   <div class="salon-detail">
 
     <!-- ═══ Main Content ═══ -->
@@ -11,23 +12,23 @@
         <!-- ═══ Gallery ═══ -->
         <section class="gallery">
           <div class="gallery__main">
-            <img [src]="salon().images[0]" [alt]="salon().name" class="gallery__img" />
+            <img [src]="currentSalon.images[0] || '/salon-placeholder.svg'" [alt]="currentSalon.name" class="gallery__img" />
             <button class="gallery__back" routerLink="/search" aria-label="Quay lại">
               <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             </button>
           </div>
           <div class="gallery__side">
-            <img [src]="salon().images[1] || salon().images[0]" alt="Gallery 2" class="gallery__img" />
-            <img [src]="salon().images[2] || salon().images[0]" alt="Gallery 3" class="gallery__img" />
+            <img [src]="currentSalon.images[1] || currentSalon.images[0] || '/salon-placeholder.svg'" alt="Gallery 2" class="gallery__img" />
+            <img [src]="currentSalon.images[2] || currentSalon.images[0] || '/salon-placeholder.svg'" alt="Gallery 3" class="gallery__img" />
           </div>
         </section>
 
         <!-- Salon Info -->
         <section class="salon-info">
           <div class="salon-info__header">
-            <h1 #salonTitle class="salon-info__name">{{ salon().name }}</h1>
+            <h1 #salonTitle class="salon-info__name">{{ currentSalon.name }}</h1>
             <div class="salon-info__status">
-              <span class="salon-info__status-dot" [class.salon-info__status-dot--open]="salon().isOpen"></span>
+              <span class="salon-info__status-dot" [class.salon-info__status-dot--open]="currentSalon.isOpen"></span>
               <div class="salon-info__status-text">
                 <span class="salon-info__status-label">{{ getOpenStatusText() }}</span>
                 <span class="salon-info__status-hours">{{ getCloseTimeText() }}</span>
@@ -38,17 +39,17 @@
           <div class="salon-info__meta">
             <div class="salon-info__rating">
               <svg class="salon-info__star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-              <span class="salon-info__rating-value">{{ salon().rating }}</span>
-              <a class="salon-info__review-count">({{ salon().reviewCount }} đánh giá)</a>
+              <span class="salon-info__rating-value">{{ currentSalon.rating }}</span>
+              <a class="salon-info__review-count">({{ currentSalon.reviewCount }} đánh giá)</a>
             </div>
             <span class="salon-info__separator">·</span>
             <span class="salon-info__location">
               <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              {{ salon().city }}
+              {{ currentSalon.city }}
             </span>
           </div>
 
-          <p class="salon-info__desc">{{ salon().description }}</p>
+          <p class="salon-info__desc">{{ currentSalon.description }}</p>
         </section>
 
         <!-- ═══ Vị trí ═══ -->
@@ -66,7 +67,7 @@
             <div class="location-card__info">
               <span class="location-card__label">Địa chỉ</span>
               <h3 class="location-card__area">SoHo, New York</h3>
-              <p class="location-card__address">{{ salon().address }}, {{ salon().city }}</p>
+              <p class="location-card__address">{{ currentSalon.address }}, {{ currentSalon.city }}</p>
               <a
                 class="location-card__directions"
                 [href]="getGoogleMapsUrl()"
@@ -111,7 +112,7 @@
           <h2 class="section-title section-title--bold">Reviews</h2>
 
           <!-- Rating Summary -->
-          <div class="review-summary" [attr.aria-label]="salon().rating + ' out of 5 stars, ' + salon().reviewCount + ' reviews'">
+          <div class="review-summary" [attr.aria-label]="currentSalon.rating + ' out of 5 stars, ' + currentSalon.reviewCount + ' reviews'">
             <div class="review-summary__stars" aria-hidden="true">
               @for (star of [1,2,3,4,5]; track star) {
                 <svg class="review-summary__star" viewBox="0 0 24 24">
@@ -119,8 +120,8 @@
                 </svg>
               }
             </div>
-            <span class="review-summary__score">{{ salon().rating }}</span>
-            <span class="review-summary__count">({{ salon().reviewCount }})</span>
+            <span class="review-summary__score">{{ currentSalon.rating }}</span>
+            <span class="review-summary__count">({{ currentSalon.reviewCount }})</span>
           </div>
 
           <!-- Review Cards -->
@@ -161,9 +162,9 @@
             <div class="booking-widget__top">
               @if (showStickySummary()) {
                 <div class="booking-widget__summary booking-widget__summary--visible">
-                  <h2 class="booking-widget__title">Spa Viet - Professional Foot &amp; Body Massage</h2>
-                  <div class="booking-widget__rating" aria-label="5.0 trên 5 sao, 3 đánh giá">
-                    <span class="booking-widget__rating-score">5.0</span>
+                  <h2 class="booking-widget__title">{{ currentSalon.name }}</h2>
+                  <div class="booking-widget__rating" [attr.aria-label]="currentSalon.rating + ' trên 5 sao, ' + currentSalon.reviewCount + ' đánh giá'">
+                    <span class="booking-widget__rating-score">{{ currentSalon.rating }}</span>
                     <span class="booking-widget__stars" aria-hidden="true">
                       @for (star of [1,2,3,4,5]; track star) {
                         <svg class="booking-widget__star" viewBox="0 0 24 24">
@@ -171,11 +172,12 @@
                         </svg>
                       }
                     </span>
-                    <a class="booking-widget__review-link">(3)</a>
+                    <a class="booking-widget__review-link">({{ currentSalon.reviewCount }})</a>
                   </div>
                 </div>
               }
-              <a class="booking-widget__cta" routerLink="/booking">Đặt lịch ngay</a>
+              @if (selectedServices()[0]; as chosenService) { <p class="text-sm text-charcoal-800/70">Đã chọn: {{ chosenService.name }}</p> }
+              <a class="booking-widget__cta" routerLink="/booking" [queryParams]="{ salonId: currentSalon.id, serviceId: selectedServices()[0]?.id }">Đặt lịch ngay</a>
             </div>
 
             <div class="booking-widget__details">
@@ -186,7 +188,7 @@
                       <circle cx="12" cy="12" r="9"/>
                       <path d="M12 7v5l3 2"/>
                     </svg>
-                    <span><span class="booking-widget__open">Open</span> - closes soon at 8:00 PM</span>
+                    <span>Liên hệ salon để xác nhận giờ mở cửa</span>
                   </span>
                   <svg class="booking-widget__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m18 15-6-6-6 6"/>

@@ -34,8 +34,12 @@ public class SalonService {
 
     @Transactional
     public SalonResponse createSalon(SalonRequest request, UUID ownerId) {
-        User owner = userRepository.findById(ownerId)
+        User owner = userRepository.findForUpdateById(ownerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", ownerId));
+
+        if (owner.getRole() != com.bookingnailms.enums.Role.CUSTOMER || !owner.isEnabled() || owner.isLocked()) {
+            throw new org.springframework.security.access.AccessDeniedException("Account cannot register a salon");
+        }
 
         if (salonRepository.existsByOwnerId(ownerId)) {
             throw new BadRequestException("You already have a salon registered");
@@ -96,8 +100,7 @@ public class SalonService {
         Page<Salon> salonsPage;
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            salonsPage = salonRepository.findByNameContainingIgnoreCaseAndStatus(
-                    keyword.trim(), SalonStatus.ACTIVE, pageable);
+            salonsPage = salonRepository.searchActive(keyword.trim(), pageable);
         } else {
             salonsPage = salonRepository.findByStatus(SalonStatus.ACTIVE, pageable);
         }
@@ -127,7 +130,7 @@ public class SalonService {
                 .phone(salon.getPhone())
                 .email(salon.getEmail())
                 .logoUrl(salon.getLogoUrl())
-                .imageUrls(salon.getImageUrls())
+                .imageUrls(new java.util.ArrayList<>(salon.getImageUrls()))
                 .status(salon.getStatus())
                 .latitude(salon.getLatitude())
                 .longitude(salon.getLongitude())
