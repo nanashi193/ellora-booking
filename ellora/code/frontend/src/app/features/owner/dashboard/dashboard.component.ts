@@ -1,3 +1,5 @@
+import { OwnerRevenueComponent } from './revenue.component';
+import { OwnerBillingComponent } from './billing.component';
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -10,7 +12,7 @@ import { PhotoUpload } from '../../../shared/components/photo-upload.component';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, PhotoUpload],
+  imports: [CommonModule, RouterModule, PhotoUpload, OwnerRevenueComponent, OwnerBillingComponent],
   providers: [provideCharts(withDefaultRegisterables())],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'

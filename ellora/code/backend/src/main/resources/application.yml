@@ -4,6 +4,18 @@ server:
     context-path: /api
 
 spring:
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
   servlet:
     multipart:
       max-file-size: 5MB
@@ -41,6 +53,9 @@ logging:
     org.springframework.security: INFO
 
 app:
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+    from: ${MAIL_FROM:${MAIL_USERNAME:}}
   cognito:
     issuer-uri: https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_iUMERg77o
     client-id: 10ivodmqmsklu4gqkqj1qcgr0h

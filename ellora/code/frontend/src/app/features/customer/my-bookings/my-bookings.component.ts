@@ -1,11 +1,12 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { BookingApiService, BookingItem } from '../../../services/booking-api.service';
 
 @Component({
   selector: 'app-my-bookings',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './my-bookings.component.html',
   styleUrl: './my-bookings.component.scss'
 })
@@ -17,6 +18,38 @@ export class MyBookings implements OnInit {
   hasMore = signal(false);
   loading = signal(false);
   error = signal('');
+
+  reviewId = signal<number | null>(null);
+  reviewSaving = signal(false);
+  reviewError = signal('');
+  reviewSuccess = signal('');
+  rating = 0;
+  comment = '';
+
+  openReview(booking: BookingItem): void {
+    if (this.reviewSaving() || booking.status !== 'COMPLETED' || booking.reviewed) return;
+    this.reviewId.set(booking.id);
+    this.rating = 0; this.comment = '';
+    this.reviewError.set(''); this.reviewSuccess.set('');
+  }
+
+  async submitReview(): Promise<void> {
+    const id = this.reviewId();
+    if (id === null || this.reviewSaving()) return;
+    if (!Number.isInteger(this.rating) || this.rating < 1 || this.rating > 5 || this.comment.length > 1000) {
+      this.reviewError.set('Hãy chọn từ 1 đến 5 sao. Nhận xét tối đa 1000 ký tự.'); return;
+    }
+    this.reviewSaving.set(true); this.reviewError.set('');
+    try {
+      await this.api.reviewBooking(id, this.rating, this.comment.trim());
+      this.bookings.update(list => list.map(b => b.id === id ? {...b, reviewed: true} : b));
+      this.reviewId.set(null);
+      this.reviewSuccess.set('Cảm ơn bạn! Đánh giá đã được đăng trên trang tiệm.');
+    } catch (e: any) {
+      this.reviewError.set(e?.error?.message || 'Chưa gửi được đánh giá. Vui lòng thử lại.');
+    } finally { this.reviewSaving.set(false); }
+  }
+
 
   ngOnInit(): void { void this.load(true); }
 

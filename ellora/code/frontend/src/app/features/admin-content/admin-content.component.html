@@ -1,0 +1,45 @@
+<main class="owner-page" style="max-width:1100px;margin:auto">
+  <header><h1>Quản lý nội dung</h1><a routerLink="/admin/approvals">Duyệt đăng ký tiệm</a></header>
+  <a routerLink="/admin/billing" class="link">Phí nền tảng và thanh toán</a>
+  @if(error()){<p role="alert" class="error">{{error()}}</p>}
+  @if(message()){<p role="status">{{message()}}</p>}
+  @if(busy()){<p role="status">Đang xử lý…</p>}
+  <section class="card">
+    <h2>Chọn tiệm</h2>
+    @for(salon of salons()?.content;track salon.id){
+      <button type="button" (click)="select(salon.id)" [disabled]="busy()" style="margin:4px">#{{salon.id}} · {{salon.name}} · {{salon.status}}</button>
+    } @empty {<p>Chưa có tiệm.</p>}
+    <div class="pager"><button (click)="loadSalons(salonPage-1)" [disabled]="busy()||salonPage===0">Trang trước</button><span>{{salonPage+1}}</span><button (click)="loadSalons(salonPage+1)" [disabled]="busy()||!salons()||salons()?.last">Trang sau</button></div>
+  </section>
+  @if(selected();as salon){
+    <h2>{{salon.name}}</h2>
+    <section class="card">
+      <h2>Ảnh tiệm, dịch vụ và nhân viên</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px">
+        @for(photo of salon.photos;track photo.kind+photo.id){
+          <app-photo-upload [adminSalonId]="salon.id" [kind]="photo.kind" [entityId]="photo.id" [imageUrl]="photo.url" [label]="photo.name" (saved)="refreshPhotos()" />
+        }
+      </div>
+      <h3>Bộ ảnh tiệm</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px">
+        @for(url of salon.gallery;track url){<app-photo-upload [adminSalonId]="salon.id" kind="gallery" [entityId]="salon.id" [imageUrl]="url" label="Thay ảnh" (saved)="refreshPhotos()" />}
+      </div>
+      @if(salon.gallery.length<10){<app-photo-upload [adminSalonId]="salon.id" kind="gallery" [entityId]="salon.id" label="Thêm ảnh tiệm" (saved)="refreshPhotos()" />}
+    </section>
+    <h2>Đánh giá và phản hồi</h2>
+    @for(review of reviews()?.content;track review.id){
+      <article class="card">
+        <h3>{{review.customerName}} · {{review.createdAt | date:'dd/MM/yyyy HH:mm'}}</h3>
+        <label [for]="'rating-'+review.id">Số sao của khách</label>
+        <select [id]="'rating-'+review.id" [(ngModel)]="drafts[review.id].rating" [disabled]="busy()">@for(star of [1,2,3,4,5];track star){<option [ngValue]="star">{{star}} sao</option>}</select>
+        <label [for]="'comment-'+review.id">Đánh giá của khách</label>
+        <textarea [id]="'comment-'+review.id" [(ngModel)]="drafts[review.id].comment" maxlength="1000" [disabled]="busy()"></textarea>
+        <div class="actions"><button (click)="moderate(review,'edit')" [disabled]="busy()">Lưu đánh giá</button><button (click)="moderate(review,'delete')" [disabled]="busy()">Xóa đánh giá</button></div>
+        <label [for]="'reply-'+review.id">Phản hồi của tiệm</label>
+        <textarea [id]="'reply-'+review.id" [(ngModel)]="drafts[review.id].reply" maxlength="1000" [disabled]="busy()"></textarea>
+        <div class="actions"><button (click)="moderate(review,'reply')" [disabled]="busy()||!drafts[review.id].reply.trim()">Lưu phản hồi</button><button (click)="moderate(review,'deleteReply')" [disabled]="busy()||!review.salonReply">Xóa phản hồi</button></div>
+      </article>
+    } @empty {<p>Chưa có đánh giá.</p>}
+    <div class="pager"><button (click)="moveReviews(reviewPage-1)" [disabled]="busy()||reviewPage===0">Trang trước</button><span>{{reviewPage+1}}</span><button (click)="moveReviews(reviewPage+1)" [disabled]="busy()||!reviews()||reviews()?.last">Trang sau</button></div>
+  }
+</main>

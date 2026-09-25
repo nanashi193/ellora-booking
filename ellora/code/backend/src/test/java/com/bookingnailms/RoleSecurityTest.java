@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest({SalonRegistrationController.class, BookingController.class, com.bookingnailms.controller.owner.OwnerController.class})
+@WebMvcTest({SalonRegistrationController.class, BookingController.class, com.bookingnailms.controller.owner.OwnerController.class, com.bookingnailms.controller.admin.AdminContentController.class, com.bookingnailms.controller.admin.PlatformBillingController.class, com.bookingnailms.controller.owner.OwnerRevenueController.class})
 @Import(SecurityConfig.class)
 class RoleSecurityTest {
     @Autowired MockMvc mvc;
@@ -34,6 +34,43 @@ class RoleSecurityTest {
     @MockBean EmployeeService employees;
     @MockBean ReviewService reviews;
     @MockBean OwnerDashboardService dashboard;
+    @MockBean AdminContentService content;
+    @MockBean PlatformBillingService billing;
+    @MockBean OwnerRevenueService revenue;
+
+    @Test void billingControlsAreAdminOnlyAndOwnerReportUsesJwtIdentity() throws Exception {
+        for(Role role:List.of(Role.CUSTOMER,Role.SALON_OWNER)){
+            as(role);
+            mvc.perform(put("/admin/billing/config").header("Authorization","Bearer test-token").contentType("application/json").content("{\"percent\":3}")).andExpect(status().isForbidden());
+            mvc.perform(post("/admin/billing/statements/42/confirm?month=2026-09").header("Authorization","Bearer test-token").contentType("application/json").content("{\"expectedDue\":1500}")).andExpect(status().isForbidden());
+            mvc.perform(post("/admin/billing/statements/42/remind?month=2026-09").header("Authorization","Bearer test-token")).andExpect(status().isForbidden());
+        }
+        verifyNoInteractions(billing);
+        as(Role.SALON_OWNER);
+        mvc.perform(get("/owner/revenue?from=2026-09-01&to=2026-09-30&groupBy=month&salonId=999").header("Authorization","Bearer test-token")).andExpect(status().isOk());
+        verify(revenue).report(eq(id),any(),any(),eq("month"));
+        as(Role.ADMIN);
+        mvc.perform(put("/admin/billing/config").header("Authorization","Bearer test-token").contentType("application/json").content("{\"percent\":101}")).andExpect(status().isBadRequest());
+        mvc.perform(put("/admin/billing/config").header("Authorization","Bearer test-token").contentType("application/json").content("{\"percent\":3}")).andExpect(status().isOk());
+        verify(billing).setRate(new java.math.BigDecimal("3"));
+    }
+
+    @Test void onlyAdminCanModerateContent() throws Exception {
+        for (Role role : List.of(Role.CUSTOMER, Role.SALON_OWNER)) {
+            as(role);
+            mvc.perform(get("/admin/content/salons").header("Authorization", "Bearer test-token")).andExpect(status().isForbidden());
+            mvc.perform(delete("/admin/content/reviews/1").header("Authorization", "Bearer test-token")).andExpect(status().isForbidden());
+            mvc.perform(delete("/admin/content/reviews/1/reply").header("Authorization", "Bearer test-token")).andExpect(status().isForbidden());
+            mvc.perform(delete("/admin/content/salons/2/photos/cover/2").header("Authorization", "Bearer test-token")).andExpect(status().isForbidden());
+        }
+        verifyNoInteractions(content, reviews);
+        as(Role.ADMIN);
+        mvc.perform(put("/admin/content/reviews/1").header("Authorization", "Bearer test-token")
+                .contentType("application/json").content("{\"rating\":4,\"comment\":\"Đã kiểm duyệt\"}")).andExpect(status().isOk());
+        verify(reviews).adminEdit(eq(1L), any());
+        mvc.perform(delete("/admin/content/reviews/1/reply").header("Authorization", "Bearer test-token")).andExpect(status().isOk());
+        verify(reviews).adminReply(1L, null);
+    }
     private final UUID id = UUID.randomUUID();
 
     void as(Role role) {

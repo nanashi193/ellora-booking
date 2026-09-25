@@ -37,6 +37,25 @@ public class OwnerPhotoService {
         }
     }
     @Transactional
+    public void remove(UUID owner, String kind, Long id) {
+        var owned=salons.findByOwnerId(owner).orElseThrow(()->new ResourceNotFoundException("Salon not found"));
+        var salon=salons.findForUpdateById(owned.getId()).orElseThrow(()->new ResourceNotFoundException("Salon not found"));
+        switch(kind) {
+            case "cover":
+                if(!salon.getId().equals(id)) throw new AccessDeniedException("Not your salon");
+                salon.setLogoUrl(null); salons.save(salon); break;
+            case "services":
+                var service=services.findById(id).orElseThrow(()->new ResourceNotFoundException("Service not found"));
+                if(!service.getSalon().getId().equals(salon.getId())) throw new AccessDeniedException("Not your service");
+                service.setImageUrl(null); services.save(service); break;
+            case "employees":
+                var employee=employees.findById(id).orElseThrow(()->new ResourceNotFoundException("Employee not found"));
+                if(!employee.getSalon().getId().equals(salon.getId())) throw new AccessDeniedException("Not your employee");
+                employee.setAvatarUrl(null); employees.save(employee); break;
+            default: throw new BadRequestException("Loại ảnh không hợp lệ.");
+        }
+    }
+    @Transactional
     public void removeGallery(UUID owner, String url) {
         var owned=salons.findByOwnerId(owner).orElseThrow(()->new ResourceNotFoundException("Salon not found"));
         var salon=salons.findForUpdateById(owned.getId()).orElseThrow(()->new ResourceNotFoundException("Salon not found"));

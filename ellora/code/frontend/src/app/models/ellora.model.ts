@@ -48,6 +48,8 @@ export interface Staff {
 }
 
 export interface Review {
+  salonReply?: string;
+  salonRepliedAt?: string;
   id: string;
   salonId: string;
   authorId: string;

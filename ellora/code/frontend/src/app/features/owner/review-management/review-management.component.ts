@@ -15,6 +15,7 @@ export interface ReviewItem {
   images?: string[];
   isReplied: boolean;
   repliedTimeAgo?: string;
+  reply?: string;
 }
 
 @Component({
@@ -29,6 +30,7 @@ export class ReviewManagement implements OnInit {
   readonly error = signal('');
   readonly replyingId = signal<number | null>(null);
   replyText = '';
+  saving = signal(false);
   async ngOnInit(): Promise<void> { await this.load(); }
   async load(): Promise<void> {
     try {
@@ -41,16 +43,19 @@ export class ReviewManagement implements OnInit {
       this.allReviews.set(items.map(item => ({
         id: item.id, customerName: item.customerName, customerInitials: item.customerName.slice(0, 2).toUpperCase(),
         timeAgo: new Date(item.createdAt).toLocaleDateString('vi-VN'), rating: item.rating, staffName: '—',
-        content: item.comment, images: [], isReplied: Boolean(item.salonReply), repliedTimeAgo: item.salonReply ? '' : undefined
+        content: item.comment, images: [], isReplied: item.salonReply != null || item.salonRepliedAt != null, reply: item.salonReply, repliedTimeAgo: item.salonRepliedAt ? new Date(item.salonRepliedAt).toLocaleDateString('vi-VN') : undefined
       })));
       this.ratingDistribution = [5, 4, 3, 2, 1].map(stars => ({ stars, count: items.filter(item => item.rating === stars).length, percentage: items.length ? items.filter(item => item.rating === stars).length / items.length * 100 : 0 }));
       this.error.set('');
     } catch (error) { this.error.set(ownerError(error)); }
   }
   async sendReply(id: number): Promise<void> {
+    if (this.saving() || this.allReviews().find(item => item.id === id)?.isReplied) return;
     if (!this.replyText.trim()) { this.error.set('Vui lòng nhập nội dung phản hồi.'); return; }
+    this.saving.set(true);
     try { await this.api.reply(id, this.replyText.trim()); this.replyingId.set(null); this.replyText = ''; await this.load(); }
     catch (error) { this.error.set(ownerError(error)); }
+    finally { this.saving.set(false); }
   }
   
   // Stats Data

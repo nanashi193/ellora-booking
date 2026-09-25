@@ -58,6 +58,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/business-registration/business-registration.component').then(m => m.BusinessRegistrationComponent)
       },
       {
+        path: 'admin/content', canActivate: [roleGuard], data: { role: 'ADMIN' },
+        loadComponent: () => import('./features/admin-content/admin-content.component').then(m => m.AdminContentComponent)
+      },
+      {
+        path: 'admin/billing', canActivate: [roleGuard], data: { role: 'ADMIN' },
+        loadComponent: () => import('./features/admin-content/billing.component').then(m => m.AdminBillingComponent)
+      },
+      {
         path: 'admin/approvals',
         canActivate: [roleGuard],
         data: { role: 'ADMIN' },

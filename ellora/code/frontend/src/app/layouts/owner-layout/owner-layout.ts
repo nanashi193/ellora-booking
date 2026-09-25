@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, inject, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
@@ -10,7 +10,7 @@ import { BookingService } from '../../services/booking.service';
   templateUrl: './owner-layout.html',
   styleUrl: './owner-layout.css',
 })
-export class OwnerLayout implements OnInit {
+export class OwnerLayout implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly elementRef = inject(ElementRef);
@@ -21,11 +21,17 @@ export class OwnerLayout implements OnInit {
   isDropdownOpen = false;
   isNotificationOpen = false;
 
+  soundEnabled = this.bookingService.soundEnabled;
+  ringing = this.bookingService.ringing;
+  soundError = this.bookingService.soundError;
+  enableSound(): void { void this.bookingService.enableSound(); }
+  stopRinging(): void { this.bookingService.stopRinging(); }
+  ngOnDestroy(): void { this.bookingService.stop(); }
   pendingCount = this.bookingService.pendingCount;
   pendingBookings = this.bookingService.pendingBookings;
 
   async ngOnInit(): Promise<void> {
-    void this.bookingService.loadSalonBookings();
+    this.bookingService.start();
     try {
       const profile = await this.authService.getUserProfile();
       this.userName = profile.name || profile.email;

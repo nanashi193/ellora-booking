@@ -28,6 +28,7 @@ export interface OwnerReview {
   rating: number;
   comment: string;
   salonReply: string;
+  salonRepliedAt?: string;
   createdAt: string;
 }
 export interface OwnerSummary {
@@ -74,6 +75,9 @@ export class OwnerApiService {
   }
   async removeGallery(url: string) {
     await firstValueFrom(this.http.delete(this.base + '/photos/gallery', { params: { url } }));
+  }
+  async removePhoto(kind: 'cover' | 'services' | 'employees', id: number) {
+    await firstValueFrom(this.http.delete(`${this.base}/photos/${kind}/${id}`));
   }
   salon() {
     return this.get<SalonRegistration>('salon');

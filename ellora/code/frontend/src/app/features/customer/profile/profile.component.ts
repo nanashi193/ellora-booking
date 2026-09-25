@@ -15,7 +15,8 @@ export class Profile implements OnInit {
     firstName: '',
     lastName: '',
     email: '',
-    phone: ''
+    phone: '',
+    avatarUrl: ''
   });
 
   async ngOnInit(): Promise<void> {
@@ -31,7 +32,8 @@ export class Profile implements OnInit {
         firstName: firstName,
         lastName: lastName,
         email: profile.email || '',
-        phone: profile.phone || ''
+        phone: profile.phone || '',
+        avatarUrl: profile.avatarUrl || ''
       });
     } catch (error) {
       console.error('Lỗi khi tải thông tin cá nhân:', error);

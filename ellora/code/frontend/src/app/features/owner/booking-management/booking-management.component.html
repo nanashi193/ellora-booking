@@ -30,6 +30,26 @@
     </button>
   </div>
   
+  @if (error()) { <p role="alert" class="px-6 py-2 text-red-700">{{ error() }}</p> }
+  <details class="shrink-0 border-b border-gray-100 px-6 py-3">
+    <summary class="cursor-pointer font-semibold text-[#8C3A5A]">Quản lý lịch đang chờ và đang thực hiện ({{ activeBookings().length }})</summary>
+    <div class="max-h-64 overflow-auto mt-3 space-y-3">
+      @for (booking of activeBookings(); track booking.id) {
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 text-sm">
+          <div><strong>{{ booking.customerName }}</strong><p>{{ booking.serviceName }} · {{ booking.date | date:'dd/MM/yyyy' }} · {{ formatTime(booking.startTime) }}</p></div>
+          <div class="flex flex-wrap gap-2">
+            @if (booking.status === 'pending') {
+              <button type="button" (click)="acceptBooking(booking.id)" class="rounded bg-[#8C3A5A] px-3 py-2 text-white">Xác nhận</button>
+              <button type="button" (click)="rejectBooking(booking.id)" class="rounded border px-3 py-2 text-red-700">Từ chối</button>
+            } @else {
+              <button type="button" (click)="booking.inProgress ? completeBooking(booking.id) : startBooking(booking.id)" class="rounded bg-[#8C3A5A] px-3 py-2 text-white">{{ booking.inProgress ? 'Hoàn thành' : 'Bắt đầu thực hiện' }}</button>
+            }
+          </div>
+        </div>
+      } @empty { <p>Không có lịch cần xử lý.</p> }
+    </div>
+  </details>
+
   <!-- Calendar Body -->
   <div class="flex-1 overflow-auto flex relative bg-[#FDFBFB]">
     
@@ -88,7 +108,7 @@
                           [class.bg-[#FDF6F8]]="booking.status === 'confirmed'"
                           [class.text-[#8C3A5A]]="booking.status === 'confirmed'"
                           [class.text-[#8C3A5A]]="booking.status === 'pending'">
-                      {{ booking.status === 'confirmed' ? 'Đã xác nhận' : 'Yêu cầu đang chờ' }}
+                      {{ booking.inProgress ? 'Đang thực hiện' : booking.status === 'confirmed' ? 'Đã xác nhận' : 'Yêu cầu đang chờ' }}
                     </span>
                     <span class="text-[12px] text-charcoal-800/60 font-medium">{{ formatTime(booking.startTime) }} - {{ formatTime(booking.startTime + booking.duration) }}</span>
                   </div>
@@ -108,16 +128,10 @@
                     </div>
                   }
                   
-                  <!-- Hover extra info -->
                   @if (booking.status === 'confirmed') {
-                    <div class="absolute inset-0 bg-[#FFFBFD]/95 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4 text-center">
-                      <span class="font-bold text-charcoal-900 mb-1">{{ booking.customerName }}</span>
-                      <span class="text-xs text-charcoal-800 mb-2">{{ booking.serviceName }}</span>
-                      <span class="text-xs font-semibold text-[#8C3A5A]">{{ formatTime(booking.startTime) }} - {{ formatTime(booking.startTime + booking.duration) }}</span>
-                      <button class="mt-3 px-4 py-1.5 bg-[#8C3A5A] text-white rounded text-xs font-medium hover:bg-[#7A324E] transition-colors shadow-sm">
-                        Xem chi tiết
-                      </button>
-                    </div>
+                    <button type="button" (click)="$event.stopPropagation(); booking.inProgress ? completeBooking(booking.id) : startBooking(booking.id)" class="mt-auto px-3 py-1 bg-[#8C3A5A] text-white rounded text-xs font-medium focus-visible:outline-2 focus-visible:outline-offset-2">
+                      {{ booking.inProgress ? 'Hoàn thành' : 'Bắt đầu thực hiện' }}
+                    </button>
                   }
                 </div>
               </div>

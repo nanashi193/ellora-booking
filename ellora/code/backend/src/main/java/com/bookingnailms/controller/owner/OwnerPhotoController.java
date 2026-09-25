@@ -12,6 +12,10 @@ import java.util.UUID;
 @RequestMapping("/owner/photos")
 public class OwnerPhotoController {
     private final OwnerPhotoService photos;
+    @DeleteMapping("/{kind}/{id}")
+    public ApiResponse<Void> removePhoto(@AuthenticationPrincipal Jwt jwt,@PathVariable String kind,@PathVariable Long id) {
+        photos.remove(UUID.fromString(jwt.getSubject()),kind,id);return ApiResponse.success(null,null);
+    }
     @PostMapping(value="/{kind}/{id}", consumes="multipart/form-data")
     public ApiResponse<String> upload(@AuthenticationPrincipal Jwt jwt,@PathVariable String kind,@PathVariable Long id,@RequestParam("file") MultipartFile file) {
         return ApiResponse.success(photos.upload(UUID.fromString(jwt.getSubject()),kind,id,file),null);

@@ -5,7 +5,19 @@ import { describe, it, expect } from 'vitest';
 import { OwnerApiService } from './owner-api.service';
 import { apiConfig } from '../config/api.config';
 import { SalonApiService } from './salon-api.service';
+import { AdminContentApiService } from './admin-content-api.service';
 describe('Cloud photos',()=>{
+ it('replaces and removes a gallery photo through the admin endpoint with its original URL',async()=>{
+  TestBed.configureTestingModule({providers:[provideHttpClient(),provideHttpClientTesting()]});
+  const api=TestBed.inject(AdminContentApiService),http=TestBed.inject(HttpTestingController);
+  const old='https://img/old.png';
+  const upload=api.uploadPhoto(42,'gallery',42,new File(['bytes'],'new.png',{type:'image/png'}),old);
+  const request=http.expectOne(apiConfig.baseUrl+'/admin/content/salons/42/photos/gallery/42');
+  expect(request.request.body.get('oldUrl')).toBe(old);request.flush({data:'https://img/new.png'});
+  expect(await upload).toBe('https://img/new.png');
+  const remove=api.removePhoto(42,'gallery',42,old);
+  const deletion=http.expectOne(r=>r.method==='DELETE'&&r.params.get('url')===old);deletion.flush({data:null});await remove;http.verify();
+ });
  it('uploads binary multipart to the selected record and returns saved cloud URL',async()=>{
   TestBed.configureTestingModule({providers:[provideHttpClient(),provideHttpClientTesting()]});
   const api=TestBed.inject(OwnerApiService),http=TestBed.inject(HttpTestingController);

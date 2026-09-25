@@ -127,9 +127,10 @@
             </button>
             @if (replyingId() === review.id) {
               <textarea aria-label="Nội dung phản hồi" [(ngModel)]="replyText" class="border rounded p-2 w-full"></textarea>
-              <button type="button" (click)="sendReply(review.id)" class="text-[#8C3A5A] font-bold">Gửi phản hồi</button>
+              <button type="button" [disabled]="saving()" (click)="sendReply(review.id)" class="text-[#8C3A5A] font-bold">Gửi phản hồi</button>
             }
           } @else {
+            <p class="whitespace-pre-wrap break-words text-sm">{{ review.reply }}</p>
             <div class="bg-[#FDE8E8]/50 text-[#8C3A5A] px-4 py-3 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold text-center">
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 shrink-0"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.177-7.86l-2.765-2.767L7 12.431l3.119 3.121a1 1 0 001.414 0l5.952-5.95-1.062-1.062-5.6 5.6z"></path></svg>
               Đã phản hồi {{ review.repliedTimeAgo }}

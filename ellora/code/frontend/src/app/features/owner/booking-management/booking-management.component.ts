@@ -57,6 +57,7 @@ export class BookingManagement implements OnInit {
   
   bookings = this.bookingService.bookings;
   error = this.bookingService.error;
+  activeBookings = computed(() => this.bookings().filter(item => item.status === 'pending' || item.status === 'confirmed'));
 
   async ngOnInit(): Promise<void> {
     void this.bookingService.loadSalonBookings();
@@ -121,6 +122,9 @@ export class BookingManagement implements OnInit {
   getHeight(duration: number): number {
     return duration * this.hourHeight;
   }
+
+  startBooking(id: number) { void this.bookingService.startBooking(id); }
+  completeBooking(id: number) { void this.bookingService.completeBooking(id); }
 
   acceptBooking(id: number) {
     this.bookingService.acceptBooking(id);
