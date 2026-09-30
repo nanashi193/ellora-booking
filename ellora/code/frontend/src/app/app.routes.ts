@@ -58,6 +58,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/business-registration/business-registration.component').then(m => m.BusinessRegistrationComponent)
       },
       {
+        path: 'admin/dashboard', canActivate: [roleGuard], data: { role: 'ADMIN' },
+        loadComponent: () => import('./features/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent)
+      },
+      {
+        path: 'admin/users', canActivate: [roleGuard], data: { role: 'ADMIN' },
+        loadComponent: () => import('./features/admin-users/admin-users.component').then(m => m.AdminUsersComponent)
+      },
+      {
         path: 'admin/content', canActivate: [roleGuard], data: { role: 'ADMIN' },
         loadComponent: () => import('./features/admin-content/admin-content.component').then(m => m.AdminContentComponent)
       },
@@ -80,9 +88,22 @@ export const routes: Routes = [
     data: { role: 'SALON_OWNER' },
     loadComponent: () => import('./layouts/owner-layout/owner-layout').then(m => m.OwnerLayout),
     children: [
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      {
+        path: 'profile',
+        loadComponent: () => import('./features/owner/salon-profile/salon-profile.component').then(m => m.SalonProfileComponent)
+      },
       {
         path: 'dashboard',
         loadComponent: () => import('./features/owner/dashboard/dashboard.component').then(m => m.Dashboard)
+      },
+      {
+        path: 'analytics',
+        loadComponent: () => import('./features/owner/dashboard/analytics-page.component').then(m => m.OwnerAnalyticsPage)
+      },
+      {
+        path: 'billing',
+        loadComponent: () => import('./features/owner/dashboard/billing-page.component').then(m => m.OwnerBillingPage)
       },
       {
         path: 'services',

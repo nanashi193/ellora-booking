@@ -5,8 +5,9 @@ import { RouterLink } from '@angular/router';
 import { AdminContentApiService, AdminContent, AdminSalon, ContentPage } from '../../services/admin-content-api.service';
 import { OwnerReview, ownerError } from '../../services/owner-api.service';
 import { PhotoUpload } from '../../shared/components/photo-upload.component';
+import { AdminNavigationComponent } from './admin-navigation.component';
 
-@Component({standalone:true, imports:[CommonModule,FormsModule,RouterLink,PhotoUpload],
+@Component({standalone:true, imports:[CommonModule,FormsModule,RouterLink,PhotoUpload,AdminNavigationComponent],
   templateUrl:'./admin-content.component.html', styleUrl:'../owner/owner-data.scss'})
 export class AdminContentComponent implements OnInit {
   private api=inject(AdminContentApiService);

@@ -68,6 +68,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     java.util.Optional<Booking> findForUpdateById(@Param("id") Long id);
     long countBySalonId(Long salonId);
     long countBySalonIdAndStatus(Long salonId, BookingStatus status);
+    @Query("select count(distinct b.customer.id) from Booking b where b.salon.id = :salon and b.status = 'COMPLETED' " +
+            "and coalesce(b.completedAt,b.updatedAt,b.scheduledAt) >= :start and coalesce(b.completedAt,b.updatedAt,b.scheduledAt) < :end")
+    long countCompletedCustomersBySalonAndPeriod(@Param("salon") Long salonId,
+            @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
     long countByStatus(BookingStatus status);
 
     Page<Booking> findByCustomerIdOrderByCreatedAtDesc(UUID customerId, Pageable pageable);

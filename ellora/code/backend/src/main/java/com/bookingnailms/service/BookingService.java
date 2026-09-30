@@ -254,6 +254,7 @@ public class BookingService {
                 .durationMinutes(booking.getDurationMinutes())
                 .status(booking.getStatus())
                 .reviewed(booking.getReview() != null)
+                .reviewRating(booking.getReview() != null ? booking.getReview().getRating() : null)
                 .customerNote(booking.getCustomerNote())
                 .salonNote(booking.getSalonNote())
                 .cancellationReason(booking.getCancellationReason())

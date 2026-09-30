@@ -8,6 +8,7 @@ import com.bookingnailms.exception.ResourceNotFoundException;
 import com.bookingnailms.exception.UnauthorizedException;
 import com.bookingnailms.repository.EmployeeRepository;
 import com.bookingnailms.repository.SalonRepository;
+import com.bookingnailms.repository.WorkingScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.UUID;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 
 @Slf4j
 @Service
@@ -24,6 +27,9 @@ public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final SalonRepository salonRepository;
+    private final WorkingScheduleRepository schedules;
+
+    public record Schedule(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime, boolean available) {}
 
     @Transactional
     public EmployeeResponse addEmployee(EmployeeRequest request, UUID ownerId) {
@@ -87,6 +93,18 @@ public class EmployeeService {
         return employeeRepository.findBySalonIdAndActiveTrue(salonId).stream()
                 .map(this::mapToEmployeeResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Schedule> getSchedules(Long employeeId, UUID ownerId) {
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee", "id", employeeId));
+        if (!employee.getSalon().getOwner().getId().equals(ownerId)) {
+            throw new UnauthorizedException("You are not the owner of this salon");
+        }
+        return schedules.findByEmployeeId(employeeId).stream()
+                .map(schedule -> new Schedule(schedule.getDayOfWeek(), schedule.getStartTime(), schedule.getEndTime(), schedule.isAvailable()))
+                .toList();
     }
 
     private EmployeeResponse mapToEmployeeResponse(Employee employee) {

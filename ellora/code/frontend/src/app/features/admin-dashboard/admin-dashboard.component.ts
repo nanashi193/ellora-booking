@@ -7,6 +7,7 @@ import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2
 import { ChartData, ChartOptions } from 'chart.js';
 import { apiConfig } from '../../config/api.config';
 import { vnDate } from '../../services/billing-api.service';
+import { AdminNavigationComponent } from '../admin-content/admin-navigation.component';
 
 interface AdminDashboardSummary {
   customers: number;
@@ -30,10 +31,11 @@ interface AdminRevenueReport {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, BaseChartDirective],
+  imports: [CommonModule, FormsModule, BaseChartDirective, AdminNavigationComponent],
   providers: [provideCharts(withDefaultRegisterables())],
   template: `
     <main class="space-y-8">
+      <app-admin-navigation />
       <header class="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl text-charcoal-900">Dashboard admin</h1>

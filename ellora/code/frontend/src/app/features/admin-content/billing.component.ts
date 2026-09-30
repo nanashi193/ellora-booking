@@ -4,8 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BillingApiService, BillingConfig, PlatformBill, vnMonth, billLabels } from '../../services/billing-api.service';
-@Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink],styleUrl:'../owner/owner-data.scss',template:`
+import { AdminNavigationComponent } from './admin-navigation.component';
+@Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink,AdminNavigationComponent],styleUrl:'../owner/owner-data.scss',template:`
 <main class="owner-page" style="max-width:1100px;margin:auto">
+ <app-admin-navigation />
  <header><h1>Phí nền tảng và thanh toán</h1><a routerLink="/admin/content">Quản lý nội dung</a></header>
  @if(error()){<p role="alert" class="error">{{error()}}</p>}
  @if(message()){<p role="status">{{message()}}</p>}
