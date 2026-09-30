@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, OnDestroy, OnInit } from '@angular
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { SalonApiService } from '../../services/salon-api.service';
+import { SalonApiService, SalonWorkingHour } from '../../services/salon-api.service';
 import { Salon, Service, Staff } from '../../models/ellora.model';
 import { AuthService } from '../../services/auth.service';
 import { BookingApiService } from '../../services/booking-api.service';
@@ -36,6 +36,7 @@ export class BookingComponent implements OnInit, OnDestroy {
   salon = signal<Salon | null>(null);
   services = signal<Service[]>([]);
   staffList = signal<Staff[]>([]);
+  workingHours = signal<SalonWorkingHour[]>([]);
   loading = signal(true);
   loadError = signal('');
 
@@ -83,7 +84,7 @@ export class BookingComponent implements OnInit, OnDestroy {
     const id=this.route.snapshot.queryParamMap.get('salonId');
     this.loading.set(true); this.loadError.set('');
     if(!id) { this.loadError.set('Vui lòng chọn salon từ trang tìm kiếm trước khi đặt lịch.'); this.loading.set(false); return; }
-    try { const [salon,services,staff]=await Promise.all([this.dataService.detail(id),this.dataService.services(id),this.dataService.employees(id)]);this.salon.set(salon);this.services.set(services);this.staffList.set(staff); const chosen=this.route.snapshot.queryParamMap.get('serviceId'); if(chosen && services.some(s=>s.id===chosen))this.selectedServiceIds.set([chosen]); }
+    try { const [salon,services,staff,hours]=await Promise.all([this.dataService.detail(id),this.dataService.services(id),this.dataService.employees(id),this.dataService.workingHours(id)]);this.salon.set(salon);this.services.set(services);this.staffList.set(staff);this.workingHours.set(hours); const chosen=this.route.snapshot.queryParamMap.get('serviceId'); if(chosen && services.some(s=>s.id===chosen))this.selectedServiceIds.set([chosen]); }
     catch { this.loadError.set('Không tải được thông tin đặt lịch. Vui lòng thử lại.'); }
     finally { this.loading.set(false); }
   }
@@ -142,8 +143,28 @@ export class BookingComponent implements OnInit, OnDestroy {
     return days;
   });
 
-  morningSlots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
-  afternoonSlots = ['13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+  readonly availableSlots = computed(() => {
+    const date = this.selectedDate();
+    const duration = this.selectedServices()[0]?.durationMinutes;
+    if (!date || !duration) return [];
+    const weekday = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'][new Date(`${date}T12:00:00`).getDay()];
+    const hours = this.workingHours().find(item => item.dayOfWeek === weekday);
+    if (!hours || hours.closed || !hours.openTime || !hours.closeTime) return [];
+    const toMinutes = (time: string) => { const [h, m] = time.split(':').map(Number); return h * 60 + m; };
+    const slots: string[] = [];
+    for (let time = toMinutes(hours.openTime); time + duration <= toMinutes(hours.closeTime); time += 30) {
+      slots.push(`${String(Math.floor(time / 60)).padStart(2, '0')}:${String(time % 60).padStart(2, '0')}`);
+    }
+    return slots;
+  });
+  morningSlots = computed(() => this.availableSlots().filter(time => Number(time.slice(0, 2)) < 12));
+  afternoonSlots = computed(() => this.availableSlots().filter(time => Number(time.slice(0, 2)) >= 12));
+
+  isClosedDate(date: string): boolean {
+    const weekday = new Date(`${date}T12:00:00`).getDay();
+    const day = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'][weekday];
+    return this.workingHours().find(hour => hour.dayOfWeek === day)?.closed ?? false;
+  }
 
   selectedDateLabel = computed(() => {
     if (!this.selectedDate()) return '';

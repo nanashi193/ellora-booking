@@ -1,7 +1,7 @@
 import { Component, inject, computed, signal, OnInit, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { SalonApiService } from '../../services/salon-api.service';
+import { SalonApiService, SalonWorkingHour } from '../../services/salon-api.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ServiceCard } from '../../shared/components/service-card/service-card.component';
 import { Salon, Review, Service } from '../../models/ellora.model';
@@ -21,6 +21,7 @@ export class SalonDetails implements OnInit {
   private request = 0;
   salon = signal<Salon | null>(null);
   services = signal<Service[]>([]);
+  workingHours = signal<SalonWorkingHour[]>([]);
   reviews = signal<Review[]>([]);
   loading = signal(true); error = signal(''); reviewPage = signal(0); reviewsLast = signal(true); reviewsLoading = signal(false); reviewError = signal('');
   ngOnInit() { this.route.paramMap.pipe(takeUntilDestroyed(this.destroy)).subscribe(() => { void this.load(); }); }
@@ -28,9 +29,9 @@ export class SalonDetails implements OnInit {
     const request = ++this.request;
     this.loading.set(true); this.error.set(''); this.salon.set(null); this.services.set([]); this.reviews.set([]); this.selectedServices.set([]);
     const id = this.route.snapshot.paramMap.get('id') || '';
-    try { const [salon, services, reviews] = await Promise.all([this.dataService.detail(id), this.dataService.services(id), this.dataService.reviews(id)]);
+    try { const [salon, services, reviews, hours] = await Promise.all([this.dataService.detail(id), this.dataService.services(id), this.dataService.reviews(id), this.dataService.workingHours(id)]);
       if(request !== this.request) return;
-      this.salon.set(salon); this.services.set(services); this.reviews.set(reviews.content); this.reviewPage.set(0); this.reviewsLast.set(reviews.last);
+      this.salon.set(salon); this.services.set(services); this.reviews.set(reviews.content); this.workingHours.set(hours); this.reviewPage.set(0); this.reviewsLast.set(reviews.last);
     } catch { if(request === this.request) this.error.set('Không tải được salon hoặc salon chưa được duyệt.'); }
     finally { if(request === this.request) this.loading.set(false); }
   }
@@ -39,6 +40,9 @@ export class SalonDetails implements OnInit {
     this.reviewsLoading.set(true); this.reviewError.set('');
     try { const result = await this.dataService.reviews(id, this.reviewPage()+1); if(this.salon()?.id !== id) return; this.reviews.update(items=>[...items,...result.content]); this.reviewPage.set(result.pageNumber); this.reviewsLast.set(result.last); }
     catch { this.reviewError.set('Không tải được thêm đánh giá.'); } finally { this.reviewsLoading.set(false); }
+  }
+  dayLabel(day: string): string {
+    return ({ MONDAY: 'Thứ Hai', TUESDAY: 'Thứ Ba', WEDNESDAY: 'Thứ Tư', THURSDAY: 'Thứ Năm', FRIDAY: 'Thứ Sáu', SATURDAY: 'Thứ Bảy', SUNDAY: 'Chủ Nhật' } as Record<string, string>)[day] ?? day;
   }
   // Service tabs
   readonly tabs = ['Dịch vụ'];

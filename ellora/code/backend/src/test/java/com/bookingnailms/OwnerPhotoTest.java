@@ -21,21 +21,25 @@ class OwnerPhotoTest {
   var error=assertThrows(ResponseStatusException.class,()->cloud.upload(new MockMultipartFile("file","test.png","image/png",out.toByteArray())));
   assertEquals(503,error.getStatusCode().value());
  }
- @Test void ownershipIsCheckedBeforeUploadAndUrlIsSaved(){
+ @Test void ownershipIsCheckedBeforeUploadAndCoverWaitsForReview(){
   var salons=mock(SalonRepository.class);var services=mock(NailServiceRepository.class);var employees=mock(EmployeeRepository.class);var cloud=mock(CloudinaryImageService.class);
   UUID owner=UUID.randomUUID();var salon=Salon.builder().id(42L).build();
   when(salons.findByOwnerId(owner)).thenReturn(Optional.of(salon));when(salons.findForUpdateById(42L)).thenReturn(Optional.of(salon));
-  var photo=new OwnerPhotoService(salons,services,employees,cloud);var file=new MockMultipartFile("file",new byte[]{1});
+  var changes=mock(SalonProfileChangeService.class);
+  var photo=new OwnerPhotoService(salons,services,employees,cloud,changes);var file=new MockMultipartFile("file",new byte[]{1});
   when(services.findById(8L)).thenReturn(Optional.of(NailService.builder().salon(Salon.builder().id(99L).build()).build()));
   assertThrows(AccessDeniedException.class,()->photo.upload(owner,"services",8L,file));verifyNoInteractions(cloud);
   when(cloud.upload(file)).thenReturn("https://res.cloudinary.com/test/image/upload/photo.png");
-  photo.upload(owner,"cover",42L,file);assertTrue(salon.getLogoUrl().startsWith("https://res.cloudinary.com/"));verify(salons).save(salon);
+  photo.upload(owner,"cover",42L,file);assertNull(salon.getLogoUrl());verify(salons,never()).save(any());
+  verify(changes).submitPhoto(salon,SalonProfileChange.Kind.COVER,"https://res.cloudinary.com/test/image/upload/photo.png",List.of());
+  doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT)).when(changes).preparePhotoChange(salon);
+  assertThrows(ResponseStatusException.class,()->photo.upload(owner,"cover",42L,file));verify(cloud,times(1)).upload(file);
  }
  @Test void galleryLimitRejectsBeforeCloudUpload(){
   var salons=mock(SalonRepository.class);var cloud=mock(CloudinaryImageService.class);UUID owner=UUID.randomUUID();
   var salon=Salon.builder().id(42L).imageUrls(new ArrayList<>(Collections.nCopies(10,"https://example.com/image.png"))).build();
   when(salons.findByOwnerId(owner)).thenReturn(Optional.of(salon));when(salons.findForUpdateById(42L)).thenReturn(Optional.of(salon));
-  var photos=new OwnerPhotoService(salons,mock(NailServiceRepository.class),mock(EmployeeRepository.class),cloud);
+  var photos=new OwnerPhotoService(salons,mock(NailServiceRepository.class),mock(EmployeeRepository.class),cloud,mock(SalonProfileChangeService.class));
   assertThrows(BadRequestException.class,()->photos.upload(owner,"gallery",42L,new MockMultipartFile("file",new byte[]{1})));verifyNoInteractions(cloud);
  }
 
@@ -43,10 +47,14 @@ class OwnerPhotoTest {
   var salons=mock(SalonRepository.class);var services=mock(NailServiceRepository.class);var employees=mock(EmployeeRepository.class);var cloud=mock(CloudinaryImageService.class);
   UUID owner=UUID.randomUUID();var salon=Salon.builder().id(42L).logoUrl("cover").imageUrls(new ArrayList<>(List.of("gallery"))).build();
   when(salons.findByOwnerId(owner)).thenReturn(Optional.of(salon));when(salons.findForUpdateById(42L)).thenReturn(Optional.of(salon));
-  var photo=new OwnerPhotoService(salons,services,employees,cloud);
+  var changes=mock(SalonProfileChangeService.class);
+  var photo=new OwnerPhotoService(salons,services,employees,cloud,changes);
   var other=NailService.builder().salon(Salon.builder().id(99L).build()).imageUrl("other").build();when(services.findById(8L)).thenReturn(Optional.of(other));
   assertThrows(AccessDeniedException.class,()->photo.remove(owner,"services",8L));assertEquals("other",other.getImageUrl());verify(services,never()).save(any());
-  photo.remove(owner,"cover",42L);assertNull(salon.getLogoUrl());assertEquals(List.of("gallery"),salon.getImageUrls());
+  photo.remove(owner,"cover",42L);assertEquals("cover",salon.getLogoUrl());assertEquals(List.of("gallery"),salon.getImageUrls());
+  verify(changes).submitPhoto(salon,SalonProfileChange.Kind.COVER,null,List.of("gallery"));
+  photo.removeGallery(owner,"gallery");assertEquals(List.of("gallery"),salon.getImageUrls());
+  verify(changes).submitPhoto(salon,SalonProfileChange.Kind.GALLERY,"cover",List.of());
   var employee=Employee.builder().salon(salon).avatarUrl("avatar").build();when(employees.findById(2L)).thenReturn(Optional.of(employee));
   photo.remove(owner,"employees",2L);assertNull(employee.getAvatarUrl());verify(employees).save(employee);verifyNoInteractions(cloud);
  }

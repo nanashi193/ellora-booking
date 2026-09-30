@@ -1,8 +1,19 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, RouterStateSnapshot, Router, provideRouter } from '@angular/router';
+import { Component } from '@angular/core';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { RouterOutlet, Routes } from '@angular/router';
+import { routes } from '../app.routes';
+import { ActivatedRouteSnapshot, RouterStateSnapshot, Router, provideRouter, convertToParamMap } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { ProfileApiService, Profile } from '../services/profile-api.service';
-import { roleGuard, roleHome } from './role.guard';
+import { roleGuard, roleHome, nonOwnerGuard } from './role.guard';
+
+@Component({standalone:true,imports:[RouterOutlet],template:'<router-outlet />'})
+class RouteStub {}
+function stubRoutes(items:Routes):Routes {
+  return items.map(({loadComponent,children,...route})=>({...route,
+    ...(loadComponent?{component:RouteStub}:{}),...(children?{children:stubRoutes(children)}:{})}));
+}
 
 describe('Role routes', () => {
   let role: Profile['role'];
@@ -33,8 +44,55 @@ describe('Role routes', () => {
     expect(TestBed.inject(Router).serializeUrl(await check('ADMIN') as any)).toBe('/login');
   });
   it('chooses login destinations for all roles', () => {
-    expect(roleHome('ADMIN')).toBe('/admin/approvals');
-    expect(roleHome('SALON_OWNER')).toBe('/owner/dashboard');
+    expect(roleHome('ADMIN')).toBe('/profile/approvals');
+    expect(roleHome('SALON_OWNER')).toBe('/owner');
     expect(roleHome('CUSTOMER')).toBe('/');
+  });
+  const customerPage = (url: string, callback=false) => TestBed.runInInjectionContext(() => nonOwnerGuard(
+    {data:{},routeConfig:{path:url.slice(1)},queryParamMap:convertToParamMap(callback?{code:'test-code'}:{})} as ActivatedRouteSnapshot,
+    {url} as RouterStateSnapshot));
+  it('redirects authenticated owners from customer pages and login to management', async () => {
+    role='SALON_OWNER';
+    for (const url of ['/','/search','/booking','/my-bookings','/profile','/login','/register']) {
+      expect(TestBed.inject(Router).serializeUrl(await customerPage(url) as any)).toBe('/owner');
+    }
+  });
+  it('allows customer browsing and signed-out login, and lets OAuth complete',async()=>{
+    expect(await customerPage('/search')).toBe(true);
+    authenticated=false;expect(await customerPage('/login')).toBe(true);
+    authenticated=true;role='SALON_OWNER';expect(await customerPage('/login',true)).toBe(true);
+  });
+  it('resolves /owner and redirects direct customer URLs without a navigation loop',async()=>{
+    role='SALON_OWNER';TestBed.inject(Router).resetConfig(stubRoutes(routes));
+    const harness=await RouterTestingHarness.create();
+    for(const url of ['/owner','/booking','/login','/profile','/admin/users']) {
+      await harness.navigateByUrl(url);
+      expect(TestBed.inject(Router).url).toBe('/owner/dashboard');
+    }
+    await harness.navigateByUrl('/owner/account');expect(TestBed.inject(Router).url).toBe('/owner/account');
+  });
+  it('blocks admins from booking and business registration while allowing customers',async()=>{
+    TestBed.inject(Router).resetConfig(stubRoutes(routes));
+    const harness=await RouterTestingHarness.create();
+    role='ADMIN';
+    for(const url of ['/booking','/my-bookings','/business-registration']) {
+      await harness.navigateByUrl(url);expect(TestBed.inject(Router).url).toBe('/profile/approvals');
+    }
+    role='CUSTOMER';
+    for(const url of ['/booking','/business-registration']) {
+      await harness.navigateByUrl(url);expect(TestBed.inject(Router).url).toBe(url);
+    }
+  });
+  it('keeps old admin links inside the account workspace and protects every section',async()=>{
+    TestBed.inject(Router).resetConfig(stubRoutes(routes));
+    const harness=await RouterTestingHarness.create();role='ADMIN';
+    for(const section of ['users','approvals','content','billing']) {
+      await harness.navigateByUrl('/admin/'+section);
+      expect(TestBed.inject(Router).url).toBe('/profile/'+section);
+    }
+    role='CUSTOMER';
+    for(const section of ['users','approvals','content','billing']) {
+      await harness.navigateByUrl('/profile/'+section);expect(TestBed.inject(Router).url).toBe('/');
+    }
   });
 });

@@ -1,5 +1,5 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, signal, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { BookingApiService, BookingItem, BookingStatus } from '../../../services/booking-api.service';
@@ -11,8 +11,18 @@ import { BookingApiService, BookingItem, BookingStatus } from '../../../services
   templateUrl: './my-bookings.component.html',
   styleUrl: './my-bookings.component.scss'
 })
-export class MyBookings implements OnInit {
+export class MyBookings implements OnInit, OnDestroy {
   private readonly bookingApi = inject(BookingApiService);
+  private readonly document = inject(DOCUMENT);
+  private readonly platformId = inject(PLATFORM_ID);
+  private refreshTimer?: ReturnType<typeof setInterval>;
+  private refreshing = false;
+  private destroyed = false;
+  private requestVersion = 0;
+  refreshWarning = signal('');
+  private readonly onVisibility = () => {
+    if (!this.document.hidden) void this.refreshBookings();
+  };
 
   bookings = signal<BookingItem[]>([]);
   isLoading = signal(true);
@@ -41,6 +51,7 @@ export class MyBookings implements OnInit {
       this.reviewError.set('Hãy chọn từ 1 đến 5 sao. Nhận xét tối đa 1000 ký tự.'); return;
     }
     this.reviewSaving.set(true); this.reviewError.set('');
+    this.requestVersion++;
     try {
       await this.bookingApi.reviewBooking(id, this.rating, this.comment.trim());
       this.bookings.update(list => list.map(b => b.id === id ? {...b, reviewed: true} : b));
@@ -52,27 +63,59 @@ export class MyBookings implements OnInit {
   }
 
   async ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.refreshTimer = setInterval(() => void this.refreshBookings(), 5000);
+      this.document.addEventListener('visibilitychange', this.onVisibility);
+    }
     await this.loadBookings();
   }
 
+  ngOnDestroy(): void {
+    this.destroyed = true;
+    this.requestVersion++;
+    clearInterval(this.refreshTimer);
+    this.document.removeEventListener('visibilitychange', this.onVisibility);
+  }
+
+  private async refreshBookings(): Promise<void> {
+    if (this.destroyed || this.document.hidden || this.refreshing || this.isLoading() || this.reviewSaving() || this.cancellingId() !== null) return;
+    this.refreshing = true;
+    const version = this.requestVersion;
+    try {
+      const page = await this.bookingApi.getMyBookings(this.pageNumber(), 20);
+      if (this.destroyed || version !== this.requestVersion) return;
+      this.bookings.set(page.content);
+      this.lastPage.set(page.last);
+      this.error.set(null);
+      this.refreshWarning.set('');
+    } catch {
+      if (!this.destroyed && version === this.requestVersion) this.refreshWarning.set('Tạm thời chưa cập nhật được trạng thái mới. Hệ thống sẽ tự thử lại.');
+    } finally { this.refreshing = false; }
+  }
+
   async loadBookings(pageNumber = this.pageNumber()) {
+    const version = ++this.requestVersion;
     try {
       this.isLoading.set(true);
       this.error.set(null);
       const page = await this.bookingApi.getMyBookings(pageNumber, 20);
+      if (this.destroyed || version !== this.requestVersion) return;
       this.bookings.set(page.content);
+      this.refreshWarning.set('');
       this.pageNumber.set(pageNumber); this.lastPage.set(page.last);
       this.reviewId.set(null);
     } catch (e: any) {
+      if (this.destroyed || version !== this.requestVersion) return;
       this.error.set('Không thể tải danh sách đặt lịch. Vui lòng thử lại.');
       console.error('getMyBookings error', e);
     } finally {
-      this.isLoading.set(false);
+      if (!this.destroyed && version === this.requestVersion) this.isLoading.set(false);
     }
   }
 
   async cancelBooking(id: number) {
     if (!confirm('Bạn có chắc muốn hủy lịch hẹn này?')) return;
+    this.requestVersion++;
     try {
       this.cancellingId.set(id);
       await this.bookingApi.cancelBooking(id);

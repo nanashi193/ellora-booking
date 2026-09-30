@@ -18,6 +18,25 @@ import java.util.UUID;
 public class SalonRegistrationController {
     private final SalonService salons;
     private final AdminService admin;
+    private final com.bookingnailms.service.SalonProfileChangeService profileChanges;
+
+    @GetMapping("/admin/salon-changes")
+    public ApiResponse<PageResponse<SalonProfileChangeResponse>> changes(@RequestParam(defaultValue = "0") int page) {
+        return ApiResponse.success(profileChanges.pending(PageRequest.of(Math.max(0, page), 20,
+                org.springframework.data.domain.Sort.by("id"))), null);
+    }
+
+    @PostMapping("/admin/salon-changes/{id}/approve")
+    public ApiResponse<Void> approveChange(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        profileChanges.review(id, true, UUID.fromString(jwt.getSubject()));
+        return ApiResponse.success(null, "Đã duyệt và cập nhật hồ sơ salon.");
+    }
+
+    @PostMapping("/admin/salon-changes/{id}/reject")
+    public ApiResponse<Void> rejectChange(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        profileChanges.review(id, false, UUID.fromString(jwt.getSubject()));
+        return ApiResponse.success(null, "Đã từ chối. Hồ sơ salon được giữ nguyên.");
+    }
 
     @PostMapping("/business/registration")
     public ApiResponse<SalonResponse> register(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody SalonRequest request) {

@@ -1,0 +1,1 @@
+{"extends":"./tsconfig.spec.json","include":["src/app/config/auth-storage.spec.ts","src/app/config/auth-storage-integration.spec.ts","src/app/services/auth-profile.spec.ts","src/app/guards/role.guard.spec.ts","src/**/*.d.ts"]}

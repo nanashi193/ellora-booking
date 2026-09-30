@@ -4,8 +4,26 @@ import { AuthService } from '../services/auth.service';
 import { ProfileApiService, Profile } from '../services/profile-api.service';
 
 export function roleHome(role: Profile['role']): string {
-  return role === 'ADMIN' ? '/admin/approvals' : role === 'SALON_OWNER' ? '/owner/dashboard' : '/';
+  return role === 'ADMIN' ? '/profile/approvals' : role === 'SALON_OWNER' ? '/owner' : '/';
 }
+// Customer-facing and sign-in routes must not become a second workspace for owners.
+export const nonOwnerGuard: CanActivateFn = async (route, state) => {
+  const auth = inject(AuthService);
+  const profiles = inject(ProfileApiService);
+  const router = inject(Router);
+  // Let the OAuth callback finish before resolving the profile and destination.
+  if (route.routeConfig?.path === 'login' && route.queryParamMap.has('code')) return true;
+  if (!await auth.isAuthenticated()) return true;
+  try {
+    const { role } = await profiles.getCurrentUser();
+    if (role === 'SALON_OWNER' || (route.data['customerOnly'] && role !== 'CUSTOMER')) {
+      return router.parseUrl(roleHome(role));
+    }
+    return true;
+  } catch {
+    return state.url.startsWith('/login') ? true : router.parseUrl('/login');
+  }
+};
 export const roleGuard: CanActivateFn = async (route) => {
   const auth = inject(AuthService);
   const profiles = inject(ProfileApiService);

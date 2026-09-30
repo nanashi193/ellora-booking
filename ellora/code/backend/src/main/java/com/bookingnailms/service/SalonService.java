@@ -9,7 +9,6 @@ import com.bookingnailms.entity.User;
 import com.bookingnailms.enums.SalonStatus;
 import com.bookingnailms.exception.BadRequestException;
 import com.bookingnailms.exception.ResourceNotFoundException;
-import com.bookingnailms.exception.UnauthorizedException;
 import com.bookingnailms.repository.SalonRepository;
 import com.bookingnailms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -61,29 +60,6 @@ public class SalonService {
 
         salon = salonRepository.save(salon);
         log.info("Salon created: {} by owner: {}", salon.getName(), owner.getEmail());
-
-        return mapToSalonResponse(salon);
-    }
-
-    @Transactional
-    public SalonResponse updateSalon(Long salonId, SalonRequest request, UUID ownerId) {
-        Salon salon = salonRepository.findById(salonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Salon", "id", salonId));
-
-        if (!salon.getOwner().getId().equals(ownerId)) {
-            throw new UnauthorizedException("You are not the owner of this salon");
-        }
-
-        salon.setName(request.getName());
-        salon.setDescription(request.getDescription());
-        salon.setAddress(request.getAddress());
-        salon.setCity(request.getCity());
-        salon.setDistrict(request.getDistrict());
-        salon.setPhone(request.getPhone());
-        salon.setEmail(request.getEmail());
-
-        salon = salonRepository.save(salon);
-        log.info("Salon updated: {}", salon.getName());
 
         return mapToSalonResponse(salon);
     }

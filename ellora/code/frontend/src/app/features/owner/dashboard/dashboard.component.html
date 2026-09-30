@@ -12,6 +12,27 @@
   @if (loading()) {
     <p role="status">Đang tải…</p>
   }
+  @if (salon()) {
+    <section class="card">
+      <h2>Giờ hoạt động</h2>
+      <p>Các giờ đặt lịch bắt đầu theo mốc 30 phút và phải kết thúc trước giờ đóng cửa.</p>
+      @for (day of weekdays; track day.key) {
+        @if (hourFor(day.key); as hour) {
+          <div class="actions" style="align-items:center;gap:12px;margin:8px 0">
+            <strong style="min-width:100px">{{ day.label }}</strong>
+            <label><input type="checkbox" [checked]="hour.closed" (change)="updateHour(day.key, {closed: $any($event.target).checked})" /> Nghỉ</label>
+            @if (!hour.closed) {
+              <input aria-label="Giờ mở cửa" type="time" step="1800" [value]="hour.openTime" (change)="updateHour(day.key, {openTime: $any($event.target).value})" />
+              <span>đến</span>
+              <input aria-label="Giờ đóng cửa" type="time" step="1800" [value]="hour.closeTime" (change)="updateHour(day.key, {closeTime: $any($event.target).value})" />
+            }
+          </div>
+        }
+      }
+      <button (click)="saveHours()" [disabled]="savingHours()">{{ savingHours() ? 'Đang lưu…' : 'Lưu giờ hoạt động' }}</button>
+      @if (hoursMessage()) { <p role="status">{{ hoursMessage() }}</p> }
+    </section>
+  }
   @if (stats(); as s) {
     <div class="grid">
       <div class="card">
@@ -31,6 +52,7 @@
       <h2>Quản lý salon</h2>
       <p>Thêm dịch vụ và nhân viên để chuẩn bị nhận lịch hẹn.</p>
       <div class="actions">
+        <a class="link" routerLink="/owner/profile">Sửa hồ sơ salon</a>
         <a class="link" routerLink="/owner/services">Dịch vụ</a
         ><a class="link" routerLink="/owner/staff">Nhân viên</a
         ><a class="link" routerLink="/owner/bookings">Lịch hẹn</a>
@@ -38,11 +60,11 @@
     </div>
   }
   @if (salon(); as current) {
-    <app-owner-revenue />
-    <app-owner-billing />
     <section class="card">
       <h2>Ảnh tiệm</h2>
       <p>Ảnh đại diện hiển thị trên homepage. Bộ ảnh hiển thị trong trang chi tiết salon.</p>
+      <p>Thêm hoặc xóa ảnh cần Admin duyệt. Mỗi tiệm có một yêu cầu chờ duyệt tại một thời điểm. <a routerLink="/owner/profile" class="link">Xem yêu cầu và trạng thái</a>.</p>
+      @if(photoMessage()){<p role="status" class="success">{{photoMessage()}}</p>}
       <div class="grid">
         <app-photo-upload
           kind="cover"
@@ -53,6 +75,7 @@
         /><app-photo-upload
           kind="gallery"
           [entityId]="current.id"
+          [existingCount]="current.imageUrls?.length || 0"
           label="Thêm ảnh tiệm (tối đa 10 ảnh)"
           (saved)="photosChanged()"
         />
@@ -64,7 +87,7 @@
               [src]="url"
               alt="Ảnh salon"
               style="width: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: center; border-radius: 10px"
-            /><button (click)="removeImage(url)" [disabled]="photoBusy()">Xóa ảnh khỏi bộ ảnh</button>
+            /><button (click)="removeImage(url)" [disabled]="photoBusy()">Yêu cầu xóa ảnh khỏi bộ ảnh</button>
           </div>
         }
       </div>

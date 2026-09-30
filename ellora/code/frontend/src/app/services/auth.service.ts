@@ -12,11 +12,10 @@ import {
   signUp,
   updatePassword,
 } from 'aws-amplify/auth';
-import { cognitoUserPoolsTokenProvider } from 'aws-amplify/auth/cognito';
-import { defaultStorage, sessionStorage } from 'aws-amplify/utils';
 import {
   isCognitoConfigured,
   isGoogleSignInConfigured,
+  selectAuthStorage,
 } from '../config/cognito.config';
 import {
   LoginRequest,
@@ -37,9 +36,7 @@ export class AuthService {
     }
 
     try {
-      cognitoUserPoolsTokenProvider.setKeyValueStorage(
-        credentials.remember ? defaultStorage : sessionStorage,
-      );
+      selectAuthStorage(credentials.remember);
 
       if (await this.isAuthenticated()) {
         return { success: true };
@@ -86,6 +83,7 @@ export class AuthService {
     }
 
     try {
+      selectAuthStorage(true);
       await signInWithRedirect({ provider: 'Google' });
       return { success: true };
     } catch (error) {

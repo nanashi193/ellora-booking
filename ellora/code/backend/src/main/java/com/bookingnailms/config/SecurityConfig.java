@@ -42,6 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/forgot-password", "/auth/forgot-password/confirm").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/owner/**").hasRole("SALON_OWNER")
+                        .requestMatchers("/bookings", "/bookings/**", "/reviews", "/reviews/**").hasRole("CUSTOMER")
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/business/registration").hasRole("CUSTOMER")
                         .anyRequest().authenticated()
                 )

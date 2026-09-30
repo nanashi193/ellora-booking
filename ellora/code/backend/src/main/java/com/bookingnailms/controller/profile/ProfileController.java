@@ -23,6 +23,21 @@ import java.util.UUID;
 public class ProfileController {
 
     private final ProfileService profileService;
+    private final com.bookingnailms.service.CloudinaryImageService images;
+
+    @org.springframework.web.bind.annotation.PutMapping
+    public ApiResponse<ProfileResponse> update(@AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody com.bookingnailms.dto.profile.ProfileUpdateRequest request) {
+        return ApiResponse.success(profileService.update(UUID.fromString(jwt.getSubject()), request), "Đã lưu hồ sơ.");
+    }
+
+    @PostMapping("/avatar")
+    public ApiResponse<ProfileResponse> avatar(@AuthenticationPrincipal Jwt jwt,
+            @org.springframework.web.bind.annotation.RequestParam org.springframework.web.multipart.MultipartFile file) {
+        UUID id = UUID.fromString(jwt.getSubject());
+        profileService.get(id);
+        return ApiResponse.success(profileService.updateAvatar(id, images.upload(file)), "Đã cập nhật ảnh đại diện.");
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<ProfileResponse>> sync(

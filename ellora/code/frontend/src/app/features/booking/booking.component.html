@@ -160,7 +160,7 @@
                 [class.calendar-day--other-month]="!day.isCurrentMonth"
                 [class.calendar-day--past]="day.isPast"
                 [class.calendar-day--selected]="selectedDate() === day.fullDate"
-                [disabled]="day.isPast || !day.isCurrentMonth"
+                [disabled]="day.isPast || !day.isCurrentMonth || isClosedDate(day.fullDate)"
                 (click)="selectedDate.set(day.fullDate); selectedTime.set(null)"
               >{{ day.date }}</button>
             }
@@ -169,13 +169,16 @@
 
         <!-- Time slots side -->
         <div class="timeslot-side">
+          @if (selectedDate() && !availableSlots().length) {
+            <p role="status">Salon nghỉ hoặc dịch vụ không còn khung giờ phù hợp trong ngày này.</p>
+          }
           <div class="timeslot-group">
             <p class="timeslot-group-label">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              SÁNG
+              GIỜ MỞ CỬA (SÁNG)
             </p>
             <div class="timeslot-grid">
-              @for (t of morningSlots; track t) {
+              @for (t of morningSlots(); track t) {
                 <button type="button" class="timeslot" [class.timeslot--selected]="selectedTime() === t" (click)="selectedTime.set(t)">{{ t }}</button>
               }
             </div>
@@ -183,10 +186,10 @@
           <div class="timeslot-group">
             <p class="timeslot-group-label">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-              CHIỀU
+              GIỜ MỞ CỬA (CHIỀU)
             </p>
             <div class="timeslot-grid">
-              @for (t of afternoonSlots; track t) {
+              @for (t of afternoonSlots(); track t) {
                 <button type="button" class="timeslot" [class.timeslot--selected]="selectedTime() === t" (click)="selectedTime.set(t)">{{ t }}</button>
               }
             </div>

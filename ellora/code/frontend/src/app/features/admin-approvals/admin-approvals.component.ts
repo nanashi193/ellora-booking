@@ -1,13 +1,12 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { PendingPage, SalonRegistration, SalonRegistrationService } from '../../services/salon-registration.service';
+import { SalonChangesComponent } from './salon-changes.component';
 
-@Component({ standalone: true, imports:[RouterLink], template: `
-  <main class="max-w-5xl mx-auto px-6 py-12">
-    <p class="text-dusty-pink-600 mb-3">QUẢN TRỊ</p>
-    <h1 class="font-serif text-3xl mb-8">Duyệt đăng ký salon</h1>
-    <a routerLink="/admin/content" class="underline block mb-6">Quản lý ảnh, đánh giá và phản hồi</a>
-    <a routerLink="/admin/billing" class="underline block mb-6">Phí nền tảng và thanh toán</a>
+@Component({ standalone: true, imports:[SalonChangesComponent], template: `
+  <section>
+    <h1 class="font-serif text-3xl mb-8">Duyệt hồ sơ salon</h1>
+    <app-admin-salon-changes/>
+    <h2 class="font-serif text-2xl mb-6">Đăng ký salon mới</h2>
     @if (error()) { <p role="alert" class="text-red-700 mb-4">{{ error() }}</p> }
     @if (message()) { <p role="status" class="text-green-800 mb-4">{{ message() }}</p> }
     <button type="button" (click)="load()" [disabled]="busy()" class="underline mb-6">Tải lại danh sách</button>
@@ -39,7 +38,7 @@ import { PendingPage, SalonRegistration, SalonRegistrationService } from '../../
         } @else { <p>Hồ sơ này đã được xử lý. Vui lòng tải lại danh sách.</p> }
       </section>
     }
-  </main>` })
+  </section>` })
 export class AdminApprovalsComponent implements OnInit {
   private readonly api = inject(SalonRegistrationService);
   readonly busy = signal(false); readonly error = signal(''); readonly message = signal('');

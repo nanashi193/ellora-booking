@@ -1,0 +1,74 @@
+package com.bookingnailms.service;
+
+import com.bookingnailms.entity.Booking;
+import com.bookingnailms.entity.BookingEmail;
+import com.bookingnailms.repository.BookingEmailRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+
+@Service @RequiredArgsConstructor @Slf4j
+public class BookingEmailService {
+    private final BookingEmailRepository emails;
+    private final JavaMailSender sender;
+    @Value("${app.mail.from:}") private String from;
+    @Value("${app.mail.enabled:false}") private boolean enabled;
+
+    // Saved in the booking transaction: rolled-back bookings never produce email.
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public void enqueue(Booking booking, boolean confirmed) {
+        BookingEmail email = new BookingEmail();
+        email.setBookingId(booking.getId());
+        email.setKind(confirmed ? "CONFIRMED" : "NEW_BOOKING");
+        String salonEmail = booking.getSalon().getEmail();
+        email.setRecipient(confirmed ? booking.getCustomer().getEmail()
+                : salonEmail != null && !salonEmail.isBlank() ? salonEmail : booking.getSalon().getOwner().getEmail());
+        email.setSubject("Ellora - " + (confirmed ? "Đã xác nhận lịch hẹn #" : "Lịch hẹn mới #") + booking.getId());
+        email.setBody((confirmed ? "Tiệm đã xác nhận lịch hẹn của bạn." : "Tiệm có lịch hẹn mới đang chờ xác nhận.")
+                + "\n\nMã lịch hẹn: #" + booking.getId()
+                + "\nTiệm: " + booking.getSalon().getName()
+                + "\nKhách hàng: " + booking.getCustomer().getFullName()
+                + "\nDịch vụ: " + booking.getService().getName()
+                + "\nThời gian: " + booking.getScheduledAt().format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")) + " (giờ Việt Nam)"
+                + "\n\n" + (confirmed ? "Vui lòng đến đúng giờ. Cảm ơn bạn đã đặt lịch tại Ellora." : "Vui lòng mở trang quản lý lịch hẹn Ellora để xác nhận."));
+        emails.save(email);
+    }
+
+    @Scheduled(fixedDelay = 10000)
+    // This queue also holds explicit admin billing reminders (without a booking id).
+    @Transactional
+    public void deliver() {
+        if (!enabled || from == null || from.isBlank()) return;
+        for (BookingEmail email : emails.lockDueEmails()) {
+            try {
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setFrom(from);
+                message.setTo(email.getRecipient());
+                message.setSubject(email.getSubject());
+                message.setText(email.getBody());
+                sender.send(message);
+                email.setSentAt(Instant.now());
+            } catch (org.springframework.mail.MailException ex) {
+                email.setAttempts(email.getAttempts() + 1);
+                email.setNextAttemptAt(Instant.now().plusSeconds(Math.min(3600L, 30L * email.getAttempts())));
+                log.warn("Booking email {} failed ({}); will retry", email.getId(), ex.getClass().getSimpleName());
+            }
+        }
+        // SMTP is at-least-once: a crash after SMTP accepts but before commit can duplicate delivery.
+    }
+
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public void enqueueBillingReminder(String recipient, String body) {
+        BookingEmail email = new BookingEmail();
+        email.setKind("BILLING_REMINDER"); email.setRecipient(recipient);
+        email.setSubject("Ellora - Nhắc thanh toán phí nền tảng"); email.setBody(body);
+        emails.save(email);
+    }
+}

@@ -1,15 +1,19 @@
-<div class="max-w-4xl mx-auto px-6 py-12 lg:py-20 min-h-[calc(100vh-80px)]">
+<div class="account-shell max-w-4xl mx-auto px-6 py-12 lg:py-20 min-h-[calc(100vh-80px)]" [class.admin-shell]="user()?.role === 'ADMIN'">
   <div class="flex flex-col md:flex-row gap-12">
-    <!-- Sidebar Menu (Mock) -->
+    <!-- Sidebar Menu -->
     <div class="w-full md:w-64 shrink-0">
       <h1 class="font-serif text-3xl text-charcoal-900 font-medium mb-6">Account</h1>
-      <nav class="flex flex-col gap-2 text-sm font-medium">
-        <a routerLink="/profile" class="py-2.5 px-4 bg-dusty-pink-500/10 text-dusty-pink-600 rounded-sm">Personal Info</a>
-        <a routerLink="/my-bookings" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm transition-colors">My Bookings</a>
+      <nav class="account-nav flex flex-col gap-2 text-sm font-medium" aria-label="Menu tài khoản">
+        <a routerLink="/profile" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" ariaCurrentWhenActive="page" class="py-2.5 px-4 rounded-sm">Personal Info</a>
+        @if(user()?.role === 'CUSTOMER') {
+          <a routerLink="/my-bookings" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm transition-colors">My Bookings</a>
+        }
         @if (user()?.role === 'ADMIN') {
-          <a routerLink="/admin/approvals" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Duyệt đăng ký salon</a>
-          <a routerLink="/admin/content" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Quản lý nội dung</a>
-          <a routerLink="/admin/billing" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Phí nền tảng và thanh toán</a>
+          <a routerLink="/profile/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Dashboard</a>
+          <a routerLink="/profile/users" routerLinkActive="active" ariaCurrentWhenActive="page" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Quản lý người dùng</a>
+          <a routerLink="/profile/approvals" routerLinkActive="active" ariaCurrentWhenActive="page" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Duyệt hồ sơ salon</a>
+          <a routerLink="/profile/content" routerLinkActive="active" ariaCurrentWhenActive="page" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Quản lý nội dung</a>
+          <a routerLink="/profile/billing" routerLinkActive="active" ariaCurrentWhenActive="page" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Phí nền tảng và thanh toán</a>
         } @else if (user()?.role === 'SALON_OWNER') {
           <a routerLink="/owner/dashboard" class="py-2.5 px-4 text-charcoal-800 hover:bg-charcoal-800/5 rounded-sm">Quản lý salon</a>
         } @else if (user()?.role === 'CUSTOMER') {
@@ -26,29 +30,47 @@
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1">
+    <div class="flex-1 min-w-0">
+      <router-outlet (activate)="adminView.set(true)" (deactivate)="adminView.set(false)" />
+      <div [hidden]="adminView()">
       <h2 class="font-serif text-2xl text-charcoal-900 mb-6">Personal Information</h2>
       
       @if (loading()) { <p role="status">Đang tải thông tin tài khoản…</p> } @else if (error()) { <p role="alert">{{ error() }}</p><button type="button" (click)="loadProfile()">Thử lại</button> } @else if (user(); as profile) {
       <div class="p-6 md:p-8 bg-white border border-charcoal-800/10 shadow-sm flex flex-col gap-6">
         <div class="profile-avatar" aria-label="Ảnh đại diện cá nhân">@if(profile.avatarUrl){<img [src]="profile.avatarUrl" alt="Ảnh đại diện cá nhân"/>}@else{<span>{{ profile.fullName.charAt(0).toUpperCase() }}</span>}</div>
+        @if(saveError()){<p role="alert" class="text-red-700">{{saveError()}}</p>}
+        @if(success()){<p role="status" class="text-green-800">{{success()}}</p>}
+        <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-6">
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-charcoal-900">Họ và tên</label>
-          <input type="text" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent" [value]="profile.fullName" readonly>
+          <label for="profile-name" class="text-sm font-medium text-charcoal-900">Họ và tên</label>
+          <input id="profile-name" type="text" autocomplete="name" maxlength="255" formControlName="fullName" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent">
+          @if(form.controls.fullName.touched && form.controls.fullName.invalid){<span class="text-sm text-red-700">Nhập họ tên, tối đa 255 ký tự.</span>}
         </div>
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-charcoal-900">Email Address</label>
-          <input type="email" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent text-charcoal-800" [value]="profile.email" readonly>
+          <label for="profile-email" class="text-sm font-medium text-charcoal-900">Email Address</label>
+          <input id="profile-email" type="email" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent text-charcoal-800" [value]="profile.email" readonly>
           <span class="text-xs text-charcoal-800/60 mt-1">To change your email address, please contact support.</span>
         </div>
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-charcoal-900">Phone Number</label>
-          <input type="tel" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent" [value]="profile.phone || ''" placeholder="Chưa cập nhật" readonly>
+          <label for="profile-phone" class="text-sm font-medium text-charcoal-900">Phone Number</label>
+          <input id="profile-phone" type="tel" autocomplete="tel" maxlength="20" formControlName="phone" class="border border-charcoal-800/20 px-4 py-2.5 focus:outline-none focus:border-dusty-pink-500 w-full md:w-2/3 bg-transparent" placeholder="Chưa cập nhật">
+          @if(form.controls.phone.touched && form.controls.phone.invalid){<span class="text-sm text-red-700">Nhập số điện thoại hợp lệ (8–20 ký tự).</span>}
         </div>
 
-        <p class="text-sm text-charcoal-800/60">Thông tin hồ sơ hiện chỉ hỗ trợ xem.</p>
+        <div class="flex gap-3 flex-wrap">
+          <button type="submit" class="px-5 py-3 rounded-lg bg-[#8c3a5a] text-white disabled:opacity-50" [disabled]="saving()||form.pristine">{{saving()?'Đang lưu…':'Lưu thông tin'}}</button>
+          <button type="button" class="px-5 py-3 rounded-lg border border-charcoal-800/20" (click)="resetForm()" [disabled]="saving()||form.pristine">Hủy thay đổi</button>
+        </div>
+        </form>
+        <div class="border-t border-charcoal-800/10 pt-6">
+          <label for="profile-avatar" class="block text-sm font-medium mb-2">Đổi ảnh đại diện</label>
+          <input id="profile-avatar" type="file" accept="image/jpeg,image/png" (change)="chooseAvatar($event)" [disabled]="saving()" class="max-w-full">
+          <p class="text-xs text-charcoal-800/60 mt-2">JPG hoặc PNG, tối đa 5 MB.</p>
+          @if(avatarFile){<p class="text-sm my-2">{{avatarFile.name}}</p><button type="button" class="px-5 py-3 rounded-lg bg-[#8c3a5a] text-white disabled:opacity-50" (click)="uploadAvatar()" [disabled]="saving()">Lưu ảnh đại diện</button>}
+        </div>
       </div>
       }
+      </div>
     </div>
   </div>
 </div>

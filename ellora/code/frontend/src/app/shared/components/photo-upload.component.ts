@@ -6,26 +6,34 @@ import { AdminContentApiService } from '../../services/admin-content-api.service
   selector: 'app-photo-upload',
   standalone: true,
   template: ` <div class="photo-upload">
-    @if (preview() || imageUrl()) {
-      <img [src]="preview() || imageUrl()" [alt]="label()" [class.avatar]="kind() === 'employees'" />
+    @if (previews().length) {
+      <div class="preview-grid">
+        @for (url of previews(); track url) { <img [src]="url" [alt]="label() + ' - ảnh đã chọn'" /> }
+      </div>
+    } @else if (imageUrl()) {
+      <img [src]="imageUrl()" [alt]="label()" [class.avatar]="kind() === 'employees'" />
     }
     <label
       >{{ label()
       }}<input
         type="file"
         accept="image/jpeg,image/png"
+        [multiple]="kind() === 'gallery' && !adminSalonId()"
         (change)="choose($event)"
-        [disabled]="busy()"
+        [disabled]="busy() || galleryFull()"
     /></label>
-    <small>JPG hoặc PNG, tối đa 5 MB.</small>
-    @if (file()) {
+    @if (kind() === 'gallery' && !adminSalonId()) {
+      <small>{{ existingCount() }} / {{ maxCount() }} ảnh. Chọn nhiều ảnh cùng lúc; mỗi ảnh JPG/PNG tối đa 5 MB.</small>
+    } @else { <small>JPG hoặc PNG, tối đa 5 MB.</small> }
+    @if (files().length) {
+      <small>{{ files().length }} ảnh đã chọn</small>
       <button type="button" (click)="upload()" [disabled]="busy()">
-        {{ busy() ? 'Đang tải ảnh…' : 'Lưu ảnh' }}
+        {{ busy() ? 'Đang tải ảnh…' : moderated() ? 'Gửi ' + files().length + ' ảnh để Admin duyệt' : 'Lưu ảnh' }}
       </button>
       <button type="button" (click)="cancelSelection()" [disabled]="busy()">Hủy chọn ảnh</button>
     }
     @if (imageUrl() && (kind() !== 'gallery' || adminSalonId())) {
-      <button type="button" class="remove" (click)="remove()" [disabled]="busy()">Xóa ảnh</button>
+      <button type="button" class="remove" (click)="remove()" [disabled]="busy()">{{moderated() ? 'Yêu cầu xóa ảnh' : 'Xóa ảnh'}}</button>
     }
     @if (error()) {
       <p role="alert">{{ error() }}</p>
@@ -43,6 +51,8 @@ import { AdminContentApiService } from '../../services/admin-content-api.service
         margin: 12px 0;
         max-width: 360px;
       }
+      .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
+      .preview-grid img { width: 100%; aspect-ratio: 1; }
       img {
         width: min(240px, 100%);
         aspect-ratio: 4 / 3;
@@ -93,32 +103,36 @@ export class PhotoUpload implements OnDestroy {
   private injector = inject(Injector);
   private get admin() { return this.injector.get(AdminContentApiService); }
   adminSalonId = input<number>();
+  existingCount = input(0);
+  maxCount = input(10);
   kind = input.required<'cover' | 'gallery' | 'services' | 'employees'>();
   entityId = input.required<number>();
   imageUrl = input<string | null | undefined>();
   label = input('Chọn ảnh');
   saved = output<string>();
-  file = signal<File | null>(null);
-  preview = signal('');
+  files = signal<File[]>([]);
+  previews = signal<string[]>([]);
   busy = signal(false);
   error = signal('');
   message = signal('');
+  galleryFull() { return this.kind() === 'gallery' && !this.adminSalonId() && this.existingCount() >= this.maxCount(); }
+  moderated(){return !this.adminSalonId() && (this.kind()==='cover'||this.kind()==='gallery');}
   private clear() {
-    if (this.preview()) URL.revokeObjectURL(this.preview());
-    this.preview.set('');
-    this.file.set(null);
+    this.previews().forEach(url => URL.revokeObjectURL(url));
+    this.previews.set([]);
+    this.files.set([]);
   }
   cancelSelection() { this.clear(); this.error.set(''); this.message.set(''); }
   async remove() {
     const kind = this.kind();
-    if ((kind === 'gallery' && !this.adminSalonId()) || this.busy() || !confirm('Xóa ảnh khỏi hồ sơ? Tệp gốc vẫn được giữ trên Cloudinary.')) return;
+    if ((kind === 'gallery' && !this.adminSalonId()) || this.busy() || !confirm(this.moderated() ? 'Gửi yêu cầu xóa ảnh? Ảnh chỉ được gỡ sau khi Admin duyệt.' : 'Xóa ảnh khỏi hồ sơ? Tệp gốc vẫn được giữ trên Cloudinary.')) return;
     this.busy.set(true); this.error.set(''); this.message.set('');
     try {
       const salon = this.adminSalonId();
       if (salon) await this.admin.removePhoto(salon, kind, this.entityId(), this.imageUrl() || undefined);
       else if (kind !== 'gallery') await this.api.removePhoto(kind, this.entityId());
-      this.clear(); this.message.set('Đã xóa ảnh khỏi hồ sơ.'); this.saved.emit('');
-    } catch { this.error.set('Không xóa được ảnh. Vui lòng thử lại.'); }
+      this.clear(); this.message.set(this.moderated() ? 'Đã gửi yêu cầu xóa ảnh, chờ Admin duyệt.' : 'Đã xóa ảnh khỏi hồ sơ.'); this.saved.emit('');
+    } catch(e) { this.error.set(e instanceof HttpErrorResponse && typeof e.error?.message==='string' ? e.error.message : 'Không xóa được ảnh. Vui lòng thử lại.'); }
     finally { this.busy.set(false); }
   }
   choose(event: Event) {
@@ -126,30 +140,41 @@ export class PhotoUpload implements OnDestroy {
     this.error.set('');
     this.message.set('');
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const files = Array.from(input.files || []);
     input.value = '';
-    if (!file) return;
-    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 5 * 1024 * 1024) {
-      this.error.set('Chọn ảnh JPG/PNG không quá 5 MB.');
+    if (!files.length) return;
+    if (files.some(file => !['image/jpeg', 'image/png'].includes(file.type) || file.size > 5 * 1024 * 1024)) {
+      this.error.set('Tất cả ảnh phải là JPG/PNG và không quá 5 MB mỗi ảnh.');
       return;
     }
-    this.file.set(file);
-    this.preview.set(URL.createObjectURL(file));
+    const isOwnerGallery = this.kind() === 'gallery' && !this.adminSalonId();
+    const remaining = this.maxCount() - this.existingCount();
+    if (isOwnerGallery && files.length > remaining) {
+      this.error.set(`Tiệm còn chỗ cho ${remaining} ảnh nữa. Vui lòng chọn không quá ${remaining} ảnh.`);
+      return;
+    }
+    this.files.set(files);
+    this.previews.set(files.map(file => URL.createObjectURL(file)));
   }
   async upload() {
-    const file = this.file();
-    if (!file || this.busy()) return;
+    const files = this.files();
+    if (!files.length || this.busy()) return;
     this.busy.set(true);
     this.error.set('');
     this.message.set('');
     try {
       const salon = this.adminSalonId();
-      const url = salon
-        ? await this.admin.uploadPhoto(salon, this.kind(), this.entityId(), file, this.kind() === 'gallery' ? this.imageUrl() || undefined : undefined)
-        : await this.api.uploadPhoto(this.kind(), this.entityId(), file);
+      const ownerGallery = !salon && this.kind() === 'gallery';
+      const urls = salon
+        ? [await this.admin.uploadPhoto(salon, this.kind(), this.entityId(), files[0], this.kind() === 'gallery' ? this.imageUrl() || undefined : undefined)]
+        : ownerGallery
+          ? await this.api.uploadGallery(this.entityId(), files)
+          : [await this.api.uploadPhoto(this.kind(), this.entityId(), files[0])];
       this.clear();
-      this.message.set('Đã lưu ảnh.');
-      this.saved.emit(url);
+      this.message.set(this.moderated()
+        ? `Đã gửi ${urls.length} ảnh, chờ Admin duyệt. Bộ ảnh hiện tại vẫn được giữ nguyên.`
+        : `Đã lưu ${urls.length} ảnh.`);
+      this.saved.emit(urls[urls.length - 1]);
     } catch (e) {
       this.error.set(
         e instanceof HttpErrorResponse && typeof e.error?.message === 'string'

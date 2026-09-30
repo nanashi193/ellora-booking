@@ -4,6 +4,8 @@
         @if (salon().images.length) { <img
           [src]="salon().images[0]"
           [alt]="salon().name"
+          loading="lazy"
+          decoding="async"
           class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         } @else { <div class="w-full h-full flex items-center justify-center text-charcoal-800/60">Chưa có ảnh salon</div> }

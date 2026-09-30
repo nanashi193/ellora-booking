@@ -1,4 +1,28 @@
 import { Amplify } from 'aws-amplify';
+import { cognitoUserPoolsTokenProvider } from 'aws-amplify/auth/cognito';
+import { defaultStorage, sessionStorage as amplifySessionStorage } from 'aws-amplify/utils';
+
+const storagePreferenceKey = 'ellora-auth-storage';
+
+export function selectAuthStorage(remember: boolean): void {
+  if (typeof window !== 'undefined') {
+    try { window.sessionStorage.setItem(storagePreferenceKey, remember ? 'local' : 'session'); }
+    catch { /* Browser storage may be unavailable; Amplify handles its storage fallback. */ }
+  }
+  cognitoUserPoolsTokenProvider.setKeyValueStorage(remember ? defaultStorage : amplifySessionStorage);
+}
+
+export function restoreAuthStorage(): void {
+  if (typeof window === 'undefined') return;
+  let useSession = false;
+  try {
+    const preference = window.sessionStorage.getItem(storagePreferenceKey);
+    // Recover sessions created before the storage preference was saved.
+    useSession = preference === 'session' || (preference === null &&
+      window.sessionStorage.getItem(`CognitoIdentityServiceProvider.${cognitoConfig.userPoolClientId}.LastAuthUser`) !== null);
+  } catch { /* Keep Amplify's default when browser storage cannot be read. */ }
+  cognitoUserPoolsTokenProvider.setKeyValueStorage(useSession ? amplifySessionStorage : defaultStorage);
+}
 
 export const cognitoConfig = {
   region: 'ap-southeast-2',
@@ -48,4 +72,6 @@ export function configureCognito(): void {
       },
     },
   });
+  // Amplify.configure resets the token provider to defaultStorage.
+  restoreAuthStorage();
 }
