@@ -19,10 +19,12 @@ import java.util.*;
 @RequiredArgsConstructor
 public class OwnerController {
     private final SalonService salons;
+    private final SalonProfileChangeService profileChanges;
     private final NailServiceService services;
     private final EmployeeService employees;
     private final ReviewService reviews;
     private final OwnerDashboardService dashboard;
+    private final SalonWorkingHourService workingHours;
 
     @GetMapping("/dashboard")
     public ApiResponse<OwnerDashboardService.Summary> dashboard(@AuthenticationPrincipal Jwt jwt) {
@@ -34,6 +36,29 @@ public class OwnerController {
     @GetMapping("/salon")
     public ApiResponse<SalonResponse> salon(@AuthenticationPrincipal Jwt jwt) {
         return ApiResponse.success(salons.getMySalon(owner(jwt)), null);
+    }
+
+    @GetMapping("/salon/working-hours")
+    public ApiResponse<List<com.bookingnailms.dto.salon.SalonWorkingHourRequest>> workingHours(@AuthenticationPrincipal Jwt jwt) {
+        return ApiResponse.success(workingHours.get(salons.getMySalon(owner(jwt)).getId()), null);
+    }
+
+    @PutMapping("/salon/working-hours")
+    public ApiResponse<List<com.bookingnailms.dto.salon.SalonWorkingHourRequest>> updateWorkingHours(
+            @AuthenticationPrincipal Jwt jwt, @RequestBody List<com.bookingnailms.dto.salon.SalonWorkingHourRequest> request) {
+        return ApiResponse.success(workingHours.update(owner(jwt), request), "Đã cập nhật giờ hoạt động của salon.");
+    }
+
+    @PutMapping("/salon")
+    public ApiResponse<com.bookingnailms.dto.salon.SalonProfileChangeResponse> updateSalon(@AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody com.bookingnailms.dto.salon.SalonRequest request) {
+        UUID ownerId = owner(jwt);
+        return ApiResponse.success(profileChanges.submit(ownerId, request), "Đã gửi yêu cầu. Thông tin sẽ cập nhật sau khi Admin duyệt.");
+    }
+
+    @GetMapping("/salon/change-request")
+    public ApiResponse<com.bookingnailms.dto.salon.SalonProfileChangeResponse> profileChange(@AuthenticationPrincipal Jwt jwt) {
+        return ApiResponse.success(profileChanges.latest(owner(jwt)), null);
     }
 
     @GetMapping("/services")

@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/app/services/profile-management.spec.ts",
+    "src/app/features/admin-approvals/salon-changes.component.spec.ts",
+    "src/app/features/customer/profile/profile.component.spec.ts",
+    "src/app/guards/role.guard.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}

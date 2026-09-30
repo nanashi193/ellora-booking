@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, PLATFORM_ID, ViewChild, computed, inject, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { SalonApiService } from '../../services/salon-api.service';
+import { SalonApiService, SalonWorkingHour } from '../../services/salon-api.service';
 import { ServiceCard } from '../../shared/components/service-card/service-card.component';
 import { Review, Salon, Service } from '../../models/ellora.model';
 
@@ -19,6 +19,7 @@ export class SalonDetails implements OnInit, AfterViewInit, OnDestroy {
   private titleObserver?: IntersectionObserver;
 
   salon = signal<Salon | null>(null);
+  workingHours = signal<SalonWorkingHour[]>([]);
   services = signal<Service[]>([]);
   reviews = signal<Review[]>([]);
   error = signal('');
@@ -35,10 +36,11 @@ export class SalonDetails implements OnInit, AfterViewInit, OnDestroy {
   private async load(id: string): Promise<void> {
     this.salon.set(null); this.services.set([]); this.reviews.set([]); this.selectedServices.set([]);
     try {
-      const [salon, services, reviews, nearby] = await Promise.all([
-        this.salonApi.detail(id), this.salonApi.services(id), this.salonApi.reviews(id), this.salonApi.search('', 0, 5)
+      const [salon, services, reviews, nearby, workingHours] = await Promise.all([
+        this.salonApi.detail(id), this.salonApi.services(id), this.salonApi.reviews(id), this.salonApi.search('', 0, 5), this.salonApi.workingHours(id)
       ]);
       this.salon.set(salon); this.services.set(services); this.reviews.set(reviews.content);
+      this.workingHours.set(workingHours);
       this.nearbySalons.set(nearby.content.filter(item => item.id !== id).slice(0, 4));
       this.error.set('');
       if (isPlatformBrowser(this.platformId)) setTimeout(() => this.observeTitle(), 0);
@@ -52,6 +54,10 @@ export class SalonDetails implements OnInit, AfterViewInit, OnDestroy {
   readonly tabs = ['Nổi bật', 'Làm móng tay', 'Nối móng', 'Nghệ thuật làm móng'];
   activeTab = signal('Nổi bật');
   readonly bookingHours: readonly (readonly [string, string])[] = [];
+  dayLabel(day: string): string {
+    return ({ MONDAY: 'Thứ Hai', TUESDAY: 'Thứ Ba', WEDNESDAY: 'Thứ Tư', THURSDAY: 'Thứ Năm',
+      FRIDAY: 'Thứ Sáu', SATURDAY: 'Thứ Bảy', SUNDAY: 'Chủ Nhật' } as Record<string, string>)[day] ?? day;
+  }
 
   // Selected services for booking widget
   selectedServices = signal<Service[]>([]);

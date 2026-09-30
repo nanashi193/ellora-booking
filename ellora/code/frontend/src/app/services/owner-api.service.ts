@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { apiConfig } from '../config/api.config';
-import { SalonRegistration } from './salon-registration.service';
+import { SalonRegistration, SalonProfileChange } from './salon-registration.service';
 
 export interface OwnerService {
   imageUrl?: string;
@@ -37,6 +37,7 @@ export interface OwnerSummary {
   confirmedBookings: number;
   completedBookings: number;
 }
+export interface OwnerWorkingHour { dayOfWeek: string; openTime: string | null; closeTime: string | null; closed: boolean; }
 export interface OwnerPage<T> {
   content: T[];
   pageNumber: number;
@@ -48,6 +49,7 @@ export function ownerError(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
     if (error.status === 0) return 'Không kết nối được backend. Vui lòng thử lại.';
     if (error.status === 403) return 'Bạn không có quyền thao tác với dữ liệu này.';
+    if (error.status === 409 && typeof error.error?.message === 'string') return error.error.message;
     if (error.status === 400) return 'Dữ liệu chưa hợp lệ. Vui lòng kiểm tra các trường đã nhập.';
   }
   return 'Không thực hiện được thao tác. Vui lòng thử lại.';
@@ -73,6 +75,11 @@ export class OwnerApiService {
       )
     ).data;
   }
+  async uploadGallery(id: number, files: File[]): Promise<string[]> {
+    const data = new FormData();
+    files.forEach(file => data.append('files', file));
+    return (await firstValueFrom(this.http.post<{ data: string[] }>(`${this.base}/photos/gallery/${id}/batch`, data))).data;
+  }
   async removeGallery(url: string) {
     await firstValueFrom(this.http.delete(this.base + '/photos/gallery', { params: { url } }));
   }
@@ -82,6 +89,14 @@ export class OwnerApiService {
   salon() {
     return this.get<SalonRegistration>('salon');
   }
+  workingHours() { return this.get<OwnerWorkingHour[]>('salon/working-hours'); }
+  async saveWorkingHours(hours: OwnerWorkingHour[]) {
+    return (await firstValueFrom(this.http.put<{data:OwnerWorkingHour[]}>(`${this.base}/salon/working-hours`,hours))).data;
+  }
+  async saveSalon(data: {name:string;description:string;address:string;city:string;district:string;phone:string;email:string}) {
+    return (await firstValueFrom(this.http.put<{data:SalonProfileChange}>(`${this.base}/salon`,data))).data;
+  }
+  salonChange() { return this.get<SalonProfileChange|null>('salon/change-request'); }
   summary() {
     return this.get<OwnerSummary>('dashboard');
   }

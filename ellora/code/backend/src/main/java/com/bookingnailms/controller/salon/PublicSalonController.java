@@ -22,6 +22,7 @@ public class PublicSalonController {
     private final NailServiceService services;
     private final EmployeeService employees;
     private final ReviewService reviews;
+    private final SalonWorkingHourService workingHours;
 
     @GetMapping
     public ApiResponse<PageResponse<SalonSummaryResponse>> search(
@@ -39,6 +40,12 @@ public class PublicSalonController {
 
     @GetMapping("/{id}")
     public ApiResponse<SalonResponse> detail(@PathVariable Long id) { return ApiResponse.success(active(id), null); }
+
+    @GetMapping("/{id}/working-hours")
+    public ApiResponse<List<com.bookingnailms.dto.salon.SalonWorkingHourRequest>> workingHours(@PathVariable Long id) {
+        active(id);
+        return ApiResponse.success(workingHours.get(id), null);
+    }
 
     @GetMapping("/{id}/services")
     public ApiResponse<List<ServiceResponse>> services(@PathVariable Long id) {

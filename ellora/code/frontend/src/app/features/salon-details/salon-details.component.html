@@ -83,6 +83,15 @@
           </div>
         </section>
 
+        <section class="location-section">
+          <h2 class="section-title">Giờ hoạt động</h2>
+          <div class="location-card__info">
+            @for (hour of workingHours(); track hour.dayOfWeek) {
+              <p>{{ dayLabel(hour.dayOfWeek) }}: {{ hour.closed ? 'Nghỉ' : hour.openTime?.slice(0, 5) + '–' + hour.closeTime?.slice(0, 5) }}</p>
+            }
+          </div>
+        </section>
+
         <!-- ═══ Dịch vụ ═══ -->
         <section class="services-section">
           <h2 class="section-title">Dịch vụ</h2>

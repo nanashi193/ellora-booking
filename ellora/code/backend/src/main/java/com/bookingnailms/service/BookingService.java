@@ -18,8 +18,8 @@ import com.bookingnailms.repository.EmployeeRepository;
 import com.bookingnailms.repository.NailServiceRepository;
 import com.bookingnailms.repository.SalonRepository;
 import com.bookingnailms.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,6 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class BookingService {
 
     private final BookingRepository bookingRepository;
@@ -40,13 +39,36 @@ public class BookingService {
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
     private final BookingEmailService bookingEmails;
+    private final SalonWorkingHourService workingHours;
+
+    @Autowired
+    public BookingService(BookingRepository bookingRepository, SalonRepository salonRepository,
+            NailServiceRepository nailServiceRepository, EmployeeRepository employeeRepository,
+            UserRepository userRepository, BookingEmailService bookingEmails,
+            SalonWorkingHourService workingHours) {
+        this.bookingRepository = bookingRepository;
+        this.salonRepository = salonRepository;
+        this.nailServiceRepository = nailServiceRepository;
+        this.employeeRepository = employeeRepository;
+        this.userRepository = userRepository;
+        this.bookingEmails = bookingEmails;
+        this.workingHours = workingHours;
+    }
+
+    public BookingService(BookingRepository bookingRepository, SalonRepository salonRepository,
+            NailServiceRepository nailServiceRepository, EmployeeRepository employeeRepository,
+            UserRepository userRepository, BookingEmailService bookingEmails) {
+        this(bookingRepository, salonRepository, nailServiceRepository, employeeRepository,
+                userRepository, bookingEmails, null);
+    }
 
     @Transactional
     public BookingResponse createBooking(BookingRequest request, UUID customerId) {
         User customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", customerId));
 
-        Salon salon = salonRepository.findById(request.getSalonId())
+        // ponytail: serialize booking creation per salon; use per-employee locks if contention grows.
+        Salon salon = salonRepository.findForUpdateById(request.getSalonId())
                 .orElseThrow(() -> new ResourceNotFoundException("Salon", "id", request.getSalonId()));
         if (salon.getStatus() != com.bookingnailms.enums.SalonStatus.ACTIVE) {
             throw new BadRequestException("Salon is not accepting bookings");
@@ -58,6 +80,22 @@ public class BookingService {
         if (!nailService.isActive() || !nailService.getSalon().getId().equals(salon.getId())) {
             throw new BadRequestException("Service does not belong to the specified salon");
         }
+        if (request.getScheduledAt() == null || nailService.getDurationMinutes() == null
+                || nailService.getDurationMinutes() <= 0) {
+            throw new BadRequestException("Thời gian hẹn hoặc thời lượng dịch vụ không hợp lệ.");
+        }
+        if (request.getScheduledAt().getMinute() % 30 != 0 || request.getScheduledAt().getSecond() != 0
+                || request.getScheduledAt().getNano() != 0) {
+            throw new BadRequestException("Giờ hẹn cần nằm trên mốc 30 phút.");
+        }
+        if (workingHours != null) {
+            var hours = workingHours.get(salon.getId(), request.getScheduledAt().getDayOfWeek());
+            var bookingEnd = request.getScheduledAt().toLocalTime().plusMinutes(nailService.getDurationMinutes());
+            if (hours.closed() || request.getScheduledAt().toLocalTime().isBefore(hours.openTime())
+                    || bookingEnd.isAfter(hours.closeTime())) {
+                throw new BadRequestException("Khung giờ nằm ngoài giờ hoạt động của salon.");
+            }
+        }
 
         Employee employee = null;
         if (request.getEmployeeId() != null) {
@@ -67,6 +105,26 @@ public class BookingService {
             if (!employee.isActive() || !employee.getSalon().getId().equals(salon.getId())) {
                 throw new BadRequestException("Employee does not belong to the specified salon");
             }
+        }
+
+        List<Booking> overlapping = bookingRepository.findOverlapping(salon.getId(), request.getScheduledAt(),
+                request.getScheduledAt().plusMinutes(nailService.getDurationMinutes()));
+        // Legacy bookings without an employee conservatively reserve the salon until resolved.
+        if (overlapping.stream().anyMatch(existing -> existing.getEmployee() == null)) {
+            throw new BadRequestException("Khung giờ này có lịch chưa được phân công nhân viên. Vui lòng chọn giờ khác.");
+        }
+        var busyEmployees = overlapping.stream().map(existing -> existing.getEmployee().getId())
+                .collect(Collectors.toSet());
+        if (employee == null) {
+            List<Employee> candidates = employeeRepository.findBySalonIdAndActiveTrue(salon.getId());
+            if (candidates.isEmpty()) {
+                throw new BadRequestException("Salon chưa có nhân viên hoạt động để nhận lịch.");
+            }
+            employee = candidates.stream().filter(candidate -> !busyEmployees.contains(candidate.getId()))
+                    .min(java.util.Comparator.comparing(Employee::getId))
+                    .orElseThrow(() -> new BadRequestException("Không còn nhân viên trống trong khung giờ này. Vui lòng chọn giờ khác."));
+        } else if (busyEmployees.contains(employee.getId())) {
+            throw new BadRequestException("Nhân viên đã có lịch trong khung giờ này. Vui lòng chọn nhân viên hoặc giờ khác.");
         }
 
         Booking booking = Booking.builder()

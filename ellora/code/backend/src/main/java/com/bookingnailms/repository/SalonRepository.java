@@ -20,6 +20,8 @@ public interface SalonRepository extends JpaRepository<Salon, Long> {
 
     Page<Salon> findByStatus(SalonStatus status, Pageable pageable);
 
+    long countByStatus(SalonStatus status);
+
     Optional<Salon> findByOwnerId(UUID ownerId);
 
     boolean existsByOwnerId(UUID ownerId);

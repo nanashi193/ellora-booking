@@ -7,6 +7,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.UUID;
+import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/owner/photos")
@@ -19,6 +20,11 @@ public class OwnerPhotoController {
     @PostMapping(value="/{kind}/{id}", consumes="multipart/form-data")
     public ApiResponse<String> upload(@AuthenticationPrincipal Jwt jwt,@PathVariable String kind,@PathVariable Long id,@RequestParam("file") MultipartFile file) {
         return ApiResponse.success(photos.upload(UUID.fromString(jwt.getSubject()),kind,id,file),null);
+    }
+    @PostMapping(value="/gallery/{id}/batch", consumes="multipart/form-data")
+    public ApiResponse<List<String>> uploadGallery(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id,
+            @RequestParam("files") List<MultipartFile> files) {
+        return ApiResponse.success(photos.uploadGallery(UUID.fromString(jwt.getSubject()), id, files), null);
     }
     @DeleteMapping("/gallery")
     public ApiResponse<Void> remove(@AuthenticationPrincipal Jwt jwt,@RequestParam String url) {
