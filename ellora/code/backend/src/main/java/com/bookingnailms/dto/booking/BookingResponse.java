@@ -26,6 +26,7 @@ public class BookingResponse {
     private Integer durationMinutes;
     private BookingStatus status;
     private boolean reviewed;
+    private Integer reviewRating;
     private String customerNote;
     private String salonNote;
     private String cancellationReason;

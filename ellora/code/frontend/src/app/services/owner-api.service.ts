@@ -22,6 +22,7 @@ export interface OwnerEmployee {
   bio: string;
   active: boolean;
 }
+export interface OwnerEmployeeSchedule { dayOfWeek: string; startTime: string; endTime: string; available: boolean; }
 export interface OwnerReview {
   id: number;
   customerName: string;
@@ -36,6 +37,14 @@ export interface OwnerSummary {
   pendingBookings: number;
   confirmedBookings: number;
   completedBookings: number;
+  monthlyRevenue?: number;
+  monthlyCustomers?: number;
+  averageRating?: number;
+}
+export interface OwnerRevenuePoint { date: string; gross: number; fee: number; net: number; bookings: number; }
+export interface OwnerRevenueReport {
+  gross: number; fee: number; net: number; completedBookings: number; estimatedBookings: number;
+  points: OwnerRevenuePoint[];
 }
 export interface OwnerWorkingHour { dayOfWeek: string; openTime: string | null; closeTime: string | null; closed: boolean; }
 export interface OwnerPage<T> {
@@ -100,11 +109,18 @@ export class OwnerApiService {
   summary() {
     return this.get<OwnerSummary>('dashboard');
   }
+  revenue(from: string, to: string, groupBy: 'day' | 'week' | 'month' | 'year' = 'day') {
+    return firstValueFrom(this.http.get<{ data: OwnerRevenueReport }>(`${this.base}/revenue`, { params: { from, to, groupBy } }))
+      .then(response => response.data);
+  }
   services() {
     return this.get<OwnerService[]>('services');
   }
   employees() {
     return this.get<OwnerEmployee[]>('employees');
+  }
+  employeeSchedules(id: number) {
+    return this.get<OwnerEmployeeSchedule[]>(`employees/${id}/schedules`);
   }
   reviews(page = 0) {
     return this.get<OwnerPage<OwnerReview>>(`reviews?page=${page}`);

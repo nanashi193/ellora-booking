@@ -45,7 +45,7 @@
     <div class="bg-[#F9F5F6]/50 rounded-2xl p-5 flex flex-col justify-center">
       <p class="text-[13px] font-bold text-charcoal-800 uppercase tracking-wider mb-2">Đánh giá trung bình</p>
       <div class="flex items-baseline gap-2 text-[#8C3A5A]">
-        <p class="text-3xl font-bold">—</p>
+        <p class="text-3xl font-bold">{{ averageRating() === null ? '—' : (averageRating() | number:'1.1-1') }}</p>
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-[#FBBF24]"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
       </div>
     </div>
@@ -54,7 +54,7 @@
     <div class="bg-[#FDF6F8]/60 rounded-2xl p-5 flex flex-col justify-center">
       <p class="text-[13px] font-bold text-charcoal-800 uppercase tracking-wider mb-2">Hiệu suất đội ngũ</p>
       <div class="flex items-baseline gap-2 text-[#8C3A5A]">
-        <p class="text-3xl font-bold">—</p>
+        <p class="text-3xl font-bold">{{ completionRate() === null ? '—' : (completionRate() | number:'1.0-0') + '%' }}</p>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-[#10B981]"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
       </div>
     </div>
@@ -67,6 +67,8 @@
         <tr>
           <th class="py-4 px-6 text-[11px] font-bold text-charcoal-800/60 uppercase tracking-wider">Tên nhân viên</th>
           <th class="py-4 px-6 text-[11px] font-bold text-charcoal-800/60 uppercase tracking-wider">Lịch làm việc</th>
+          <th class="py-4 px-6 text-[11px] font-bold text-charcoal-800/60 uppercase tracking-wider">Lịch hoàn tất</th>
+          <th class="py-4 px-6 text-[11px] font-bold text-charcoal-800/60 uppercase tracking-wider">Doanh thu tháng</th>
           <th class="py-4 px-6 text-[11px] font-bold text-charcoal-800/60 uppercase tracking-wider">Đánh giá</th>
           <th class="py-4 px-6 text-[11px] font-bold text-charcoal-800/60 uppercase tracking-wider">Trạng thái</th>
           <th class="py-4 px-6 text-[11px] font-bold text-charcoal-800/60 uppercase tracking-wider">Thao tác</th>
@@ -85,6 +87,8 @@
             
             <!-- Working Hours -->
             <td class="py-3 px-6 text-sm font-medium text-charcoal-900">{{ staff.workingHours }}</td>
+            <td class="py-3 px-6 text-sm font-medium text-charcoal-900">{{ staff.completedBookings }}</td>
+            <td class="py-3 px-6 text-sm font-medium text-charcoal-900">{{ staff.monthlyRevenue | number:'1.0-0' }} ₫</td>
             
             <!-- Rating -->
             <td class="py-3 px-6">
@@ -151,39 +155,27 @@
       <div class="flex items-center gap-8 mt-6 justify-start pl-2">
         <div class="flex items-center gap-2">
           <span class="w-3 h-3 rounded-full bg-[#F9A8D4]"></span>
-          <span class="text-sm font-medium text-charcoal-900">Doanh thu dịch vụ</span>
+          <span class="text-sm font-medium text-charcoal-900">Doanh thu dịch vụ tháng này</span>
         </div>
         <div class="flex items-center gap-2">
           <span class="w-3 h-3 rounded-full bg-[#FBCFE8]"></span>
-          <span class="text-sm font-medium text-charcoal-900">Đỉnh điểm cuối tuần</span>
+          <span class="text-sm font-medium text-charcoal-900">Số lịch hoàn tất</span>
         </div>
       </div>
     </div>
 
-    <!-- Notes Column (Right) -->
-    <div class="lg:col-span-4 bg-[#F8F5F2] rounded-[32px] p-8 flex flex-col justify-between">
-      <div>
-        <h3 class="text-sm font-bold text-charcoal-800 uppercase tracking-wider mb-4">Ghi chú từ quản lý</h3>
-        <p class="text-lg font-medium text-charcoal-900 mb-6">Mục tiêu quý này</p>
-        <p class="text-[15px] font-medium text-charcoal-800/80 italic mb-8 leading-relaxed">
-          "Tập trung nâng cao trải nghiệm khách hàng thông qua đào tạo kỹ năng tư vấn màu sắc mới cho toàn bộ Stylists."
-        </p>
-
-        <div class="space-y-4">
-          <div class="flex items-start gap-3">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-charcoal-900 shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-            <span class="text-[15px] font-medium text-charcoal-900">Đã hoàn thành đào tạo Nail Art</span>
-          </div>
-          <div class="flex items-start gap-3">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6 text-charcoal-800/40 shrink-0"><circle cx="12" cy="12" r="10"></circle></svg>
-            <span class="text-[15px] font-medium text-charcoal-800/60">Cập nhật lịch làm việc tháng tới</span>
-          </div>
-        </div>
+    <!-- Recent assigned bookings -->
+    <div class="lg:col-span-4 bg-[#F8F5F2] rounded-[32px] p-8">
+      <h3 class="text-sm font-bold text-charcoal-800 uppercase tracking-wider mb-4">Lịch đặt đã gán nhân viên</h3>
+      <div class="space-y-3">
+        @for (booking of recentAssignedOrders(); track booking.id) {
+          <article class="rounded-xl bg-white p-3">
+            <div class="flex justify-between gap-2"><span class="font-semibold text-charcoal-900">{{ booking.employeeName || 'Nhân viên' }}</span><span class="text-xs text-charcoal-800/60">#{{ booking.id }}</span></div>
+            <p class="mt-1 text-sm text-charcoal-800">{{ booking.serviceName }} · {{ booking.customerName }}</p>
+            <div class="mt-1 flex justify-between gap-2 text-xs text-charcoal-800/70"><span>{{ booking.scheduledAt | date:'dd/MM/yyyy HH:mm' }}</span><span>{{ booking.servicePrice | number:'1.0-0' }} ₫</span></div>
+          </article>
+        } @empty { <p class="text-sm text-charcoal-800/60">Chưa có lịch đặt được gán cho nhân viên.</p> }
       </div>
-
-      <button class="w-full mt-8 bg-white hover:bg-gray-50 text-[#8C3A5A] font-bold py-3.5 rounded-xl transition-colors shadow-sm">
-        Tạo thông báo nội bộ
-      </button>
     </div>
   </div>
 </div>

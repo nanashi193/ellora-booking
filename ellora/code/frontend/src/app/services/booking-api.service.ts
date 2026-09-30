@@ -41,6 +41,7 @@ export interface BookingItem {
   status: BookingStatus;
   customerNote?: string;
   reviewed?: boolean;
+  reviewRating?: number | null;
   salonNote?: string;
   cancellationReason?: string;
   createdAt: string;

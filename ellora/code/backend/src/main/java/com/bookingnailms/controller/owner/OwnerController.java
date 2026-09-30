@@ -87,6 +87,11 @@ public class OwnerController {
         return ApiResponse.success(employees.getSalonEmployees(salons.getMySalon(owner(jwt)).getId()), null);
     }
 
+    @GetMapping("/employees/{id}/schedules")
+    public ApiResponse<List<EmployeeService.Schedule>> employeeSchedules(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
+        return ApiResponse.success(employees.getSchedules(id, owner(jwt)), null);
+    }
+
     @PostMapping("/employees")
     public ApiResponse<EmployeeResponse> addEmployee(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody EmployeeRequest request) {
         return ApiResponse.success(employees.addEmployee(request, owner(jwt)), null);
