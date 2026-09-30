@@ -5,7 +5,7 @@ import { AuthService } from '../services/auth.service';
 import { ProfileApiService, Profile } from '../services/profile-api.service';
 
 export function roleHome(role: Profile['role']): string {
-  return role === 'ADMIN' ? '/profile/approvals' : role === 'SALON_OWNER' ? '/owner' : '/';
+  return role === 'ADMIN' ? '/admin/dashboard' : role === 'SALON_OWNER' ? '/owner/dashboard' : '/';
 }
 // Customer-facing and sign-in routes must not become a second workspace for owners.
 export const nonOwnerGuard: CanActivateFn = async (route, state) => {
