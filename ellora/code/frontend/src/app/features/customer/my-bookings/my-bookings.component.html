@@ -41,7 +41,7 @@
         <div class="flex items-center gap-5">
           <!-- Image -->
           <div class="w-16 h-16 rounded-xl overflow-hidden shrink-0 shadow-sm border border-black/5">
-            <img src="/salon-placeholder.svg" [alt]="booking.serviceName" class="w-full h-full object-cover">
+            <img [src]="booking.salonLogoUrl || '/salon-placeholder.svg'" [alt]="booking.salonName" class="w-full h-full object-cover">
           </div>
           
           <!-- Info -->

@@ -26,6 +26,8 @@ export interface OwnerEmployeeSchedule { dayOfWeek: string; startTime: string; e
 export interface OwnerReview {
   id: number;
   customerName: string;
+  employeeName?: string | null;
+  employeeAvatarUrl?: string | null;
   rating: number;
   comment: string;
   salonReply: string;

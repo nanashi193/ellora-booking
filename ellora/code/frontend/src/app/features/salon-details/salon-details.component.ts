@@ -53,7 +53,6 @@ export class SalonDetails implements OnInit, AfterViewInit, OnDestroy {
   // Service tabs
   readonly tabs = ['Nổi bật', 'Làm móng tay', 'Nối móng', 'Nghệ thuật làm móng'];
   activeTab = signal('Nổi bật');
-  readonly bookingHours: readonly (readonly [string, string])[] = [];
   dayLabel(day: string): string {
     return ({ MONDAY: 'Thứ Hai', TUESDAY: 'Thứ Ba', WEDNESDAY: 'Thứ Tư', THURSDAY: 'Thứ Năm',
       FRIDAY: 'Thứ Sáu', SATURDAY: 'Thứ Bảy', SUNDAY: 'Chủ Nhật' } as Record<string, string>)[day] ?? day;

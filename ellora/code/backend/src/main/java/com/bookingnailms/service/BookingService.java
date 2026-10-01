@@ -244,6 +244,7 @@ public class BookingService {
                 .id(booking.getId())
                 .salonId(booking.getSalon().getId())
                 .salonName(booking.getSalon().getName())
+                .salonLogoUrl(booking.getSalon().getLogoUrl())
                 .customerName(booking.getCustomer().getFullName())
                 .serviceId(booking.getService().getId())
                 .serviceName(booking.getService().getName())

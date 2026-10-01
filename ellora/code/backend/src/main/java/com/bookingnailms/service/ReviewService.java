@@ -172,9 +172,12 @@ public class ReviewService {
     }
 
     private ReviewResponse mapToReviewResponse(Review review) {
+        var employee = review.getBooking() == null ? null : review.getBooking().getEmployee();
         return ReviewResponse.builder()
                 .id(review.getId())
                 .customerName(review.getCustomer().getFullName())
+                .employeeName(employee == null ? null : employee.getFullName())
+                .employeeAvatarUrl(employee == null ? null : employee.getAvatarUrl())
                 .rating(review.getRating())
                 .comment(review.getComment())
                 .salonReply(review.getSalonReply())

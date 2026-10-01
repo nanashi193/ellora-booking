@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { BookingApiService, BookingItem } from '../../../services/booking-api.service';
@@ -10,7 +10,7 @@ import { BookingApiService, BookingItem } from '../../../services/booking-api.se
   templateUrl: './my-bookings.component.html',
   styleUrl: './my-bookings.component.scss'
 })
-export class MyBookings implements OnInit {
+export class MyBookings implements OnInit, OnDestroy {
   private readonly api = inject(BookingApiService);
   activeTab = signal<'all' | 'upcoming' | 'completed'>('all');
   bookings = signal<BookingItem[]>([]);
@@ -25,6 +25,9 @@ export class MyBookings implements OnInit {
   reviewSuccess = signal('');
   rating = 0;
   comment = '';
+  private refreshTimer?: ReturnType<typeof setInterval>;
+  private readonly refreshOnFocus = () => { if (!document.hidden) void this.load(true, true); };
+  private readonly refreshOnVisibility = () => { if (!document.hidden) void this.load(true, true); };
 
   openReview(booking: BookingItem): void {
     if (this.reviewSaving() || booking.status !== 'COMPLETED' || booking.reviewed) return;
@@ -51,17 +54,33 @@ export class MyBookings implements OnInit {
   }
 
 
-  ngOnInit(): void { void this.load(true); }
+  ngOnInit(): void {
+    void this.load(true);
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    window.addEventListener('focus', this.refreshOnFocus);
+    document.addEventListener('visibilitychange', this.refreshOnVisibility);
+    this.refreshTimer = setInterval(() => {
+      if (!document.hidden) void this.load(true, true);
+    }, 30000);
+  }
 
-  async load(reset = false): Promise<void> {
+  ngOnDestroy(): void {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    window.removeEventListener('focus', this.refreshOnFocus);
+    document.removeEventListener('visibilitychange', this.refreshOnVisibility);
+    if (this.refreshTimer) clearInterval(this.refreshTimer);
+  }
+
+  async load(reset = false, silent = false): Promise<void> {
     if (this.loading()) return;
-    this.loading.set(true); this.error.set('');
+    this.loading.set(true);
+    if (!silent) this.error.set('');
     try {
       const page = reset ? 0 : this.page() + 1;
       const result = await this.api.getMyBookings(page);
       this.bookings.update(current => reset ? result.content : [...current, ...result.content]);
       this.page.set(page); this.hasMore.set(!result.last);
-    } catch { this.error.set('Không tải được lịch sử đặt chỗ. Vui lòng thử lại.'); }
+    } catch { if (!silent) this.error.set('Không tải được lịch sử đặt chỗ. Vui lòng thử lại.'); }
     finally { this.loading.set(false); }
   }
 
