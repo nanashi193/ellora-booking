@@ -40,7 +40,7 @@
         <img [src]="topStaff.avatar" alt="Avatar" class="w-full h-full rounded-full object-cover">
       </div>
       <h4 class="text-xl font-bold text-[#8C3A5A] mb-1">{{ topStaff.name }}</h4>
-      <p class="text-sm font-medium text-[#8C3A5A]/80">Chưa có dữ liệu nhân viên nổi bật</p>
+      <p class="text-sm font-medium text-[#8C3A5A]/80">{{ topStaff.mentions ? topStaff.mentions + ' lượt được khách đánh giá' : 'Chưa có đánh giá gắn với nhân viên' }}</p>
     </div>
   </div>
 

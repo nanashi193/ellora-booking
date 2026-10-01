@@ -31,7 +31,7 @@
   </div>
   
   @if (error()) { <p role="alert" class="px-6 py-2 text-red-700">{{ error() }}</p> }
-  <details class="shrink-0 border-b border-gray-100 px-6 py-3">
+  <details open class="shrink-0 border-b border-gray-100 px-6 py-3">
     <summary class="cursor-pointer font-semibold text-[#8C3A5A]">Quản lý lịch đang chờ và đang thực hiện ({{ activeBookings().length }})</summary>
     <div class="max-h-64 overflow-auto mt-3 space-y-3">
       @for (booking of activeBookings(); track booking.id) {
@@ -39,10 +39,13 @@
           <div><strong>{{ booking.customerName }}</strong><p>{{ booking.serviceName }} · {{ booking.date | date:'dd/MM/yyyy' }} · {{ formatTime(booking.startTime) }}</p></div>
           <div class="flex flex-wrap gap-2">
             @if (booking.status === 'pending') {
-              <button type="button" (click)="acceptBooking(booking.id)" class="rounded bg-[#8C3A5A] px-3 py-2 text-white">Xác nhận</button>
-              <button type="button" (click)="rejectBooking(booking.id)" class="rounded border px-3 py-2 text-red-700">Từ chối</button>
+              <button type="button" [disabled]="bookingService.isUpdating(booking.id)" (click)="acceptBooking(booking.id)" class="rounded bg-[#8C3A5A] px-3 py-2 text-white disabled:opacity-50">Xác nhận</button>
+              <button type="button" [disabled]="bookingService.isUpdating(booking.id)" (click)="rejectBooking(booking.id)" class="rounded border px-3 py-2 text-red-700 disabled:opacity-50">Từ chối</button>
             } @else {
-              <button type="button" (click)="booking.inProgress ? completeBooking(booking.id) : startBooking(booking.id)" class="rounded bg-[#8C3A5A] px-3 py-2 text-white">{{ booking.inProgress ? 'Hoàn thành' : 'Bắt đầu thực hiện' }}</button>
+              @if (!booking.inProgress) {
+                <button type="button" [disabled]="bookingService.isUpdating(booking.id)" (click)="startBooking(booking.id)" class="rounded border border-[#8C3A5A] px-3 py-2 text-[#8C3A5A] disabled:opacity-50">Bắt đầu</button>
+              }
+              <button type="button" [disabled]="bookingService.isUpdating(booking.id)" (click)="completeBooking(booking.id)" class="rounded bg-[#8C3A5A] px-3 py-2 text-white disabled:opacity-50">Hoàn thành</button>
             }
           </div>
         </div>
@@ -119,19 +122,22 @@
                   <!-- Actions for Pending -->
                   @if (booking.status === 'pending') {
                     <div class="mt-auto flex justify-end gap-2 pt-2 relative z-50">
-                      <button (click)="$event.stopPropagation(); rejectBooking(booking.id)" class="w-7 h-7 flex items-center justify-center rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
+                      <button type="button" title="Từ chối lịch" aria-label="Từ chối lịch" [disabled]="bookingService.isUpdating(booking.id)" (click)="$event.stopPropagation(); rejectBooking(booking.id)" class="w-7 h-7 flex items-center justify-center rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors disabled:opacity-50">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                       </button>
-                      <button (click)="$event.stopPropagation(); acceptBooking(booking.id)" class="w-7 h-7 flex items-center justify-center rounded bg-[#FDF6F8] text-[#8C3A5A] hover:bg-[#F2A4BB] hover:text-white transition-colors">
+                      <button type="button" title="Xác nhận lịch" aria-label="Xác nhận lịch" [disabled]="bookingService.isUpdating(booking.id)" (click)="$event.stopPropagation(); acceptBooking(booking.id)" class="w-7 h-7 flex items-center justify-center rounded bg-[#FDF6F8] text-[#8C3A5A] hover:bg-[#F2A4BB] hover:text-white transition-colors disabled:opacity-50">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><polyline points="20 6 9 17 4 12"></polyline></svg>
                       </button>
                     </div>
                   }
                   
                   @if (booking.status === 'confirmed') {
-                    <button type="button" (click)="$event.stopPropagation(); booking.inProgress ? completeBooking(booking.id) : startBooking(booking.id)" class="mt-auto px-3 py-1 bg-[#8C3A5A] text-white rounded text-xs font-medium focus-visible:outline-2 focus-visible:outline-offset-2">
-                      {{ booking.inProgress ? 'Hoàn thành' : 'Bắt đầu thực hiện' }}
-                    </button>
+                    <div class="mt-auto flex justify-end gap-2 pt-2 relative z-50">
+                      @if (!booking.inProgress) {
+                        <button type="button" title="Bắt đầu thực hiện" aria-label="Bắt đầu thực hiện" [disabled]="bookingService.isUpdating(booking.id)" (click)="$event.stopPropagation(); startBooking(booking.id)" class="w-7 h-7 rounded border border-[#8C3A5A] text-[#8C3A5A] text-xs disabled:opacity-50">▶</button>
+                      }
+                      <button type="button" title="Hoàn thành lịch" aria-label="Hoàn thành lịch" [disabled]="bookingService.isUpdating(booking.id)" (click)="$event.stopPropagation(); completeBooking(booking.id)" class="w-7 h-7 rounded bg-[#8C3A5A] text-white text-xs disabled:opacity-50">✓</button>
+                    </div>
                   }
                 </div>
               </div>

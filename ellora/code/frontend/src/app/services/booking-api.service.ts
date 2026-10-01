@@ -30,6 +30,7 @@ export interface BookingItem {
   id: number;
   salonId: number;
   salonName: string;
+  salonLogoUrl?: string | null;
   customerName: string;
   serviceId: number;
   serviceName: string;

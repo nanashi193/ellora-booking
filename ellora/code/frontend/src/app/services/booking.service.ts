@@ -26,6 +26,7 @@ export class BookingService implements OnDestroy {
   pendingCount = signal(0);
   error = signal('');
   isLoading = signal(false);
+  readonly updatingBookings = signal<Set<number>>(new Set());
 
   private map(item: BookingItem): BookingEvent {
     const time = item.scheduledAt.slice(11, 16).split(':').map(Number);
@@ -115,6 +116,7 @@ export class BookingService implements OnDestroy {
     this.disposed = true;
     this.generation++;
     this.isLoading.set(false);
+    this.updatingBookings.set(new Set());
     this.bookings.set([]); this.pendingCount.set(0); this.focusedBookingId.set(null);
     this.salonId = undefined; this.seen.clear(); this.error.set(''); this.soundError.set('');
     clearInterval(this.poll);
@@ -157,18 +159,30 @@ export class BookingService implements OnDestroy {
     } finally { if (generation === this.generation) this.isLoading.set(false); }
   }
 
-  async acceptBooking(id: number): Promise<void> { await this.update(id, 'CONFIRMED'); }
-  async rejectBooking(id: number): Promise<void> { await this.update(id, 'REJECTED'); }
+  async acceptBooking(id: number): Promise<boolean> { return this.update(id, 'CONFIRMED'); }
+  async rejectBooking(id: number): Promise<boolean> { return this.update(id, 'REJECTED'); }
 
-  async startBooking(id: number): Promise<void> { await this.update(id, 'IN_PROGRESS'); }
-  async completeBooking(id: number): Promise<void> { await this.update(id, 'COMPLETED'); }
-  private async update(id: number, status: 'CONFIRMED' | 'REJECTED' | 'IN_PROGRESS' | 'COMPLETED'): Promise<void> {
+  async startBooking(id: number): Promise<boolean> { return this.update(id, 'IN_PROGRESS'); }
+  async completeBooking(id: number): Promise<boolean> {
+    const booking = this.bookings().find(item => item.id === id);
+    if (booking?.status === 'confirmed' && !booking.inProgress) {
+      if (!await this.update(id, 'IN_PROGRESS')) return false;
+    }
+    return this.update(id, 'COMPLETED');
+  }
+  isUpdating(id: number): boolean { return this.updatingBookings().has(id); }
+  private async update(id: number, status: 'CONFIRMED' | 'REJECTED' | 'IN_PROGRESS' | 'COMPLETED'): Promise<boolean> {
+    if (this.isUpdating(id)) return false;
     const generation = this.generation;
+    this.updatingBookings.update(ids => new Set(ids).add(id));
     try {
       await this.api.updateBookingStatus(id, { status });
-      if (generation !== this.generation) return;
+      if (generation !== this.generation) return false;
       this.stopRinging();
       await this.loadSalonBookings();
+      return true;
     } catch (error) { if (generation === this.generation) this.error.set(ownerError(error)); }
+    finally { this.updatingBookings.update(ids => { const next = new Set(ids); next.delete(id); return next; }); }
+    return false;
   }
 }

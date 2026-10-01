@@ -15,6 +15,8 @@ public class ReviewResponse {
 
     private Long id;
     private String customerName;
+    private String employeeName;
+    private String employeeAvatarUrl;
     private Integer rating;
     private String comment;
     private String salonReply;

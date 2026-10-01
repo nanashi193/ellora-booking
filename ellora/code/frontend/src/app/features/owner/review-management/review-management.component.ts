@@ -42,10 +42,21 @@ export class ReviewManagement implements OnInit {
       }
       this.allReviews.set(items.map(item => ({
         id: item.id, customerName: item.customerName, customerInitials: item.customerName.slice(0, 2).toUpperCase(),
-        timeAgo: new Date(item.createdAt).toLocaleDateString('vi-VN'), rating: item.rating, staffName: '—',
+        timeAgo: new Date(item.createdAt).toLocaleDateString('vi-VN'), rating: item.rating,
+        staffName: item.employeeName || 'Chưa gán nhân viên', staffAvatar: item.employeeAvatarUrl || undefined,
         content: item.comment, images: [], isReplied: item.salonReply != null || item.salonRepliedAt != null, reply: item.salonReply, repliedTimeAgo: item.salonRepliedAt ? new Date(item.salonRepliedAt).toLocaleDateString('vi-VN') : undefined
       })));
       this.ratingDistribution = [5, 4, 3, 2, 1].map(stars => ({ stars, count: items.filter(item => item.rating === stars).length, percentage: items.length ? items.filter(item => item.rating === stars).length / items.length * 100 : 0 }));
+      const staffReviews = new Map<string, { mentions: number; avatar: string }>();
+      items.filter(item => item.employeeName).forEach(item => {
+        const current = staffReviews.get(item.employeeName!) ?? { mentions: 0, avatar: item.employeeAvatarUrl || '/salon-placeholder.svg' };
+        current.mentions++;
+        staffReviews.set(item.employeeName!, current);
+      });
+      const mostMentioned = [...staffReviews.entries()].sort((a, b) => b[1].mentions - a[1].mentions)[0];
+      this.topStaff = mostMentioned
+        ? { name: mostMentioned[0], avatar: mostMentioned[1].avatar, mentions: mostMentioned[1].mentions }
+        : { name: '—', avatar: '/salon-placeholder.svg', mentions: 0 };
       this.error.set('');
     } catch (error) { this.error.set(ownerError(error)); }
   }

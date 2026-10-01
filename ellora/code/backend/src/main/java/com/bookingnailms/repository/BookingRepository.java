@@ -74,6 +74,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
     long countByStatus(BookingStatus status);
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"customer", "salon", "service", "employee", "review"})
     Page<Booking> findByCustomerIdOrderByCreatedAtDesc(UUID customerId, Pageable pageable);
 
     Page<Booking> findBySalonIdOrderByScheduledAtDesc(Long salonId, Pageable pageable);

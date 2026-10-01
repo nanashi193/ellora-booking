@@ -51,7 +51,7 @@ export class BookingManagement implements OnInit {
 
   staffs = signal<Staff[]>([{ id: 0, name: 'Chưa phân công', role: '', avatar: '/salon-placeholder.svg' }]);
 
-  private readonly bookingService = inject(BookingService);
+  readonly bookingService = inject(BookingService);
   private readonly ownerApi = inject(OwnerApiService);
   private readonly elementRef = inject(ElementRef);
   

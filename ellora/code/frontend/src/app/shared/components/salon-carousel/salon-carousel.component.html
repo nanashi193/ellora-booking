@@ -12,7 +12,7 @@
   }
   
   <div class="relative group">
-    <div #scrollContainer (scroll)="onScroll()" class="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory hide-scrollbar scroll-smooth" style="scrollbar-width: none; -ms-overflow-style: none;">
+    <div #scrollContainer class="flex overflow-x-auto gap-6 pb-6 snap-x snap-proximity hide-scrollbar scroll-smooth" style="scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; overscroll-behavior-inline: contain;">
       <!-- style hack for webkit in next line -->
       <style> .hide-scrollbar::-webkit-scrollbar { display: none; } </style>
       

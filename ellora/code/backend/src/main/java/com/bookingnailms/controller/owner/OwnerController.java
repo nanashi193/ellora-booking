@@ -88,7 +88,7 @@ public class OwnerController {
     }
 
     @GetMapping("/employees/{id}/schedules")
-    public ApiResponse<List<EmployeeService.Schedule>> employeeSchedules(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
+    public ApiResponse<List<EmployeeService.Schedule>> employeeSchedules(@AuthenticationPrincipal Jwt jwt, @PathVariable("id") Long id) {
         return ApiResponse.success(employees.getSchedules(id, owner(jwt)), null);
     }
 

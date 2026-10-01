@@ -27,13 +27,15 @@
         <section class="salon-info">
           <div class="salon-info__header">
             <h1 #salonTitle class="salon-info__name">{{ currentSalon.name }}</h1>
-            <div class="salon-info__status">
-              <span class="salon-info__status-dot" [class.salon-info__status-dot--open]="currentSalon.isOpen"></span>
-              <div class="salon-info__status-text">
-                <span class="salon-info__status-label">{{ getOpenStatusText() }}</span>
-                <span class="salon-info__status-hours">{{ getCloseTimeText() }}</span>
+            @if (currentSalon.isOpen !== undefined) {
+              <div class="salon-info__status">
+                <span class="salon-info__status-dot" [class.salon-info__status-dot--open]="currentSalon.isOpen"></span>
+                <div class="salon-info__status-text">
+                  <span class="salon-info__status-label">{{ getOpenStatusText() }}</span>
+                  <span class="salon-info__status-hours">{{ getCloseTimeText() }}</span>
+                </div>
               </div>
-            </div>
+            }
           </div>
 
           <div class="salon-info__meta">
@@ -80,15 +82,6 @@
                 Nhận chỉ đường
               </a>
             </div>
-          </div>
-        </section>
-
-        <section class="location-section">
-          <h2 class="section-title">Giờ hoạt động</h2>
-          <div class="location-card__info">
-            @for (hour of workingHours(); track hour.dayOfWeek) {
-              <p>{{ dayLabel(hour.dayOfWeek) }}: {{ hour.closed ? 'Nghỉ' : hour.openTime?.slice(0, 5) + '–' + hour.closeTime?.slice(0, 5) }}</p>
-            }
           </div>
         </section>
 
@@ -204,18 +197,20 @@
                       <circle cx="12" cy="12" r="9"/>
                       <path d="M12 7v5l3 2"/>
                     </svg>
-                    <span>Liên hệ salon để xác nhận giờ mở cửa</span>
+                    <span>{{ workingHours().length ? 'Giờ hoạt động' : 'Chưa có giờ mở cửa' }}</span>
                   </span>
                   <svg class="booking-widget__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m18 15-6-6-6 6"/>
                   </svg>
                 </summary>
                 <div class="booking-widget__hours-list">
-                  @for (hour of bookingHours; track hour[0]) {
-                    <div class="booking-widget__hour-row" [class.booking-widget__hour-row--today]="hour[0] === 'Friday'">
-                      <span class="booking-widget__day"><span class="booking-widget__day-dot"></span>{{ hour[0] }}</span>
-                      <span>{{ hour[1] }}</span>
+                  @for (hour of workingHours(); track hour.dayOfWeek) {
+                    <div class="booking-widget__hour-row">
+                      <span class="booking-widget__day">{{ dayLabel(hour.dayOfWeek) }}</span>
+                      <span>{{ hour.closed ? 'Nghỉ' : hour.openTime?.slice(0, 5) + '–' + hour.closeTime?.slice(0, 5) }}</span>
                     </div>
+                  } @empty {
+                    <p class="booking-widget__hours-empty">Salon chưa cập nhật giờ hoạt động.</p>
                   }
                 </div>
               </details>
