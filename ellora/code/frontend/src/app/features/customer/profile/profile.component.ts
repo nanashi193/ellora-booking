@@ -35,8 +35,6 @@ export class Profile implements OnInit {
         phone: profile.phone || '',
         avatarUrl: profile.avatarUrl || ''
       });
-    } catch (error) {
-      console.error('Lỗi khi tải thông tin cá nhân:', error);
-    }
+    } catch { /* The page keeps its empty state when profile data is unavailable. */ }
   }
 }

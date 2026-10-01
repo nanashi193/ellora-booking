@@ -49,7 +49,7 @@ spring:
 
 logging:
   level:
-    com.bookingnailms: DEBUG
+    com.bookingnailms: INFO
     org.springframework.security: INFO
 
 app:

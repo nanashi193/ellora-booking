@@ -25,13 +25,17 @@ class BookingNotificationTest {
         BookingRepository repository = mock(BookingRepository.class);
         SalonRepository salons = mock(SalonRepository.class);
         NailServiceRepository services = mock(NailServiceRepository.class);
+        EmployeeRepository employeeRepository = mock(EmployeeRepository.class);
         UserRepository users = mock(UserRepository.class);
         BookingEmailService emails = mock(BookingEmailService.class);
         when(users.findById(booking.getCustomer().getId())).thenReturn(Optional.of(booking.getCustomer()));
-        when(salons.findById(2L)).thenReturn(Optional.of(booking.getSalon()));
+        when(salons.findForUpdateById(2L)).thenReturn(Optional.of(booking.getSalon()));
         when(services.findById(3L)).thenReturn(Optional.of(booking.getService()));
+        when(repository.findOverlapping(any(), any(), any())).thenReturn(List.of());
+        when(employeeRepository.findBySalonIdAndActiveTrue(2L)).thenReturn(List.of(
+                Employee.builder().id(4L).salon(booking.getSalon()).active(true).build()));
         when(repository.save(any())).thenReturn(booking);
-        BookingService service = new BookingService(repository, salons, services, mock(EmployeeRepository.class), users, emails);
+        BookingService service = new BookingService(repository, salons, services, employeeRepository, users, emails);
         var request = new com.bookingnailms.dto.booking.BookingRequest(2L, 3L, null, booking.getScheduledAt(), null);
         service.createBooking(request, booking.getCustomer().getId());
         verify(emails).enqueue(booking, false);
@@ -44,7 +48,7 @@ class BookingNotificationTest {
         User owner = User.builder().id(UUID.randomUUID()).email("owner@example.com").build();
         User customer = User.builder().id(UUID.randomUUID()).email("customer@example.com").fullName("Khách hàng").build();
         Salon salon = Salon.builder().id(2L).owner(owner).name("Tiệm thử").build();
-        NailService service = NailService.builder().id(3L).name("Sơn gel").build();
+        NailService service = NailService.builder().id(3L).name("Sơn gel").durationMinutes(30).build();
         return Booking.builder().id(1L).salon(salon).customer(customer).service(service)
                 .status(BookingStatus.PENDING).scheduledAt(LocalDateTime.of(2026, 10, 1, 9, 30)).build();
     }

@@ -17,7 +17,6 @@ import com.bookingnailms.repository.ReviewRepository;
 import com.bookingnailms.repository.SalonRepository;
 import com.bookingnailms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.UUID;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -77,7 +75,6 @@ public class ReviewService {
         // Update salon average rating
         updateSalonRating(salon);
 
-        log.info("Review created for booking: {} by customer: {}", booking.getId(), customer.getEmail());
 
         return mapToReviewResponse(review);
     }
@@ -114,7 +111,6 @@ public class ReviewService {
         review.setSalonRepliedAt(LocalDateTime.now());
 
         review = reviewRepository.save(review);
-        log.info("Review {} replied by salon owner", reviewId);
 
         return mapToReviewResponse(review);
     }

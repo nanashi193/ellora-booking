@@ -22,7 +22,7 @@ class PublicSalonTest {
  }
  @Test void unpublishedSalonCannotExposeDetailsServicesEmployeesOrReviews() {
   var salons=mock(SalonService.class);var services=mock(NailServiceService.class);var employees=mock(EmployeeService.class);var reviews=mock(ReviewService.class);
-  var controller=new PublicSalonController(salons,services,employees,reviews);
+  var controller=new PublicSalonController(salons,services,employees,reviews,mock(SalonWorkingHourService.class));
   for(var status:List.of(SalonStatus.PENDING_APPROVAL,SalonStatus.REJECTED,SalonStatus.SUSPENDED)) {
    when(salons.getSalonById(42L)).thenReturn(SalonResponse.builder().id(42L).status(status).build());
    assertThrows(ResourceNotFoundException.class,()->controller.detail(42L));

@@ -60,11 +60,11 @@ public class CognitoService {
                     .build();
 
             cognitoClient.forgotPassword(request);
-            log.info("Forgot password initiated for email: {}", email);
+            log.info("Forgot-password request accepted");
 
         } catch (UserNotFoundException e) {
             // Không tiết lộ email có tồn tại hay không (bảo mật)
-            log.warn("Forgot password requested for non-existent user: {}", email);
+            log.info("Forgot-password request completed");
 
         } catch (LimitExceededException e) {
             throw new BadRequestException("Bạn đã yêu cầu quá nhiều lần. Vui lòng thử lại sau.");
@@ -73,7 +73,7 @@ public class CognitoService {
             throw new BadRequestException("Email chưa được xác minh. Vui lòng xác minh email trước.");
 
         } catch (CognitoIdentityProviderException e) {
-            log.error("Cognito error during forgotPassword: {}", e.awsErrorDetails().errorMessage());
+            log.warn("Cognito forgot-password operation failed ({})", e.getClass().getSimpleName());
             throw new BadRequestException("Không thể gửi mã xác nhận. Vui lòng thử lại.");
         }
     }
@@ -99,7 +99,7 @@ public class CognitoService {
                     .build();
 
             cognitoClient.confirmForgotPassword(request);
-            log.info("Password reset confirmed for email: {}", email);
+            log.info("Password reset completed");
 
         } catch (CodeMismatchException e) {
             throw new BadRequestException("Mã xác nhận không đúng. Vui lòng kiểm tra lại.");
@@ -117,7 +117,7 @@ public class CognitoService {
             throw new BadRequestException("Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.");
 
         } catch (CognitoIdentityProviderException e) {
-            log.error("Cognito error during confirmForgotPassword: {}", e.awsErrorDetails().errorMessage());
+            log.warn("Cognito password-reset operation failed ({})", e.getClass().getSimpleName());
             throw new BadRequestException("Không thể đặt lại mật khẩu. Vui lòng thử lại.");
         }
     }
@@ -154,7 +154,7 @@ public class CognitoService {
             throw new BadRequestException("Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.");
 
         } catch (CognitoIdentityProviderException e) {
-            log.error("Cognito error during changePassword: {}", e.awsErrorDetails().errorMessage());
+            log.warn("Cognito change-password operation failed ({})", e.getClass().getSimpleName());
             throw new BadRequestException("Không thể đổi mật khẩu. Vui lòng thử lại.");
         }
     }
@@ -191,8 +191,17 @@ public class CognitoService {
             throw new BadRequestException("Tài khoản chưa được xác minh. Vui lòng kiểm tra email để xác minh tài khoản.");
 
         } catch (CognitoIdentityProviderException e) {
-            log.error("Cognito error during login: {}", e.awsErrorDetails().errorMessage());
+            log.warn("Cognito login operation failed ({})", e.getClass().getSimpleName());
             throw new BadRequestException("Đăng nhập thất bại. Vui lòng thử lại.");
+        }
+    }
+
+    public void globalSignOut(String accessToken) {
+        try {
+            cognitoClient.globalSignOut(GlobalSignOutRequest.builder().accessToken(accessToken).build());
+        } catch (CognitoIdentityProviderException e) {
+            log.warn("Cognito global sign-out failed ({})", e.getClass().getSimpleName());
+            throw new BadRequestException("Không thể kết thúc phiên đăng nhập trên Cognito. Vui lòng thử lại.");
         }
     }
 }

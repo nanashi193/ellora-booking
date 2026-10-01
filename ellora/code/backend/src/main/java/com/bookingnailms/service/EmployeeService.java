@@ -10,7 +10,6 @@ import com.bookingnailms.repository.EmployeeRepository;
 import com.bookingnailms.repository.SalonRepository;
 import com.bookingnailms.repository.WorkingScheduleRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +19,6 @@ import java.util.UUID;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmployeeService {
@@ -45,8 +43,6 @@ public class EmployeeService {
                 .build();
 
         employee = employeeRepository.save(employee);
-        log.info("Employee added: {} to salon: {}", employee.getFullName(), salon.getName());
-
         return mapToEmployeeResponse(employee);
     }
 
@@ -65,8 +61,6 @@ public class EmployeeService {
         employee.setBio(request.getBio());
 
         employee = employeeRepository.save(employee);
-        log.info("Employee updated: {}", employee.getFullName());
-
         return mapToEmployeeResponse(employee);
     }
 
@@ -81,7 +75,6 @@ public class EmployeeService {
 
         employee.setActive(false);
         employeeRepository.save(employee);
-        log.info("Employee soft-deleted: {}", employee.getFullName());
     }
 
     @Transactional(readOnly = true)

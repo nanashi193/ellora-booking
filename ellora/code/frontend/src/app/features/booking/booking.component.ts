@@ -83,9 +83,7 @@ export class BookingComponent implements OnInit, OnDestroy {
         fullName: profile.name || '',
         phone: profile.phone_number || ''
       });
-    } catch (e) {
-      console.warn('Could not fetch user profile from Cognito', e);
-    }
+    } catch { /* Profile details are optional for the booking form. */ }
   }
 
   // ─── Computed ───────────────────────────────────────

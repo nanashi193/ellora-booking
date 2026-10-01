@@ -59,7 +59,7 @@ public class BookingController {
             @RequestParam(defaultValue = "10") int size) {
 
         UUID customerId = UUID.fromString(jwt.getSubject());
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = safePage(page, size, 100);
         PageResponse<BookingResponse> result = bookingService.getMyBookings(customerId, pageable);
         return ResponseEntity.ok(ApiResponse.success(result, null));
     }
@@ -99,9 +99,16 @@ public class BookingController {
         if (!salon.getOwner().getId().equals(UUID.fromString(jwt.getSubject()))) {
             throw new org.springframework.security.access.AccessDeniedException("Not your salon");
         }
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = safePage(page, size, 100);
         PageResponse<BookingResponse> result = bookingService.getSalonBookings(salonId, status, pageable);
         return ResponseEntity.ok(ApiResponse.success(result, null));
+    }
+
+    private Pageable safePage(int page, int size, int maxSize) {
+        if (page < 0 || size < 1 || size > maxSize) {
+            throw new com.bookingnailms.exception.BadRequestException("Thông số phân trang không hợp lệ.");
+        }
+        return PageRequest.of(page, size);
     }
 
     @Operation(
