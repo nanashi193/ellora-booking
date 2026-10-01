@@ -25,6 +25,9 @@ import {
 } from '../models/auth.model';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { apiConfig } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root',
@@ -32,6 +35,7 @@ import { PLATFORM_ID, inject } from '@angular/core';
 export class AuthService {
   private readonly requestTimeoutMs = 20_000;
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly http = inject(HttpClient);
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -318,7 +322,21 @@ export class AuthService {
 
   async logout(): Promise<void> {
     if (isCognitoConfigured()) {
-      await signOut();
+      try {
+        const token = await this.getAccessToken();
+        if (token) {
+          await firstValueFrom(this.http.post(`${apiConfig.baseUrl}/auth/logout`, {}, {
+            headers: new HttpHeaders({ Authorization: `Bearer ${token}` }),
+          }));
+        }
+      } catch {
+        // The Cognito sign-out below still clears the browser session if the API is unavailable.
+      }
+      try {
+        await signOut({ global: true });
+      } catch {
+        await signOut();
+      }
     }
   }
 

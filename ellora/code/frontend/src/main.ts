@@ -5,4 +5,6 @@ import { configureCognito } from './app/config/cognito.config';
 
 configureCognito();
 bootstrapApplication(App, appConfig)
-  .catch((err) => console.error(err));
+  .catch(() => {
+    document.body.textContent = 'Không thể tải ứng dụng. Vui lòng thử lại.';
+  });

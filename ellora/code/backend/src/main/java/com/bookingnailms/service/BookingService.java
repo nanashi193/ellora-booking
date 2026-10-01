@@ -18,7 +18,6 @@ import com.bookingnailms.repository.EmployeeRepository;
 import com.bookingnailms.repository.NailServiceRepository;
 import com.bookingnailms.repository.SalonRepository;
 import com.bookingnailms.repository.UserRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +28,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.UUID;
 
-@Slf4j
 @Service
 public class BookingService {
 
@@ -141,8 +139,6 @@ public class BookingService {
 
         booking = bookingRepository.save(booking);
         bookingEmails.enqueue(booking, false);
-        log.info("Booking created: {} for customer: {}", booking.getId(), customer.getEmail());
-
         return mapToBookingResponse(booking);
     }
 
@@ -163,7 +159,6 @@ public class BookingService {
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setCancellationReason("Cancelled by customer");
         bookingRepository.save(booking);
-        log.info("Booking cancelled: {}", bookingId);
     }
 
     @Transactional(readOnly = true)
@@ -233,7 +228,6 @@ public class BookingService {
         }
 
         booking = bookingRepository.save(booking);
-        log.info("Booking {} status updated to: {}", bookingId, request.getStatus());
         if (booking.getStatus() == BookingStatus.CONFIRMED) bookingEmails.enqueue(booking, true);
 
         return mapToBookingResponse(booking);

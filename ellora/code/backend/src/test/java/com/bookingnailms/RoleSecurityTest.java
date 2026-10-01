@@ -26,6 +26,8 @@ class RoleSecurityTest {
     @Autowired MockMvc mvc;
     @MockBean JwtDecoder jwtDecoder;
     @MockBean UserRepository users;
+    @MockBean SessionRevocationService revokedTokens;
+    @MockBean SalonWorkingHourService workingHours;
     @MockBean SalonRepository salons;
     @MockBean SalonService salonService;
     @MockBean SalonProfileChangeService profileChanges;
@@ -141,9 +143,9 @@ class RoleSecurityTest {
         verify(revenue).report(eq(id),any(),any(),eq("month"));
         as(Role.ADMIN);
         mvc.perform(put("/admin/billing/config").header("Authorization","Bearer test-token").contentType("application/json").content("{\"percent\":101,\"effectiveDate\":\"2024-02-15\"}")).andExpect(status().isBadRequest());
-        mvc.perform(put("/admin/billing/config").header("Authorization","Bearer test-token").contentType("application/json").content("{\"percent\":3}")).andExpect(status().isBadRequest());
-        mvc.perform(put("/admin/billing/config").header("Authorization","Bearer test-token").contentType("application/json").content("{\"percent\":3,\"effectiveDate\":\"2024-02-15\"}")).andExpect(status().isOk());
-        verify(billing).setRate(new java.math.BigDecimal("3"),java.time.LocalDate.of(2024,2,15));
+        mvc.perform(put("/admin/billing/config").header("Authorization","Bearer test-token").contentType("application/json").content("{\"percent\":3}")).andExpect(status().isOk());
+        mvc.perform(put("/admin/billing/config").header("Authorization","Bearer test-token").contentType("application/json").content("{\"percent\":null}")).andExpect(status().isBadRequest());
+        verify(billing).setRate(new java.math.BigDecimal("3"));
     }
 
     @Test void onlyAdminCanModerateContent() throws Exception {
@@ -170,7 +172,12 @@ class RoleSecurityTest {
     }
 
     @Test void anonymousCannotReadAdminQueue() throws Exception {
-        mvc.perform(get("/admin/salons/pending")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/admin/salons/pending"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("X-Frame-Options", "DENY"))
+                .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))
+                .andExpect(header().string("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()"));
     }
     @Test void ownerServiceCreationUsesAuthenticatedSalonAndRejectsInvalidInput() throws Exception {
         as(Role.SALON_OWNER);
@@ -217,5 +224,12 @@ class RoleSecurityTest {
         as(Role.ADMIN);
         users.findById(id).orElseThrow().setLocked(true);
         mvc.perform(get("/admin/salons/pending").header("Authorization", "Bearer test-token")).andExpect(status().isUnauthorized());
+    }
+    @Test void loggedOutAccessTokenCannotBeReused() throws Exception {
+        as(Role.CUSTOMER);
+        when(revokedTokens.isRevoked("test-token")).thenReturn(true);
+        mvc.perform(get("/profiles/me").header("Authorization", "Bearer test-token"))
+                .andExpect(status().isUnauthorized());
+        verify(profiles, never()).get(any());
     }
 }

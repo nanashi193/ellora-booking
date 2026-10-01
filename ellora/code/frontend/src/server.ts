@@ -12,6 +12,45 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
+const extraConnectSources = (process.env['CSP_CONNECT_SRC'] ?? '')
+  .split(/\s+/)
+  .filter(Boolean);
+const connectSources = [
+  "'self'",
+  'https://cognito-idp.ap-southeast-2.amazonaws.com',
+  'https://cognito-identity.ap-southeast-2.amazonaws.com',
+  'https://*.auth.ap-southeast-2.amazoncognito.com',
+  ...(process.env['NODE_ENV'] === 'production'
+    ? ['https://ellora-naza.onrender.com']
+    : ['http://localhost:8080']),
+  ...extraConnectSources,
+].join(' ');
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self' https://ap-southeast-2iumerg77o.auth.ap-southeast-2.amazoncognito.com",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https://res.cloudinary.com https://picsum.photos https://i.pravatar.cc",
+  `connect-src ${connectSources}`,
+  ...(process.env['NODE_ENV'] === 'production' ? ['upgrade-insecure-requests'] : []),
+].join('; ');
+
+app.use((_req, res, next) => {
+  res.setHeader('Content-Security-Policy', contentSecurityPolicy);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  if (process.env['NODE_ENV'] === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
+
 /**
  * Example Express Rest API endpoints can be defined here.
  * Uncomment and define endpoints as necessary.

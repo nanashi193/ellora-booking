@@ -5,6 +5,7 @@ import com.bookingnailms.dto.auth.ConfirmForgotPasswordRequest;
 import com.bookingnailms.dto.auth.ForgotPasswordRequest;
 import com.bookingnailms.dto.common.ApiResponse;
 import com.bookingnailms.service.CognitoService;
+import com.bookingnailms.service.SessionRevocationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,6 +22,14 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final CognitoService cognitoService;
+    private final SessionRevocationService sessionRevocationService;
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@AuthenticationPrincipal Jwt jwt) {
+        sessionRevocationService.revoke(jwt.getTokenValue(), jwt.getExpiresAt());
+        cognitoService.globalSignOut(jwt.getTokenValue());
+        return ResponseEntity.ok(ApiResponse.success(null, "Đã đăng xuất."));
+    }
 
     // ──────────────────────────────────────────────────────────────────────────
     // POST /api/auth/forgot-password

@@ -12,7 +12,6 @@ import com.bookingnailms.exception.ResourceNotFoundException;
 import com.bookingnailms.repository.SalonRepository;
 import com.bookingnailms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,6 @@ import java.util.stream.Collectors;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SalonService {
@@ -59,8 +57,6 @@ public class SalonService {
                 .build();
 
         salon = salonRepository.save(salon);
-        log.info("Salon created: {} by owner: {}", salon.getName(), owner.getEmail());
-
         return mapToSalonResponse(salon);
     }
 

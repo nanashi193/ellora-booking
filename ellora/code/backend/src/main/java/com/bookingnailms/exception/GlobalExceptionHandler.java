@@ -17,7 +17,10 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
     public ResponseEntity<ApiResponse<Void>> handleStatus(org.springframework.web.server.ResponseStatusException ex) {
-        return ResponseEntity.status(ex.getStatusCode()).body(ApiResponse.error(ex.getReason()));
+        if (ex.getStatusCode().is5xxServerError()) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ApiResponse.error("Đã xảy ra lỗi hệ thống"));
+        }
+        return ResponseEntity.status(ex.getStatusCode()).body(ApiResponse.error("Yêu cầu không hợp lệ hoặc không thể xử lý."));
     }
 
     @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)

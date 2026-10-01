@@ -20,7 +20,7 @@ class OwnerDataTest {
         var salon = Salon.builder().id(42L).name("My salon").build();
         when(salons.findByOwnerId(owner)).thenReturn(Optional.of(salon));
         when(employees.save(any())).thenAnswer(i -> i.getArgument(0));
-        var result = new EmployeeService(employees, salons)
+        var result = new EmployeeService(employees, salons, mock(WorkingScheduleRepository.class))
                 .addEmployee(new EmployeeRequest("Test employee", "0901234567", "Nail artist"), owner);
         assertEquals("Test employee", result.getFullName());
         verify(employees).save(argThat(e -> e.getSalon() == salon && e.isActive()));
@@ -35,7 +35,7 @@ class OwnerDataTest {
         when(employees.findById(8L)).thenReturn(Optional.of(Employee.builder().salon(salon).build()));
         UUID other = UUID.randomUUID();
         var service = new NailServiceService(services, salons, mock(ServiceCategoryRepository.class));
-        var staff = new EmployeeService(employees, salons);
+        var staff = new EmployeeService(employees, salons, mock(WorkingScheduleRepository.class));
         assertThrows(UnauthorizedException.class, () -> service.updateService(7L, new ServiceRequest(), other));
         assertThrows(UnauthorizedException.class, () -> service.deleteService(7L, other));
         assertThrows(UnauthorizedException.class, () -> staff.updateEmployee(8L, new EmployeeRequest(), other));

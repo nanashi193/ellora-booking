@@ -12,7 +12,6 @@ import com.bookingnailms.repository.PaymentRepository;
 import com.bookingnailms.repository.SalonRepository;
 import com.bookingnailms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.UUID;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminService {
@@ -63,7 +61,6 @@ public class AdminService {
         userRepository.save(owner);
         salon.setStatus(SalonStatus.ACTIVE);
         salonRepository.save(salon);
-        log.info("Salon approved: {}", salon.getName());
     }
 
     @Transactional
@@ -77,7 +74,6 @@ public class AdminService {
 
         salon.setStatus(SalonStatus.REJECTED);
         salonRepository.save(salon);
-        log.info("Salon rejected: {}", salon.getName());
     }
 
     @Transactional
