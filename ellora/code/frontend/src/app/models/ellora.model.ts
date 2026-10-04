@@ -36,6 +36,7 @@ export interface Service {
   durationMinutes: number;
   price: number;
   categoryId?: string;
+  imageUrl?: string;
 }
 
 export interface Staff {
@@ -47,6 +48,8 @@ export interface Staff {
 }
 
 export interface Review {
+  salonReply?: string;
+  salonRepliedAt?: string;
   id: string;
   salonId: string;
   authorId: string;

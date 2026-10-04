@@ -46,6 +46,16 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 
 body {
   margin: 0;
@@ -54,7 +64,7 @@ body {
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 650ms;
+  animation-duration: 220ms;
   animation-timing-function: cubic-bezier(.76, 0, .24, 1);
   animation-fill-mode: both;
   backface-visibility: hidden;

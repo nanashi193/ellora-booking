@@ -15,6 +15,18 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<ApiResponse<Void>> handleStatus(org.springframework.web.server.ResponseStatusException ex) {
+        if (ex.getStatusCode().is5xxServerError()) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ApiResponse.error("Đã xảy ra lỗi hệ thống"));
+        }
+        return ResponseEntity.status(ex.getStatusCode()).body(ApiResponse.error("Yêu cầu không hợp lệ hoặc không thể xử lý."));
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleLargeUpload() {
+        return ResponseEntity.status(413).body(ApiResponse.error("Ảnh phải nhỏ hơn hoặc bằng 5 MB."));
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleResourceNotFound(ResourceNotFoundException ex) {
@@ -34,8 +46,8 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Email hoặc mật khẩu không chính xác"));
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException ex) {
+    @ExceptionHandler({AccessDeniedException.class, UnauthorizedException.class})
+    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ApiResponse.error("Bạn không có quyền truy cập chức năng này"));
     }

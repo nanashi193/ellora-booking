@@ -16,6 +16,8 @@ public class BookingResponse {
     private Long id;
     private Long salonId;
     private String salonName;
+    private String salonLogoUrl;
+    private String customerName;
     private Long serviceId;
     private String serviceName;
     private java.math.BigDecimal servicePrice;
@@ -24,6 +26,8 @@ public class BookingResponse {
     private LocalDateTime scheduledAt;
     private Integer durationMinutes;
     private BookingStatus status;
+    private boolean reviewed;
+    private Integer reviewRating;
     private String customerNote;
     private String salonNote;
     private String cancellationReason;

@@ -8,6 +8,8 @@ export interface Profile {
   id: string;
   email: string;
   fullName: string;
+  phone?: string;
+  avatarUrl?: string | null;
   role: 'CUSTOMER' | 'SALON_OWNER' | 'ADMIN';
 }
 
@@ -42,5 +44,14 @@ export class ProfileApiService {
     );
 
     return response.data;
+  }
+
+  async update(data: { fullName: string; phone: string }): Promise<Profile> {
+    return (await firstValueFrom(this.http.put<ApiResponse<Profile>>(`${apiConfig.baseUrl}/profiles/me`, data))).data;
+  }
+
+  async uploadAvatar(file: File): Promise<Profile> {
+    const data = new FormData(); data.append('file', file);
+    return (await firstValueFrom(this.http.post<ApiResponse<Profile>>(`${apiConfig.baseUrl}/profiles/me/avatar`, data))).data;
   }
 }

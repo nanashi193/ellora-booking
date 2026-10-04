@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { LoginRequest } from '../../../models/auth.model';
 import { AuthService } from '../../../services/auth.service';
 import { ProfileApiService } from '../../../services/profile-api.service';
+import { roleHome } from '../../../guards/role.guard';
 
 @Component({
   selector: 'app-login',
@@ -56,9 +57,9 @@ export class LoginComponent implements OnInit {
         return;
       }
 
-      await this.profileApiService.syncCurrentUser();
+      const profile = await this.profileApiService.syncCurrentUser();
       this.isSuccess = true;
-      await this.router.navigateByUrl('/');
+      await this.router.navigateByUrl(roleHome(profile.role));
     } catch {
       this.showAlert = true;
       this.alertMessage = 'Đã đăng nhập Google nhưng không kết nối được backend.';
@@ -225,9 +226,9 @@ export class LoginComponent implements OnInit {
   }
 
   private async completeLogin(): Promise<void> {
-    await this.profileApiService.syncCurrentUser();
+    const profile = await this.profileApiService.syncCurrentUser();
     this.isSuccess = true;
-    await this.router.navigateByUrl('/');
+    await this.router.navigateByUrl(roleHome(profile.role));
   }
 
   private startResendCooldown(): void {

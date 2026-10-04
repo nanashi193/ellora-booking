@@ -10,12 +10,12 @@ import {
   signInWithRedirect,
   signOut,
   signUp,
+  updatePassword,
 } from 'aws-amplify/auth';
-import { cognitoUserPoolsTokenProvider } from 'aws-amplify/auth/cognito';
-import { defaultStorage, sessionStorage } from 'aws-amplify/utils';
 import {
   isCognitoConfigured,
   isGoogleSignInConfigured,
+  selectAuthStorage,
 } from '../config/cognito.config';
 import {
   LoginRequest,
@@ -25,6 +25,9 @@ import {
 } from '../models/auth.model';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { apiConfig } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root',
@@ -32,6 +35,7 @@ import { PLATFORM_ID, inject } from '@angular/core';
 export class AuthService {
   private readonly requestTimeoutMs = 20_000;
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly http = inject(HttpClient);
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -40,7 +44,7 @@ export class AuthService {
           key.startsWith('CognitoIdentityServiceProvider')
         );
         if (hasSessionTokens) {
-          cognitoUserPoolsTokenProvider.setKeyValueStorage(sessionStorage);
+          selectAuthStorage(false);
         }
       } catch (e) {
         // Ignore errors (e.g. if sessionStorage is disabled or blocked)
@@ -54,9 +58,7 @@ export class AuthService {
     }
 
     try {
-      cognitoUserPoolsTokenProvider.setKeyValueStorage(
-        credentials.remember ? defaultStorage : sessionStorage,
-      );
+      selectAuthStorage(credentials.remember);
 
       if (await this.isAuthenticated()) {
         return { success: true };
@@ -103,6 +105,7 @@ export class AuthService {
     }
 
     try {
+      selectAuthStorage(true);
       await signInWithRedirect({ provider: 'Google' });
       return { success: true };
     } catch (error) {
@@ -289,6 +292,17 @@ export class AuthService {
     if (!isPlatformBrowser(this.platformId)) {
       return { email: '', name: '' };
     }
+    const session = await fetchAuthSession();
+    const scope = session.tokens?.accessToken.payload['scope'];
+    if (typeof scope === 'string' && !scope.split(' ').includes('aws.cognito.signin.user.admin')) {
+      const claims = session.tokens?.idToken?.payload;
+      if (typeof claims?.['email'] !== 'string') throw new Error('Không nhận được email từ phiên đăng nhập.');
+      return {
+        email: claims['email'],
+        name: typeof claims['name'] === 'string' ? claims['name'] : claims['email'],
+        phone_number: typeof claims['phone_number'] === 'string' ? claims['phone_number'] : undefined,
+      };
+    }
     const attributes = await fetchUserAttributes();
     return {
       email: attributes.email ?? '',
@@ -297,9 +311,32 @@ export class AuthService {
     };
   }
 
+  async changePassword(oldPassword: string, newPassword: string): Promise<LoginResult> {
+    try {
+      await updatePassword({ oldPassword, newPassword });
+      return { success: true, message: 'Đổi mật khẩu thành công.' };
+    } catch (error) {
+      return { success: false, message: this.getErrorMessage(error) };
+    }
+  }
+
   async logout(): Promise<void> {
     if (isCognitoConfigured()) {
-      await signOut();
+      try {
+        const token = await this.getAccessToken();
+        if (token) {
+          await firstValueFrom(this.http.post(`${apiConfig.baseUrl}/auth/logout`, {}, {
+            headers: new HttpHeaders({ Authorization: `Bearer ${token}` }),
+          }));
+        }
+      } catch {
+        // The Cognito sign-out below still clears the browser session if the API is unavailable.
+      }
+      try {
+        await signOut({ global: true });
+      } catch {
+        await signOut();
+      }
     }
   }
 

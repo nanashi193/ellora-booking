@@ -9,11 +9,9 @@ import com.bookingnailms.entity.User;
 import com.bookingnailms.enums.SalonStatus;
 import com.bookingnailms.exception.BadRequestException;
 import com.bookingnailms.exception.ResourceNotFoundException;
-import com.bookingnailms.exception.UnauthorizedException;
 import com.bookingnailms.repository.SalonRepository;
 import com.bookingnailms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,7 +22,6 @@ import java.util.stream.Collectors;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SalonService {
@@ -34,8 +31,12 @@ public class SalonService {
 
     @Transactional
     public SalonResponse createSalon(SalonRequest request, UUID ownerId) {
-        User owner = userRepository.findById(ownerId)
+        User owner = userRepository.findForUpdateById(ownerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", ownerId));
+
+        if (owner.getRole() != com.bookingnailms.enums.Role.CUSTOMER || !owner.isEnabled() || owner.isLocked()) {
+            throw new org.springframework.security.access.AccessDeniedException("Account cannot register a salon");
+        }
 
         if (salonRepository.existsByOwnerId(ownerId)) {
             throw new BadRequestException("You already have a salon registered");
@@ -56,31 +57,6 @@ public class SalonService {
                 .build();
 
         salon = salonRepository.save(salon);
-        log.info("Salon created: {} by owner: {}", salon.getName(), owner.getEmail());
-
-        return mapToSalonResponse(salon);
-    }
-
-    @Transactional
-    public SalonResponse updateSalon(Long salonId, SalonRequest request, UUID ownerId) {
-        Salon salon = salonRepository.findById(salonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Salon", "id", salonId));
-
-        if (!salon.getOwner().getId().equals(ownerId)) {
-            throw new UnauthorizedException("You are not the owner of this salon");
-        }
-
-        salon.setName(request.getName());
-        salon.setDescription(request.getDescription());
-        salon.setAddress(request.getAddress());
-        salon.setCity(request.getCity());
-        salon.setDistrict(request.getDistrict());
-        salon.setPhone(request.getPhone());
-        salon.setEmail(request.getEmail());
-
-        salon = salonRepository.save(salon);
-        log.info("Salon updated: {}", salon.getName());
-
         return mapToSalonResponse(salon);
     }
 
@@ -96,8 +72,7 @@ public class SalonService {
         Page<Salon> salonsPage;
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            salonsPage = salonRepository.findByNameContainingIgnoreCaseAndStatus(
-                    keyword.trim(), SalonStatus.ACTIVE, pageable);
+            salonsPage = salonRepository.searchActive(keyword.trim(), pageable);
         } else {
             salonsPage = salonRepository.findByStatus(SalonStatus.ACTIVE, pageable);
         }
@@ -127,7 +102,7 @@ public class SalonService {
                 .phone(salon.getPhone())
                 .email(salon.getEmail())
                 .logoUrl(salon.getLogoUrl())
-                .imageUrls(salon.getImageUrls())
+                .imageUrls(new java.util.ArrayList<>(salon.getImageUrls()))
                 .status(salon.getStatus())
                 .latitude(salon.getLatitude())
                 .longitude(salon.getLongitude())

@@ -1,5 +1,8 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { OwnerApiService, OwnerService, ownerError } from '../../../services/owner-api.service';
+import { PhotoUpload } from '../../../shared/components/photo-upload.component';
 
 export interface ServiceItem {
   id: number;
@@ -15,50 +18,57 @@ export interface ServiceItem {
 @Component({
   selector: 'app-service-management',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, PhotoUpload],
   templateUrl: './service-management.component.html',
   styleUrl: './service-management.component.scss'
 })
-export class ServiceManagement {
+export class ServiceManagement implements OnInit {
+  private readonly api = inject(OwnerApiService);
+  readonly rawServices = signal<OwnerService[]>([]);
+  readonly activeCount = computed(() => this.rawServices().filter(item => item.active).length);
+  readonly averagePrice = computed(() => this.rawServices().length ? `${Math.round(this.rawServices().reduce((sum, item) => sum + item.price, 0) / this.rawServices().length).toLocaleString('vi-VN')}đ` : '—');
+  readonly error = signal('');
+  readonly editorOpen = signal(false);
+  editingId: number | null = null;
+  draft: { name: string; description: string; price: number; durationMinutes: number; categoryId: number | null } = { name: '', description: '', price: 0, durationMinutes: 30, categoryId: null };
+
+  ngOnInit(): void { void this.load(); }
+  async load(): Promise<void> {
+    try {
+      const data = await this.api.services();
+      this.rawServices.set(data);
+      this.allServices.set(data.map(service => ({
+        id: service.id, name: service.name, category: 'all', categoryLabel: 'DỊCH VỤ',
+        duration: `${service.durationMinutes} Phút`, price: `${service.price.toLocaleString('vi-VN')}đ`,
+        status: service.active ? 'active' : 'inactive', iconType: 'nails'
+      })));
+      this.error.set('');
+    } catch (error) { this.error.set(ownerError(error)); }
+  }
+  edit(service?: OwnerService): void {
+    this.editingId = service?.id ?? null;
+    this.draft = { name: service?.name ?? '', description: service?.description ?? '', price: service?.price ?? 0, durationMinutes: service?.durationMinutes ?? 30, categoryId: service?.categoryId ?? null };
+    this.editorOpen.set(true);
+  }
+  async save(): Promise<void> {
+    if (this.draft.name.trim().length < 2 || this.draft.description.length > 1000 || this.draft.price <= 0 || this.draft.durationMinutes <= 0) { this.error.set('Vui lòng kiểm tra tên, mô tả, giá và thời lượng dịch vụ.'); return; }
+    try { await this.api.saveService(this.draft, this.editingId ?? undefined); this.editorOpen.set(false); await this.load(); }
+    catch (error) { this.error.set(ownerError(error)); }
+  }
+  async remove(id: number): Promise<void> {
+    if (!confirm('Xóa dịch vụ này?')) return;
+    try { await this.api.remove('services', id); await this.load(); }
+    catch (error) { this.error.set(ownerError(error)); }
+  }
   
   // Categories
   categories = signal([
-    { id: 'all', name: 'Tất cả' },
-    { id: 'nails', name: 'Làm móng (Nails)' },
-    { id: 'spa', name: 'Chăm sóc da (Spa)' },
-    { id: 'eyelash', name: 'Nối mi (Eyelash)' },
-    { id: 'makeup', name: 'Trang điểm (Makeup)' }
+    { id: 'all', name: 'Tất cả' }
   ]);
   
   selectedCategory = signal<string>('all');
 
-  // Mock Data
-  allServices = signal<ServiceItem[]>([
-    { id: 1, name: 'Sơn Gel Cao Cấp', category: 'nails', categoryLabel: 'NAILS', duration: '45 Phút', price: '350.000đ', status: 'active', iconType: 'nails' },
-    { id: 2, name: 'Vẽ Móng Nghệ Thuật', category: 'nails', categoryLabel: 'ART', duration: '15+ Phút', price: 'Từ 50.000đ', status: 'active', iconType: 'art' },
-    { id: 3, name: 'Massage Tay & Tẩy Tế Bào', category: 'spa', categoryLabel: 'SPA', duration: '25 Phút', price: '200.000đ', status: 'active', iconType: 'spa' },
-    { id: 4, name: 'Đắp Móng Bột Tự Nhiên', category: 'nails', categoryLabel: 'NAILS', duration: '60 Phút', price: '450.000đ', status: 'active', iconType: 'nails' },
-    { id: 5, name: 'Phủ Bóng Hàn Quốc', category: 'nails', categoryLabel: 'NAILS', duration: '30 Phút', price: '250.000đ', status: 'active', iconType: 'nails' },
-    { id: 6, name: 'Chăm Sóc Da Mặt Chuyên Sâu', category: 'spa', categoryLabel: 'SPA', duration: '90 Phút', price: '650.000đ', status: 'active', iconType: 'spa' },
-    { id: 7, name: 'Nối Mi Classic', category: 'eyelash', categoryLabel: 'LASH', duration: '60 Phút', price: '300.000đ', status: 'active', iconType: 'eyelash' },
-    { id: 8, name: 'Nối Mi Volume', category: 'eyelash', categoryLabel: 'LASH', duration: '90 Phút', price: '450.000đ', status: 'active', iconType: 'eyelash' },
-    { id: 9, name: 'Trang Điểm Cô Dâu', category: 'makeup', categoryLabel: 'MAKEUP', duration: '120 Phút', price: '1.500.000đ', status: 'active', iconType: 'makeup' },
-    { id: 10, name: 'Trang Điểm Dự Tiệc', category: 'makeup', categoryLabel: 'MAKEUP', duration: '60 Phút', price: '500.000đ', status: 'active', iconType: 'makeup' },
-    { id: 11, name: 'Tháo Móng Bột', category: 'nails', categoryLabel: 'NAILS', duration: '30 Phút', price: '100.000đ', status: 'active', iconType: 'nails' },
-    { id: 12, name: 'Gội Đầu Dưỡng Sinh', category: 'spa', categoryLabel: 'SPA', duration: '45 Phút', price: '150.000đ', status: 'active', iconType: 'spa' },
-    { id: 13, name: 'Đắp Mặt Nạ Vàng', category: 'spa', categoryLabel: 'SPA', duration: '30 Phút', price: '200.000đ', status: 'active', iconType: 'spa' },
-    { id: 14, name: 'Uốn Mi Phủ Collagen', category: 'eyelash', categoryLabel: 'LASH', duration: '45 Phút', price: '250.000đ', status: 'active', iconType: 'eyelash' },
-    { id: 15, name: 'Sơn Thạch', category: 'nails', categoryLabel: 'NAILS', duration: '45 Phút', price: '250.000đ', status: 'active', iconType: 'nails' },
-    { id: 16, name: 'Nối Móng Úp', category: 'nails', categoryLabel: 'NAILS', duration: '60 Phút', price: '300.000đ', status: 'active', iconType: 'nails' },
-    { id: 17, name: 'Massage Chân Ấn Huyệt', category: 'spa', categoryLabel: 'SPA', duration: '45 Phút', price: '300.000đ', status: 'inactive', iconType: 'spa' },
-    { id: 18, name: 'Đính Đá Swarovski', category: 'nails', categoryLabel: 'ART', duration: '20 Phút', price: 'Từ 100.000đ', status: 'active', iconType: 'art' },
-    { id: 19, name: 'Vẽ Gel Nổi 3D', category: 'nails', categoryLabel: 'ART', duration: '30 Phút', price: 'Từ 150.000đ', status: 'active', iconType: 'art' },
-    { id: 20, name: 'Trang Điểm Cá Nhân', category: 'makeup', categoryLabel: 'MAKEUP', duration: '45 Phút', price: '350.000đ', status: 'active', iconType: 'makeup' },
-    { id: 21, name: 'Tẩy Tế Bào Chết Toàn Thân', category: 'spa', categoryLabel: 'SPA', duration: '60 Phút', price: '450.000đ', status: 'active', iconType: 'spa' },
-    { id: 22, name: 'Lấy Khóe Móng', category: 'nails', categoryLabel: 'NAILS', duration: '15 Phút', price: '50.000đ', status: 'inactive', iconType: 'nails' },
-    { id: 23, name: 'Nối Mi Thiết Kế', category: 'eyelash', categoryLabel: 'LASH', duration: '90 Phút', price: '500.000đ', status: 'active', iconType: 'eyelash' },
-    { id: 24, name: 'Sơn Móng Thường', category: 'nails', categoryLabel: 'NAILS', duration: '30 Phút', price: '100.000đ', status: 'active', iconType: 'nails' },
-  ]);
+  allServices = signal<ServiceItem[]>([]);
 
   // Pagination State
   pageSize = signal<number>(5);

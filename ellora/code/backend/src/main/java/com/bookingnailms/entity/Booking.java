@@ -45,6 +45,16 @@ public class Booking {
     @Column(nullable = false)
     private Integer durationMinutes;
 
+    @Column(precision = 15, scale = 0)
+    private java.math.BigDecimal servicePriceSnapshot;
+
+
+
+    private LocalDateTime completedAt;
+
+    @Builder.Default
+    private boolean revenueEstimated = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

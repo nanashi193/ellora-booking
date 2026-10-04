@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
+import { roleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -24,11 +25,12 @@ export const routes: Routes = [
       },
       {
         path: 'booking',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/booking/booking.component').then(m => m.BookingComponent)
       },
       {
         path: 'setting',
-        // canActivate: [authGuard], // Tạm thời comment để test giao diện
+        canActivate: [authGuard],
         loadComponent: () => import('./features/customer/setting-layout/setting-layout.component').then(m => m.SettingLayoutComponent),
         children: [
           {
@@ -50,15 +52,58 @@ export const routes: Routes = [
           }
         ]
       },
+      {
+        path: 'business-registration',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/business-registration/business-registration.component').then(m => m.BusinessRegistrationComponent)
+      },
+      {
+        path: 'admin/dashboard', canActivate: [roleGuard], data: { role: 'ADMIN' },
+        loadComponent: () => import('./features/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent)
+      },
+      {
+        path: 'admin/users', canActivate: [roleGuard], data: { role: 'ADMIN' },
+        loadComponent: () => import('./features/admin-users/admin-users.component').then(m => m.AdminUsersComponent)
+      },
+      {
+        path: 'admin/content', canActivate: [roleGuard], data: { role: 'ADMIN' },
+        loadComponent: () => import('./features/admin-content/admin-content.component').then(m => m.AdminContentComponent)
+      },
+      {
+        path: 'admin/billing', canActivate: [roleGuard], data: { role: 'ADMIN' },
+        loadComponent: () => import('./features/admin-content/billing.component').then(m => m.AdminBillingComponent)
+      },
+      {
+        path: 'admin/approvals',
+        canActivate: [roleGuard],
+        data: { role: 'ADMIN' },
+        loadComponent: () => import('./features/admin-approvals/admin-approvals.component').then(m => m.AdminApprovalsComponent)
+      },
     ]
   },
   {
     path: 'owner',
+    canActivate: [roleGuard],
+    canActivateChild: [roleGuard],
+    data: { role: 'SALON_OWNER' },
     loadComponent: () => import('./layouts/owner-layout/owner-layout').then(m => m.OwnerLayout),
     children: [
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      {
+        path: 'profile',
+        loadComponent: () => import('./features/owner/salon-profile/salon-profile.component').then(m => m.SalonProfileComponent)
+      },
       {
         path: 'dashboard',
         loadComponent: () => import('./features/owner/dashboard/dashboard.component').then(m => m.Dashboard)
+      },
+      {
+        path: 'analytics',
+        loadComponent: () => import('./features/owner/dashboard/analytics-page.component').then(m => m.OwnerAnalyticsPage)
+      },
+      {
+        path: 'billing',
+        loadComponent: () => import('./features/owner/dashboard/billing-page.component').then(m => m.OwnerBillingPage)
       },
       {
         path: 'services',

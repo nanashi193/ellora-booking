@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Directive,
   ElementRef,
   HostBinding,
@@ -17,6 +18,7 @@ type RevealVariant = 'fade-up' | 'fade' | 'image' | 'dashboard';
   standalone: true,
 })
 export class RevealOnScrollDirective implements OnInit, OnDestroy {
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
   private readonly platformId = inject(PLATFORM_ID);
   private observer?: IntersectionObserver;
@@ -124,8 +126,10 @@ export class RevealOnScrollDirective implements OnInit, OnDestroy {
 
   private enter(): void {
     this.hasEntered = true;
+    this.changeDetectorRef.markForCheck();
     this.releaseTimer = setTimeout(() => {
       this.hasReleasedStyles = true;
+      this.changeDetectorRef.markForCheck();
     }, this.revealDelay + this.revealDuration + 80);
   }
 

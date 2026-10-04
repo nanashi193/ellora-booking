@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostBinding, HostListener, inject, OnInit, PLATFORM_ID, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, HostListener, inject, OnInit, OnDestroy, PLATFORM_ID, ChangeDetectorRef, ViewChild, NgZone } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -10,15 +10,18 @@ import { AuthService } from '../../../services/auth.service';
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
-export class Header implements OnInit {
+export class Header implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly elementRef = inject(ElementRef);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly zone = inject(NgZone);
 
-  private lastScrollTop = 0;
-  private scrollThreshold = 10;
+  private readonly handleScroll = () => {
+    const atTop = window.scrollY <= 20;
+    if (this.isAtTop !== atTop) this.zone.run(() => { this.isAtTop = atTop; });
+  };
   isAtTop = true;
 
   isAuthChecking = true;
@@ -44,15 +47,13 @@ export class Header implements OnInit {
       this.isAuthChecking = false;
       return;
     }
+    this.zone.runOutsideAngular(() => window.addEventListener('scroll', this.handleScroll, { passive: true }));
     await this.checkAuthState();
   }
 
-  @HostListener('window:scroll')
-  onWindowScroll(): void {
-    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-    this.isAtTop = currentScroll <= 20;
-    this.isHidden = false;
-    this.lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId)) window.removeEventListener('scroll', this.handleScroll);
+    clearTimeout(this.comingSoonTimer);
   }
 
   get isHomePage(): boolean {

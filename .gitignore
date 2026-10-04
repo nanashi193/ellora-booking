@@ -1,3 +1,8 @@
+# Keep this parent checkout scoped to the Ellora project.
+/*
+!/ellora/
+!/.gitignore
+
 # =========================
 # General
 # =========================

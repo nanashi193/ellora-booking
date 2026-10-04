@@ -20,7 +20,7 @@
           <svg class="w-5 h-5 text-brand-darker/40 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
-          <input type="text" placeholder="Tên tiệm" class="w-full bg-transparent focus:outline-none text-brand-darker placeholder:text-brand-darker/50 font-medium text-sm" />
+          <input type="text" placeholder="Tên tiệm" class="w-full bg-transparent focus:outline-none text-brand-darker placeholder:text-brand-darker/50 font-medium text-sm" [value]="searchKeyword()" (input)="searchKeyword.set($any($event.target).value)" />
         </div>
         <!-- Location -->
         <div class="flex-1 w-full flex items-center gap-3 px-5 py-3 border-b sm:border-b-0 sm:border-r border-brand-darker/10">
@@ -28,17 +28,17 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <input type="text" placeholder="Địa điểm" class="w-full bg-transparent focus:outline-none text-brand-darker placeholder:text-brand-darker/50 font-medium text-sm" />
+          <input type="text" placeholder="Địa điểm" title="Bộ lọc địa điểm chưa khả dụng" disabled class="w-full bg-transparent focus:outline-none text-brand-darker placeholder:text-brand-darker/50 font-medium text-sm" />
         </div>
         <!-- Date & Time -->
         <div class="flex-1 w-full flex items-center gap-3 px-6 py-3 border-b sm:border-b-0 sm:border-r border-brand-darker/10">
           <svg class="w-5 h-5 text-brand-darker/40 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <input type="text" placeholder="Thời gian" class="w-full bg-transparent focus:outline-none text-brand-darker placeholder:text-brand-darker/60 font-medium text-sm" />
+          <input type="text" placeholder="Thời gian" title="Bộ lọc thời gian chưa khả dụng" disabled class="w-full bg-transparent focus:outline-none text-brand-darker placeholder:text-brand-darker/60 font-medium text-sm" />
         </div>
         <!-- Search Button -->
-        <button routerLink="/search" class="w-full sm:w-auto bg-brand hover:bg-brand-dark text-white font-bold px-8 py-3 rounded-full transition-colors shrink-0 flex items-center justify-center gap-2 text-sm">
+        <button routerLink="/search" [queryParams]="{ keyword: searchKeyword() }" class="w-full sm:w-auto bg-brand hover:bg-brand-dark text-white font-bold px-8 py-3 rounded-full transition-colors shrink-0 flex items-center justify-center gap-2 text-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -50,12 +50,7 @@
       <div class="flex items-center gap-2 mt-4">
         <div class="online-dot"></div>
         <p class="text-brand-darker/60 text-base md:text-lg font-medium">
-          <span class="trust-counter text-brand-darker font-bold" [attr.aria-label]="bookingCount()">
-            @for (digit of bookingDigits(); track $index; let isLast = $last) {
-              <span class="trust-counter__digit" [class.trust-counter__digit--bump]="isLast && bookingCounterBump()">{{ digit }}</span>
-            }
-          </span>
-          cuộc hẹn đã được đặt hôm nay
+          Chưa có số liệu cuộc hẹn hôm nay
         </p>
       </div>
 
@@ -64,6 +59,7 @@
 
 
   <div class="home-below-surface">
+    @if (salonError()) { <p role="alert" class="text-center text-red-700 py-4">{{ salonError() }}</p> }
     <!-- Featured Salons Section -->
     <app-salon-carousel title="Các Salon gần bạn" viewAllLink="/search" [salons]="salons()" [animateHeader]="false" [animateCards]="false"></app-salon-carousel>
     <app-salon-carousel title="Top Salon" viewAllLink="/search" [salons]="topSalons()"></app-salon-carousel>
@@ -153,7 +149,7 @@
             </li>
           </ul>
           
-          <button class="mt-4 bg-brand hover:bg-brand-dark text-brand-darker text-sm font-medium px-6 py-2.5 rounded-full transition-colors flex items-center gap-2" appRevealOnScroll="fade" [revealDelay]="780">
+          <button routerLink="/business-registration" class="mt-4 bg-brand hover:bg-brand-dark text-brand-darker text-sm font-medium px-6 py-2.5 rounded-full transition-colors flex items-center gap-2" appRevealOnScroll="fade" [revealDelay]="780">
             Tham gia với tư cách Đối tác
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="2" stroke-width="1.5"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" stroke-width="1.5"/></svg>
           </button>

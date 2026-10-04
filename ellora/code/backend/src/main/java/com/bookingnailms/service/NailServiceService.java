@@ -11,7 +11,6 @@ import com.bookingnailms.repository.NailServiceRepository;
 import com.bookingnailms.repository.SalonRepository;
 import com.bookingnailms.repository.ServiceCategoryRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +18,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.UUID;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NailServiceService {
@@ -50,8 +48,6 @@ public class NailServiceService {
                 .build();
 
         nailService = nailServiceRepository.save(nailService);
-        log.info("Service added: {} to salon: {}", nailService.getName(), salon.getName());
-
         return mapToServiceResponse(nailService);
     }
 
@@ -78,8 +74,6 @@ public class NailServiceService {
         nailService.setCategory(category);
 
         nailService = nailServiceRepository.save(nailService);
-        log.info("Service updated: {}", nailService.getName());
-
         return mapToServiceResponse(nailService);
     }
 
@@ -94,7 +88,6 @@ public class NailServiceService {
 
         nailService.setActive(false);
         nailServiceRepository.save(nailService);
-        log.info("Service soft-deleted: {}", nailService.getName());
     }
 
     @Transactional(readOnly = true)
@@ -117,6 +110,7 @@ public class NailServiceService {
                 .durationMinutes(nailService.getDurationMinutes())
                 .imageUrl(nailService.getImageUrl())
                 .categoryName(nailService.getCategory() != null ? nailService.getCategory().getName() : null)
+                .categoryId(nailService.getCategory() != null ? nailService.getCategory().getId() : null)
                 .active(nailService.isActive())
                 .build();
     }

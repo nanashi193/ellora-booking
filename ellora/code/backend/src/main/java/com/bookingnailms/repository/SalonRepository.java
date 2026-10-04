@@ -14,8 +14,13 @@ import java.util.UUID;
 
 @Repository
 public interface SalonRepository extends JpaRepository<Salon, Long> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from Salon s where s.id = :id")
+    Optional<Salon> findForUpdateById(@Param("id") Long id);
 
     Page<Salon> findByStatus(SalonStatus status, Pageable pageable);
+
+    long countByStatus(SalonStatus status);
 
     Optional<Salon> findByOwnerId(UUID ownerId);
 

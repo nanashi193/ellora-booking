@@ -20,5 +20,6 @@ public class ServiceResponse {
     private Integer durationMinutes;
     private String imageUrl;
     private String categoryName;
+    private Long categoryId;
     private boolean active;
 }
